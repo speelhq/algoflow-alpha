@@ -1,4 +1,5 @@
-// U-22, U-25, U-30..U-33, U-38: the chart, its Input nodes, zoom, path bar, and the solution.
+// U-22, U-25, U-30, U-31, U-32, U-33, U-38: the chart, its Input nodes, zoom, path bar, and the
+// solution.
 import { expect, test } from "@playwright/test";
 import { seedProgram, seedProgress, solutionOf } from "./seed";
 

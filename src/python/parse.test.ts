@@ -1,4 +1,4 @@
-// G-01..G-05 and G-06.
+// G-01, G-02, G-03, G-04, G-05 and G-06.
 import { describe, expect, it } from "vitest";
 import type { Expr } from "@/lang/types";
 import { NODES } from "@/nodes";

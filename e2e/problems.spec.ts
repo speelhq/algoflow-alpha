@@ -1,4 +1,5 @@
-// U-01, U-02, U-04, U-06, U-07, U-10..U-14, U-90: routes, the Problems page, Help, first launch.
+// U-01, U-02, U-04, U-06, U-07, U-10, U-12, U-13, U-14, U-90: routes, the Problems page, Help,
+// first launch.
 import { expect, test } from "@playwright/test";
 import { seedProgress } from "./seed";
 
@@ -26,7 +27,7 @@ test.describe("first launch (U-90)", () => {
   });
 });
 
-test.describe("Problems page (U-10..U-14)", () => {
+test.describe("Problems page (U-10, U-12, U-13, U-14)", () => {
   test("shows the plan with its count, Continue, marks, difficulty, and topics", async ({
     page,
   }) => {

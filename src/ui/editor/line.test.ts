@@ -1,4 +1,4 @@
-// U-50, U-52..U-54, U-93: the value line as keys and choices change it.
+// U-50, U-52, U-53, U-54, U-93: the value line as keys and choices change it.
 import { describe, expect, it } from "vitest";
 import type { Expr, Kind } from "@/lang/types";
 import { ast } from "@/nodes/testing";

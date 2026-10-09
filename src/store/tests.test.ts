@@ -15,7 +15,7 @@ const fizzbuzz = () => {
   return challenge;
 };
 
-describe("tests store (U-80, C-10..C-12)", () => {
+describe("tests store (U-80, C-10, C-11, C-12)", () => {
   beforeEach(() => {
     useRun.getState().stop();
     useTests.getState().reset();
