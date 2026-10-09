@@ -4,7 +4,7 @@ import { ast, evalExpr, program, runAll, varData } from "./testing";
 
 const { call, num, float, assign, for_, v } = ast;
 
-describe("builtin random_int (03-nodes)", () => {
+describe("builtin random_int (nodes.md)", () => {
   it("N-03 / N-05: emits `random.randint(<a>, <b>)` and adds `import random`", () => {
     expect(unparse(call("random_int", num(1), num(6)))).toBe("random.randint(1, 6)");
     expect(emit(program([assign("d", call("random_int", num(1), num(6)))])).code).toBe(

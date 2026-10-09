@@ -5,7 +5,7 @@ import { ast, program, runAll, varData } from "./testing";
 
 const { call, num, bin, v, assign, ret, for_, if_ } = ast;
 
-describe("return (03-nodes)", () => {
+describe("return (nodes.md)", () => {
   it("N-03: emits `return <value>` or `return`", () => {
     const fn: FunctionDef = {
       id: "f0000000000f",

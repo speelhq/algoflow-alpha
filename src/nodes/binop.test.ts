@@ -4,7 +4,7 @@ import { ast, evalExpr } from "./testing";
 
 const { num, float, str, bin, v, neg, bool } = ast;
 
-describe("binop (03-nodes)", () => {
+describe("binop (nodes.md)", () => {
   it("N-03 / E-05: infix with parentheses only where precedence requires", () => {
     expect(unparse(bin("+", v("a"), bin("*", v("b"), v("c"))))).toBe("a + b * c");
     expect(unparse(bin("*", bin("+", v("a"), v("b")), v("c")))).toBe("(a + b) * c");

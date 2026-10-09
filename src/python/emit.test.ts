@@ -11,7 +11,7 @@ const CR = String.fromCharCode(13);
 const SOH = String.fromCharCode(1);
 const DEL = String.fromCharCode(127);
 
-describe("emit (04-runtime)", () => {
+describe("emit (emitter.md)", () => {
   it("E-01: 1-based inclusive lines; a frame maps to its header; else: is unmapped", () => {
     const inner = assign("x", num(1));
     const frame = if_(bin("<", v("a"), v("b")), [inner], [assign("x", num(2))]);

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { unparse } from "@/python/emit";
 import { ast, evalExpr } from "./testing";
 
-describe("var (03-nodes)", () => {
+describe("var (nodes.md)", () => {
   it("N-03: emits the name", () => {
     expect(unparse(ast.v("total"))).toBe("total");
   });

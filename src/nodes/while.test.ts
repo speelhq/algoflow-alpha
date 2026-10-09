@@ -7,7 +7,7 @@ const { while_, assign, num, bin, v, brk, bool } = ast;
 const lines = (main: Parameters<typeof program>[0]) =>
   emit(program(main)).code.trimEnd().split("\n");
 
-describe("while (03-nodes)", () => {
+describe("while (nodes.md)", () => {
   it("N-03: emits `while <cond>:`", () => {
     expect(
       lines([while_(bin(">", v("k"), num(0)), [assign("k", bin("-", v("k"), num(1)))])]),

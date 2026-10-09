@@ -5,7 +5,7 @@ import { ast, eventTypes, program, runAll } from "./testing";
 
 const { exprStmt, call, num, bin } = ast;
 
-describe("expr (03-nodes)", () => {
+describe("expr (nodes.md)", () => {
   it("N-01, N-04: is hidden from the block menu", () => {
     expect(getNode("expr").hidden).toBe(true);
   });

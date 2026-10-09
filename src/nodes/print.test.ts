@@ -6,7 +6,7 @@ const { print, num, float, str, bool, none, bin, v } = ast;
 const lines = (main: Parameters<typeof program>[0]) =>
   emit(program(main)).code.trimEnd().split("\n");
 
-describe("print (03-nodes)", () => {
+describe("print (nodes.md)", () => {
   it("N-03: emits `print(<a>, <b>)`", () => {
     expect(lines([print(str("Hello, "), v("name"))])).toEqual(['print("Hello, ", name)']);
     expect(lines([print()])).toEqual(["print()"]);

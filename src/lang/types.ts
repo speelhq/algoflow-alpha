@@ -1,4 +1,4 @@
-// 02-language.md: the Program AST, run-time values, diagnostics, and edit names.
+// The Program AST, run-time values, diagnostics, and edit names (docs/spec/language/language.md).
 // No third-party imports.
 
 export type NodeId = string; // 12 characters from the nanoid alphabet (id.ts)

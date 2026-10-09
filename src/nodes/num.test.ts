@@ -4,7 +4,7 @@ import { ast, evalExpr } from "./testing";
 
 const { num, float } = ast;
 
-describe("num (03-nodes)", () => {
+describe("num (nodes.md)", () => {
   it("N-03 / L-08: emits raw", () => {
     expect(unparse(num(5))).toBe("5");
     expect(unparse(num(1000, "1e3"))).toBe("1e3");

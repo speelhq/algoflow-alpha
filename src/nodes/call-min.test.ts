@@ -4,7 +4,7 @@ import { ast, evalExpr } from "./testing";
 
 const { call, num, float, str } = ast;
 
-describe("builtin min (03-nodes)", () => {
+describe("builtin min (nodes.md)", () => {
   it("N-03: emits `min(<a>, <b>)`", () => {
     expect(unparse(call("min", num(2), num(3)))).toBe("min(2, 3)");
   });

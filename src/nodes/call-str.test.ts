@@ -4,7 +4,7 @@ import { ast, evalExpr } from "./testing";
 
 const { call, num, float, bool, none, v } = ast;
 
-describe("builtin str (03-nodes)", () => {
+describe("builtin str (nodes.md)", () => {
   it("N-03: emits `str(<x>)`", () => {
     expect(unparse(call("str", num(1)))).toBe("str(1)");
   });

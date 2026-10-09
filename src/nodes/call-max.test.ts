@@ -4,7 +4,7 @@ import { ast, evalExpr } from "./testing";
 
 const { call, num, float, str } = ast;
 
-describe("builtin max (03-nodes)", () => {
+describe("builtin max (nodes.md)", () => {
   it("N-03: emits `max(<a>, <b>)`", () => {
     expect(unparse(call("max", num(2), num(3)))).toBe("max(2, 3)");
   });

@@ -1,4 +1,4 @@
-// Shared shape of the builtin call blocks (03-nodes "Builtin calls"): key `call:<name>`,
+// Shared shape of the builtin call blocks (nodes.md "Builtin calls"): key `call:<name>`,
 // one `args` slot, positional parameters, exact arity.
 import { newId } from "@/lang/id";
 import type { Expr, Kind, Value } from "@/lang/types";

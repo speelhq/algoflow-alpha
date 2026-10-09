@@ -12,7 +12,7 @@ const twice: FunctionDef = {
   body: [ret(bin("*", v("x"), num(2)))],
 };
 
-describe("call (03-nodes)", () => {
+describe("call (nodes.md)", () => {
   it("N-03: emits `<fn>(<args>)`", () => {
     expect(unparse(call("twice", num(3)))).toBe("twice(3)");
     expect(emit(program([assign("y", call("twice", num(3)))], { functions: [twice] })).code).toBe(

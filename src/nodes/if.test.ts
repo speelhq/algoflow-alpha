@@ -7,7 +7,7 @@ const { if_, assign, num, bin, v, for_, brk } = ast;
 const lines = (main: Parameters<typeof program>[0]) =>
   emit(program(main)).code.trimEnd().split("\n");
 
-describe("if (03-nodes)", () => {
+describe("if (nodes.md)", () => {
   it("N-03: emits `if <cond>:` and `else:`; else omitted when empty; empty region → pass", () => {
     expect(
       lines([if_(bin("<", v("a"), v("b")), [assign("x", num(1))], [assign("x", num(2))])]),

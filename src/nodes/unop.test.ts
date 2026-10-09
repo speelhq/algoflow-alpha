@@ -4,7 +4,7 @@ import { ast, evalExpr } from "./testing";
 
 const { num, float, str, bin, v, neg, not } = ast;
 
-describe("unop (03-nodes)", () => {
+describe("unop (nodes.md)", () => {
   it("N-03 / E-05: `-x` and `not x` with parentheses where needed", () => {
     expect(unparse(neg(v("x")))).toBe("-x");
     expect(unparse(neg(bin("+", v("a"), v("b"))))).toBe("-(a + b)");

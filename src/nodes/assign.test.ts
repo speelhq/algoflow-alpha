@@ -6,7 +6,7 @@ const { assign, assignTo, num, bin, v } = ast;
 const lines = (main: Parameters<typeof program>[0]) =>
   emit(program(main)).code.trimEnd().split("\n");
 
-describe("assign (03-nodes)", () => {
+describe("assign (nodes.md)", () => {
   it("N-03: emits `<target> = <value>`", () => {
     expect(lines([assign("x", bin("+", num(1), num(2)))])).toEqual(["x = 1 + 2"]);
     expect(lines([assignTo({ kind: "index", list: v("xs"), index: num(0) }, num(9))])).toEqual([

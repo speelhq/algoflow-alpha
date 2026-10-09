@@ -4,7 +4,7 @@ import { ast, program, runAll, varData } from "./testing";
 
 const { brk, for_, assign, num, v, while_, bool } = ast;
 
-describe("break (03-nodes)", () => {
+describe("break (nodes.md)", () => {
   it("N-03: emits `break`", () => {
     expect(emit(program([while_(bool(true), [brk()])])).code).toBe("while True:\n    break\n");
   });

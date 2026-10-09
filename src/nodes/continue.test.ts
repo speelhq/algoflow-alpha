@@ -4,7 +4,7 @@ import { ast, program, runAll, varData } from "./testing";
 
 const { cont, for_, assign, num, v, bin, while_ } = ast;
 
-describe("continue (03-nodes)", () => {
+describe("continue (nodes.md)", () => {
   it("N-03: emits `continue`", () => {
     expect(emit(program([for_("i", num(0), num(3), [cont()])])).code).toBe(
       "for i in range(3):\n    continue\n",

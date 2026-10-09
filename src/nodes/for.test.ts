@@ -7,7 +7,7 @@ const { for_, assign, num, float, bin, v, brk, cont, if_ } = ast;
 const lines = (main: Parameters<typeof program>[0]) =>
   emit(program(main)).code.trimEnd().split("\n");
 
-describe("for (03-nodes)", () => {
+describe("for (nodes.md)", () => {
   it("N-03: `range(<stop>)` when start is num 0, else `range(<start>, <stop>)`", () => {
     expect(lines([for_("i", num(0), v("n"), [assign("x", v("i"))])])).toEqual([
       "for i in range(n):",

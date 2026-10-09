@@ -1,4 +1,4 @@
-// R-21: the semantics examples of 02-language.md, the R-09 codes reachable with
+// R-21: the semantics examples of language.md, the R-09 codes reachable with
 // the basic and control blocks, and the R-03/R-08/R-10 event rules.
 import { describe, expect, it } from "vitest";
 import { ast, evalExpr, eventTypes, program, runAll, varData } from "@/nodes/testing";

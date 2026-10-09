@@ -4,7 +4,7 @@ import { ast, evalExpr } from "./testing";
 
 const { str } = ast;
 
-describe("str (03-nodes)", () => {
+describe("str (nodes.md)", () => {
   it('N-03 / E-06: double quotes with \\\\ \\" \\n \\t escaped', () => {
     expect(unparse(str("Hello, "))).toBe('"Hello, "');
     expect(unparse(str('say "hi"\n\ttab\\'))).toBe('"say \\"hi\\"\\n\\ttab\\\\"');

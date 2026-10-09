@@ -4,7 +4,7 @@ import { ast, evalExpr } from "./testing";
 
 const { call, num, str, bool, none } = ast;
 
-describe("builtin float (03-nodes)", () => {
+describe("builtin float (nodes.md)", () => {
   it("N-03: emits `float(<x>)`", () => {
     expect(unparse(call("float", num(1)))).toBe("float(1)");
   });

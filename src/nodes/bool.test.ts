@@ -4,7 +4,7 @@ import { ast, evalExpr } from "./testing";
 
 const { bool } = ast;
 
-describe("bool (03-nodes)", () => {
+describe("bool (nodes.md)", () => {
   it("N-03: emits True / False", () => {
     expect(unparse(bool(true))).toBe("True");
     expect(unparse(bool(false))).toBe("False");
