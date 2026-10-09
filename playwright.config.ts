@@ -3,6 +3,8 @@ import { defineConfig, devices } from "@playwright/test";
 const base = process.env.VITE_BASE ?? "/";
 const port = 4173;
 const url = `http://localhost:${port}${base}`;
+// Chromium alone at 1440 × 900: one browser keeps CI under a minute and matches the desktop-only
+// scope, and the viewport exceeds the 1280 px gate with room for the default panel sizes.
 const desktop = { width: 1440, height: 900 };
 
 // `test:e2e` runs Playwright against `dist/` (build first).

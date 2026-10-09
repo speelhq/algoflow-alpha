@@ -13,16 +13,22 @@
   },
   "ignorePatterns": ["dist/**", "node_modules/**", "playwright-report/**", "test-results/**"],
   "rules": {
+    // The automatic JSX runtime (`jsx: react-jsx`) never needs `React` in scope.
     "react/react-in-jsx-scope": "off",
+    // The resize handle is an interactive `role="separator"` (a splitter); `<hr>` is a static one.
     "jsx-a11y/prefer-tag-over-role": "off",
+    // The literal and variable runners are generators that never yield, by design.
     "require-yield": "off",
+    // The spec names the regions of an `if` `then` and `else`.
     "unicorn/no-thenable": "off",
+    // `Id | "main"` and `NodeId | "main"` are written as in the spec, to document intent.
     "typescript/no-redundant-type-constituents": "off"
   },
   "overrides": [
     {
       "files": ["e2e/**/*.ts"],
       "rules": {
+        // Playwright assertions in a loop are sequential on purpose; `Promise.all` would race the browser.
         "no-await-in-loop": "off"
       }
     },
@@ -52,7 +58,7 @@
                   "@/**/../**",
                   "@/**/.."
                 ],
-                "message": "src/lang, src/runtime, src/python, and src/nodes import only each other: through @/ across folders, through ./ within one (CLAUDE.md)."
+                "message": "src/lang, src/runtime, src/python, and src/nodes import only each other: through @/ across folders, through ./ within one (ARCHITECTURE.md)."
               }
             ]
           }
@@ -92,7 +98,7 @@
                   "@/**/../**",
                   "@/**/.."
                 ],
-                "message": "src/lang, src/runtime, src/python, and src/nodes import only each other: through @/ across folders, through ./ within one (CLAUDE.md)."
+                "message": "src/lang, src/runtime, src/python, and src/nodes import only each other: through @/ across folders, through ./ within one (ARCHITECTURE.md)."
               }
             ]
           }
