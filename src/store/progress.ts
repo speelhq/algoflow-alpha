@@ -1,10 +1,12 @@
 // Per-problem progress under `algoflow:progress`. An entry appears on the first
 // submission, hint, or shown solution; `solved` is never cleared. The stored value is the
-// bare record, validated when read back, so storage never yields a malformed entry.
+// bare record, validated when read back, so storage never yields a malformed entry. Every
+// write joins the stored record, and another tab's write is joined when its `storage` event
+// arrives, so no tab removes what another recorded.
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { isRecord } from "@/lang/record";
-import { persistStorage } from "./storage";
+import { persistStorage, readStored } from "./storage";
 import { clamp } from "./layout";
 
 export const PROGRESS_STORAGE_KEY = "algoflow:progress";
@@ -25,6 +27,7 @@ export type ProgressState = {
   solutionShown: (id: string) => void;
 };
 
+/** The entry that records nothing: joined with any entry, it leaves that entry. */
 const FRESH: ProgressEntry = { status: "attempted", hints: 0, solution: false };
 
 /** The status mark of a problem row; undefined while untouched. */
@@ -59,6 +62,27 @@ export function readProgress(stored: unknown): Progress {
   return entries;
 }
 
+function joinEntry(a: ProgressEntry, b: ProgressEntry): ProgressEntry {
+  return {
+    status: a.status === "solved" || b.status === "solved" ? "solved" : "attempted",
+    hints: Math.max(a.hints, b.hints),
+    solution: a.solution || b.solution,
+  };
+}
+
+/**
+ * Two records as one: every entry of either, `solved` over `attempted`, the larger `hints`,
+ * and `solution` once either holds it. Every field only grows, so the join loses nothing.
+ */
+export function joinProgress(a: Progress, b: Progress): Progress {
+  const joined: Progress = { ...a };
+  for (const [id, entry] of Object.entries(b)) {
+    const held = Object.hasOwn(joined, id) ? joined[id] : undefined;
+    joined[id] = held ? joinEntry(held, entry) : entry;
+  }
+  return joined;
+}
+
 type Persisted = { entries: Progress };
 
 /** The key holds `Record<id, entry>` itself, with no wrapper around it. */
@@ -70,32 +94,41 @@ const storage = persistStorage<Persisted>(
 export const useProgress = create<ProgressState>()(
   persist(
     (set) => {
-      const update = (id: string, change: (entry: ProgressEntry) => ProgressEntry) =>
+      /** Joins `entry` with the stored record, which another tab may have written, and this tab's. */
+      const record = (id: string, entry: ProgressEntry) =>
         set((state) => ({
-          entries: {
-            ...state.entries,
-            [id]: change((Object.hasOwn(state.entries, id) && state.entries[id]) || FRESH),
-          },
+          entries: joinProgress(
+            joinProgress(readStored(PROGRESS_STORAGE_KEY, readProgress) ?? {}, state.entries),
+            { [id]: entry },
+          ),
         }));
       return {
         entries: {},
         submitted: (id, accepted) =>
-          update(id, (entry) => ({
-            ...entry,
-            status: accepted || entry.status === "solved" ? "solved" : "attempted",
-          })),
+          record(id, { ...FRESH, status: accepted ? "solved" : "attempted" }),
         hintShown: (id, count) =>
-          update(id, (entry) => ({
-            ...entry,
-            hints: Math.max(entry.hints, clamp(Math.round(count), 0, HINTS)),
-          })),
-        solutionShown: (id) => update(id, (entry) => ({ ...entry, solution: true })),
+          record(id, { ...FRESH, hints: clamp(Math.round(count), 0, HINTS) }),
+        solutionShown: (id) => record(id, { ...FRESH, solution: true }),
       };
     },
     {
       name: PROGRESS_STORAGE_KEY,
       storage,
       partialize: ({ entries }) => ({ entries }),
+      merge: (persisted, current) => ({
+        ...current,
+        entries: joinProgress(
+          readProgress(isRecord(persisted) ? persisted.entries : undefined),
+          current.entries,
+        ),
+      }),
     },
   ),
 );
+
+// Another tab's write arrives as a `storage` event; rehydrating joins it and writes nothing.
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (event) => {
+    if (event.key === PROGRESS_STORAGE_KEY) void useProgress.persist.rehydrate();
+  });
+}

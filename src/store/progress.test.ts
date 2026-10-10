@@ -1,8 +1,14 @@
 // @vitest-environment jsdom
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PROGRESS_STORAGE_KEY, readProgress, solvedCount, statusOf, useProgress } from "./progress";
 
 const stored = (): unknown => JSON.parse(localStorage.getItem(PROGRESS_STORAGE_KEY) ?? "null");
+
+/** The store of a second tab: a new instance of the module, loaded from storage as it is now. */
+async function anotherTab(): Promise<typeof useProgress> {
+  vi.resetModules();
+  return (await import("./progress")).useProgress;
+}
 
 describe("progress store (C-17)", () => {
   beforeEach(() => {
@@ -53,6 +59,41 @@ describe("progress store (C-17)", () => {
     useProgress.getState().submitted("fizzbuzz", true);
     expect(stored()).toEqual({ fizzbuzz: { status: "solved", hints: 0, solution: false } });
     expect(localStorage.length).toBe(1);
+  });
+
+  it("C-26: a write keeps what another tab recorded since this one loaded", async () => {
+    const other = await anotherTab();
+    useProgress.getState().submitted("fizzbuzz", true);
+    other.getState().hintShown("gcd", 2);
+    const both = {
+      fizzbuzz: { status: "solved", hints: 0, solution: false },
+      gcd: { status: "attempted", hints: 2, solution: false },
+    };
+    expect(stored()).toEqual(both);
+    expect(other.getState().entries).toEqual(both);
+  });
+
+  it("C-26: two records join entry by entry", async () => {
+    const other = await anotherTab();
+    useProgress.getState().submitted("gcd", true);
+    other.getState().solutionShown("gcd");
+    useProgress.getState().hintShown("gcd", 1);
+    expect(stored()).toEqual({ gcd: { status: "solved", hints: 1, solution: true } });
+    other.getState().submitted("gcd", false);
+    expect(other.getState().entries.gcd).toEqual({ status: "solved", hints: 1, solution: true });
+  });
+
+  it("C-27: another tab's write is read on the storage event and joined", () => {
+    useProgress.getState().hintShown("tutorial", 1);
+    localStorage.setItem(
+      PROGRESS_STORAGE_KEY,
+      JSON.stringify({ fizzbuzz: { status: "solved", hints: 0, solution: false } }),
+    );
+    window.dispatchEvent(new StorageEvent("storage", { key: PROGRESS_STORAGE_KEY }));
+    expect(useProgress.getState().entries).toEqual({
+      tutorial: { status: "attempted", hints: 1, solution: false },
+      fizzbuzz: { status: "solved", hints: 0, solution: false },
+    });
   });
 
   it("validates a stored record instead of trusting it", async () => {
