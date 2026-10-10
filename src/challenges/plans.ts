@@ -5,19 +5,12 @@ import type { Plan } from "./types";
 
 export const PLANS: readonly Plan[] = plans;
 
-const NO_PLAN = Number.MAX_SAFE_INTEGER;
-/** Challenge id → running position across the plans, and the plan itself (one pass). */
-const members = new Map<string, { rank: number; plan: Plan }>();
-let position = 0;
-for (const plan of PLANS)
-  for (const id of plan.problems) members.set(id, { rank: position++, plan });
+const members = new Map<string, Plan>();
+for (const plan of PLANS) for (const id of plan.problems) members.set(id, plan);
 
-/** The Problems page's order: position across the plans (plan order, then member order); challenges in no plan rank last. */
-export function planRank(id: string): number {
-  return members.get(id)?.rank ?? NO_PLAN;
-}
-
-/** The plan a challenge belongs to, if any (each id is in at most one plan). */
-export function planOf(id: string): Plan | undefined {
-  return members.get(id)?.plan;
+/** The plan a challenge belongs to; every challenge is in exactly one. */
+export function planOf(id: string): Plan {
+  const plan = members.get(id);
+  if (!plan) throw new Error(`challenge "${id}" is in no plan`);
+  return plan;
 }

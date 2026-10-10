@@ -1,4 +1,4 @@
-// U-01, U-02, U-04, U-06, U-07, U-10, U-12, U-13, U-14, U-90: routes, the Problems page, Help,
+// U-01, U-02, U-04, U-06, U-07, U-10, U-12, U-13, U-14, U-99, U-90: routes, the Problems page, Help,
 // first launch.
 import { expect, test } from "@playwright/test";
 import { seedProgress } from "./seed";
@@ -27,7 +27,7 @@ test.describe("first launch (U-90)", () => {
   });
 });
 
-test.describe("Problems page (U-10, U-12, U-13, U-14)", () => {
+test.describe("Problems page (U-10, U-12, U-13, U-14, U-99)", () => {
   test("shows the plan with its count, Continue, marks, difficulty, and topics", async ({
     page,
   }) => {
@@ -57,7 +57,6 @@ test.describe("Problems page (U-10, U-12, U-13, U-14)", () => {
     await expect(fizzbuzz).toContainText("Easy");
     await expect(fizzbuzz).toContainText("Loops");
     await expect(fizzbuzz).toContainText("Conditions");
-    await expect(page.getByTestId("plan-more")).toHaveCount(0);
   });
 
   test("Start appears while no problem of the plan has an entry", async ({ page }) => {

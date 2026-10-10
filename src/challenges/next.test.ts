@@ -1,7 +1,7 @@
-// U-12: sections, `Start` / `Continue` / no button; U-83: `Next problem →` and `Plan complete`.
+// U-99: `Start` / `Continue` / no button; U-83: `Next problem →` and `Plan complete`.
 import { describe, expect, it } from "vitest";
-import { PLANS } from "./index";
-import { nextProblem, planAction, sectionOf, sections, type Status } from "./next";
+import { planOf } from "./index";
+import { nextProblem, planAction, type Status } from "./next";
 
 const course = ["tutorial", "sum-to-n", "fizzbuzz", "max-of-three", "countdown"];
 
@@ -9,16 +9,7 @@ function statuses(entries: Record<string, "attempted" | "solved">): Status {
   return (id) => entries[id];
 }
 
-describe("sections (U-12)", () => {
-  it("lists one section per plan and omits More problems while every problem is in a plan", () => {
-    expect(PLANS[0]?.problems).toEqual(course);
-    expect(sections()).toEqual([{ plan: PLANS[0], problems: course }]);
-    expect(sectionOf("fizzbuzz")?.plan?.id).toBe("course");
-    expect(sectionOf("nope")).toBeUndefined();
-  });
-});
-
-describe("planAction (U-12)", () => {
+describe("planAction (U-99)", () => {
   it("offers Start on the first problem while no problem has an entry", () => {
     expect(planAction(course, statuses({}))).toEqual({ kind: "start", id: "tutorial" });
   });
@@ -40,6 +31,10 @@ describe("planAction (U-12)", () => {
 });
 
 describe("nextProblem (U-83)", () => {
+  it("walks the course plan, as these cases assume", () => {
+    expect(planOf("tutorial").problems).toEqual(course);
+  });
+
   it("leads to the next unsolved problem of the plan", () => {
     const status = statuses({ tutorial: "solved", "sum-to-n": "solved", fizzbuzz: "solved" });
     expect(nextProblem("sum-to-n", status)).toEqual({ kind: "next", id: "max-of-three" });
@@ -54,9 +49,5 @@ describe("nextProblem (U-83)", () => {
     const all = statuses(Object.fromEntries(course.map((id) => [id, "solved" as const])));
     expect(nextProblem("fizzbuzz", all)).toEqual({ kind: "next", id: "max-of-three" });
     expect(nextProblem("countdown", all)).toEqual({ kind: "complete" });
-  });
-
-  it("says Plan complete for a problem in no section", () => {
-    expect(nextProblem("nope", statuses({}))).toEqual({ kind: "complete" });
   });
 });

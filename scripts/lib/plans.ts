@@ -5,7 +5,7 @@ import { isLocalized } from "./challenge";
 
 export type PlansResult = { plans: Plan[] | null; problems: string[] };
 
-/** Validates the plans file against the ids of the challenge files on disk. */
+/** Validates the plans file against the ids of the challenge files on disk: each in one plan, once. */
 export function checkPlans(
   json: unknown,
   knownIds: ReadonlySet<string>,
@@ -51,6 +51,7 @@ export function checkPlans(
       owners.set(id, { index: p, label });
     });
   });
+  for (const id of knownIds) if (!owners.has(id)) problems.push(`"${id}" is in no plan`);
 
   return { plans: problems.length === 0 ? (json as Plan[]) : null, problems };
 }

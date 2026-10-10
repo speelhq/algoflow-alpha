@@ -1,7 +1,7 @@
-// One section per study plan in plan order, then `More problems`; the
-// status marks and plan counts come from progress.
-import { getChallenge, type Challenge } from "@/challenges";
-import { planAction, sections, type Section, type Status } from "@/challenges/next";
+// One section per study plan, in plan order; the status marks and plan counts come from
+// progress.
+import { CHALLENGES, getChallenge, planOf, PLANS, type Challenge, type Plan } from "@/challenges";
+import { planAction, type Status } from "@/challenges/next";
 import { localized, t } from "@/i18n/t";
 import { cn } from "@/lib/utils";
 import { statusOf, useProgress } from "@/store/progress";
@@ -18,32 +18,30 @@ export function ProblemsPage() {
     <div className="flex h-full flex-col">
       <Header current="problems" />
       <main className="flex-1 overflow-y-auto px-6 py-4" data-testid="problems">
-        {sections().map((section) => (
-          <PlanSection key={section.plan?.id ?? "more"} section={section} status={status} />
+        {PLANS.map((plan) => (
+          <PlanSection key={plan.id} plan={plan} status={status} />
         ))}
       </main>
     </div>
   );
 }
 
-function PlanSection({ section, status }: { section: Section; status: Status }) {
-  const { plan, problems } = section;
-  const challenges = problems.flatMap((id) => getChallenge(id) ?? []);
-  const action = plan ? planAction(problems, status) : null;
+function PlanSection({ plan, status }: { plan: Plan; status: Status }) {
+  const { problems } = plan;
+  const challenges = CHALLENGES.filter((challenge) => planOf(challenge.id) === plan);
+  const action = planAction(problems, status);
   const solved = problems.filter((id) => status(id) === "solved").length;
   const next = action && getChallenge(action.id);
   return (
-    <section className="mb-6" data-testid={`plan-${plan?.id ?? "more"}`}>
+    <section className="mb-6" data-testid={`plan-${plan.id}`}>
       <div className="flex items-center gap-4 rounded-xl border bg-muted/40 px-4 py-3">
         <div className="min-w-0 flex-1">
-          <h2 className="font-semibold">{plan ? localized(plan.title) : t("problems.more")}</h2>
-          {plan && <p className="text-sm text-muted-foreground">{localized(plan.description)}</p>}
+          <h2 className="font-semibold">{localized(plan.title)}</h2>
+          <p className="text-sm text-muted-foreground">{localized(plan.description)}</p>
         </div>
-        {plan && (
-          <span className="text-sm text-muted-foreground">
-            {t("problems.solved", { n: solved, m: problems.length })}
-          </span>
-        )}
+        <span className="text-sm text-muted-foreground">
+          {t("problems.solved", { n: solved, m: problems.length })}
+        </span>
         {action && (
           <a
             href={routeHash({ page: "problem", id: action.id })}

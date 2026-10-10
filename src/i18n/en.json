@@ -54,7 +54,6 @@
     "solved": "{n} of {m} solved",
     "start": "Start",
     "continue": "Continue: {title} ▶",
-    "more": "More problems",
     "mark": {
       "solved": "✓",
       "attempted": "•"

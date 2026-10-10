@@ -77,7 +77,7 @@ function checkTest(challenge: Challenge, test: Test, index: number): string[] {
   return problems;
 }
 
-type Checked = { problems: string[]; summary: string; notes?: string[] };
+type Checked = { problems: string[]; summary: string };
 
 /** Reads one file as JSON, checks it, and reports `ok` or `FAIL`; true when it passed. */
 function checkFile(path: string, name: string, check: (json: unknown) => Checked): boolean {
@@ -93,7 +93,6 @@ function checkFile(path: string, name: string, check: (json: unknown) => Checked
     return false;
   }
   console.log(`ok   ${name} (${checked.summary})`);
-  for (const note of checked.notes ?? []) console.log(`     ${note}`);
   return true;
 }
 
@@ -119,13 +118,7 @@ const plansPassed = checkFile(join(root, "challenges", PLANS_FILE), "plans", (js
   const { plans, problems } = checkPlans(json, knownIds, { requireJa });
   const listed = plans ?? [];
   const count = listed.reduce((n, plan) => n + plan.problems.length, 0);
-  /** Challenges in no plan are legitimate, but a forgotten `plans.json` entry looks the same. */
-  const orphans = [...knownIds].filter((id) => !listed.some((plan) => plan.problems.includes(id)));
-  return {
-    problems,
-    summary: `${listed.length} plan(s), ${count} problems`,
-    notes: orphans.length > 0 ? [`in no plan: ${orphans.join(", ")}`] : [],
-  };
+  return { problems, summary: `${listed.length} plan(s), ${count} problems` };
 });
 if (!plansPassed) failed += 1;
 

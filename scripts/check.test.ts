@@ -1,4 +1,4 @@
-// C-01, C-03: the schema checker; C-16, C-18: the plans checker; R-20: the CPython
+// C-01, C-03: the schema checker; C-25, C-18: the plans checker; R-20: the CPython
 // script shape (no python run here).
 import { describe, expect, it } from "vitest";
 import { ast, program } from "@/nodes/testing";
@@ -110,7 +110,7 @@ describe("checkChallengeSchema (C-01, C-03)", () => {
   });
 });
 
-describe("checkPlans (C-16, C-18)", () => {
+describe("checkPlans (C-25, C-18)", () => {
   const known = new Set(["a", "b", "c"]);
   const plan = (id: string, problems: unknown[]) => ({
     id,
@@ -141,12 +141,18 @@ describe("checkPlans (C-16, C-18)", () => {
       expect.stringContaining("plans[3]: title must be"),
       expect.stringContaining("plans[3]: description must be"),
       expect.stringContaining("plans[3]: problems must be an array"),
+      '"b" is in no plan',
+      '"c" is in no plan',
     ]);
     expect(checkPlans({}, known).problems).toEqual(["plans.json must be an array"]);
   });
 
-  it("C-16: two plans sharing an id still report a member they both list", () => {
-    const { problems } = checkPlans([plan("p", ["a"]), plan("p", ["a", 7])], known);
+  it("reports a challenge in no plan", () => {
+    expect(checkPlans([plan("p", ["a", "b"])], known).problems).toEqual(['"c" is in no plan']);
+  });
+
+  it("two plans sharing an id still report a member they both list", () => {
+    const { problems } = checkPlans([plan("p", ["a"]), plan("p", ["a", 7])], new Set(["a"]));
     expect(problems).toEqual([
       expect.stringContaining('plan "p" is listed twice'),
       expect.stringContaining('"a" is in plan "p" and plan "p"'),
