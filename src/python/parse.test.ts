@@ -1,4 +1,4 @@
-// G-01, G-02, G-03, G-04, G-05 and G-06.
+// G-01, G-02, G-03, G-04, G-05, G-06, and G-07.
 import { describe, expect, it } from "vitest";
 import type { Expr } from "@/lang/types";
 import { NODES } from "@/nodes/registry";
@@ -71,6 +71,13 @@ describe("parse (G-01)", () => {
     expect(ok("00")).toMatchObject({ kind: "num", value: 0, raw: "00" });
     expect(ok("0.5")).toMatchObject({ kind: "num", value: 0.5 });
     expect(ok('"a\\x41\\x01"')).toMatchObject({ kind: "str", value: "aA" });
+  });
+
+  it("G-07: an int literal beyond ±2^53 is a syntax error at its token", () => {
+    expect(ok("9007199254740992")).toMatchObject({ kind: "num", value: 2 ** 53, float: false });
+    expect(err("1 + 9007199254740993")).toEqual({ code: "E_PARSE_SYNTAX", position: 4 });
+    expect(err("-9007199254740993")).toEqual({ code: "E_PARSE_SYNTAX", position: 1 });
+    expect(ok("9007199254740993.0")).toMatchObject({ kind: "num", float: true });
   });
 
   it("gives every node an id and no mark of how it was made (G-01)", () => {

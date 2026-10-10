@@ -1,14 +1,12 @@
 // Value helpers shared by node runners. No third-party imports.
 import { keyValue } from "@/lang/data";
-import type { Heap, HeapEntry, Value } from "@/lang/types";
+import { INT_LIMIT, type Heap, type HeapEntry, type Value } from "@/lang/types";
 
 export type NumberValue = { t: "int"; v: number } | { t: "float"; v: number };
 
 export function isNumber(value: Value): value is NumberValue {
   return value.t === "int" || value.t === "float";
 }
-
-const INT_LIMIT = 2 ** 53;
 
 /** An int result outside ±2^53 becomes a float; ints have no negative zero. */
 export function makeNumber(n: number, float: boolean): NumberValue {

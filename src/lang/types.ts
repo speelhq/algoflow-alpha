@@ -44,6 +44,8 @@ export type Value =
   | { t: "list"; ref: HeapId }
   | { t: "dict"; ref: HeapId }
   | { t: "obj"; ref: HeapId };
+/** An `int` is an integral double within ±INT_LIMIT, where a double still holds every integer. */
+export const INT_LIMIT = 2 ** 53;
 export type HeapId = number;
 export type HeapEntry =
   | { kind: "list"; items: Value[] }

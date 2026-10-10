@@ -1,6 +1,6 @@
 // Typed expression text → Expr. No third-party imports.
 import { newId } from "@/lang/id";
-import type { BinOp, Expr, Id } from "@/lang/types";
+import { INT_LIMIT, type BinOp, type Expr, type Id } from "@/lang/types";
 import { NODES, hasNode, keyOf } from "@/nodes/registry";
 import { BINOPS, PRECEDENCE, binopsAt, isBinOp, isComparison } from "./precedence";
 
@@ -318,14 +318,12 @@ class Parser {
   private atom(): Expr {
     const token = this.take();
     switch (token.type) {
-      case "num":
-        return {
-          id: newId(),
-          kind: "num",
-          value: Number(token.text),
-          float: /[.eE]/.test(token.text),
-          raw: token.text,
-        };
+      case "num": {
+        const float = /[.eE]/.test(token.text);
+        // Compared exactly: a double rounds 2^53 + 1 down to 2^53.
+        if (!float && BigInt(token.text) > BigInt(INT_LIMIT)) fail("E_PARSE_SYNTAX", token.pos);
+        return { id: newId(), kind: "num", value: Number(token.text), float, raw: token.text };
+      }
       case "str":
         return { id: newId(), kind: "str", value: token.value };
       case "name":
