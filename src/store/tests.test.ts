@@ -47,7 +47,7 @@ describe("tests store (U-80, C-10, C-11, C-12)", () => {
     });
   });
 
-  it("U-81, U-86: selects the first failing test, and a chip selects another judged one", async () => {
+  it("U-81, U-106: selects the first failing test, and a chip selects another judged one", async () => {
     useProgram.setState({ program: { ...fizzbuzz().solution, main: [print(str("1"))] } });
     await useTests.getState().submit();
     // n = 15 fails, n = 1 passes ("1"), n = 3 fails.
@@ -90,7 +90,7 @@ describe("tests store (U-80, C-10, C-11, C-12)", () => {
     });
   });
 
-  it("free mode and invalid programs are ignored; a new program resets the results", async () => {
+  it("U-86: a program of no challenge is not judged; a change of the program clears the results", async () => {
     useProgram.setState({ program: program([print(str("x"))]) });
     await useTests.getState().submit();
     expect(useTests.getState().results).toEqual([]);
