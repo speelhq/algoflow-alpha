@@ -2,7 +2,7 @@
 // names, empty slots, and field defaults.
 // Dispatch is registry-driven: slots, `requires`, `loop`, `params`, `callee`.
 import { getNode, hasNode, keyOf } from "@/nodes/registry";
-import type { NodeDef, Slot } from "@/nodes/types";
+import { expectedArgs, type NodeDef, type Slot } from "@/nodes/types";
 import {
   CLASS_NAME_PATTERN,
   NAME_PATTERN,
@@ -206,9 +206,13 @@ class Collector {
       if (!callee) continue;
       switch (callee.family) {
         case "builtin":
-        case "method":
-          this.arity(stmt.id, callee.name, def.params ?? [], callee.argc);
+        case "method": {
+          const expected = expectedArgs(def.params ?? [], callee.argc);
+          if (expected !== undefined) {
+            this.report(stmt.id, "E_ARITY", { name: callee.name, expected, got: callee.argc });
+          }
           break;
+        }
         case "function": {
           const fn = this.program.functions.find((f) => f.name === callee.name);
           if (!fn) this.report(stmt.id, "E_UNKNOWN_CALL", { name: callee.name });
@@ -234,14 +238,6 @@ class Collector {
           break;
         }
       }
-    }
-  }
-
-  /** Optional parameters end with `?`. */
-  private arity(stmtId: NodeId, name: Id, params: string[], got: number): void {
-    const required = params.filter((p) => !p.endsWith("?")).length;
-    if (got < required || got > params.length) {
-      this.report(stmtId, "E_ARITY", { name, expected: required, got });
     }
   }
 }

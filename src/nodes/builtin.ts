@@ -1,8 +1,8 @@
 // Shared shape of the builtin call blocks (nodes.md "Builtin calls"): key `call:<name>`,
-// one `args` slot, positional parameters, exact arity.
+// one `args` slot, positional parameters, the argument counts of `expectedArgs`.
 import { newId } from "@/lang/id";
 import type { Expr, Kind, Value } from "@/lang/types";
-import { defineExpr, type MenuEntry, type NodeDef, type RunContext } from "./types";
+import { defineExpr, expectedArgs, type MenuEntry, type NodeDef, type RunContext } from "./types";
 import type { Category } from "./categories";
 
 export type BuiltinDef = {
@@ -42,12 +42,9 @@ export function defineBuiltin(def: BuiltinDef): NodeDef {
       args: def.params.map(() => ({ id: newId(), kind: "empty" })),
     }),
     *run(node, ctx) {
-      if (node.args.length !== def.params.length) {
-        ctx.fail(node.id, "E_ARITY", {
-          name: def.name,
-          expected: def.params.length,
-          got: node.args.length,
-        });
+      const expected = expectedArgs(def.params, node.args.length);
+      if (expected !== undefined) {
+        ctx.fail(node.id, "E_ARITY", { name: def.name, expected, got: node.args.length });
       }
       const values: Value[] = [];
       for (const arg of node.args) values.push(yield* ctx.eval(arg));

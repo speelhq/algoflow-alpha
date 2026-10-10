@@ -23,6 +23,18 @@ export type Callee = {
   argc: number;
   family: "builtin" | "function" | "class" | "method";
 };
+
+/**
+ * The argument count `params` expect when `got` is not one they take: the fewest when too few,
+ * the most when too many; undefined when `got` fits. A trailing `?` marks an optional parameter.
+ */
+export function expectedArgs(params: readonly string[], got: number): number | undefined {
+  const fewest = params.filter((param) => !param.endsWith("?")).length;
+  if (got < fewest) return fewest;
+  if (got > params.length) return params.length;
+  return undefined;
+}
+
 export type Slot = {
   name: string;
   role: SlotRole;
@@ -112,7 +124,10 @@ export type NodeDef = {
   shape: "stmt" | "expr";
   category: Category;
   slots: Slot[];
-  /** Builtin parameter names in order (arity = length); template placeholders use them. */
+  /**
+   * Builtin and method parameter names in order, a trailing `?` marking an optional one
+   * (`expectedArgs`); template placeholders use them.
+   */
   params?: string[];
   /** Emitter aliases accepted by the parser, e.g. "random.randint". */
   aliases?: string[];
