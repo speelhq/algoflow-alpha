@@ -4,10 +4,9 @@
 import { keyValue } from "@/lang/data";
 import { errorParams, t, type MessageKey, type Params } from "@/i18n/t";
 import type { Expr, Heap, Program, Value } from "@/lang/types";
-import { isExpr, nodesById } from "@/lang/walk";
-import { getNode, keyOf } from "@/nodes/registry";
+import { conditionOf, diamondConditions, isExpr, nodesById, variableOf } from "@/lang/walk";
 import type { Done, Event, Frame, Ref, State } from "@/runtime/types";
-import { capitalise, conditionOf, exprText, sentence, valueText } from "@/ui/chart/text";
+import { capitalise, exprText, sentence, valueText } from "@/ui/chart/text";
 
 export type Narration = { key: MessageKey; params: Params };
 
@@ -62,22 +61,9 @@ function comparedText(expr: Expr, frame: Frame | undefined, heap: Heap): string 
   });
 }
 
-const decided = new WeakMap<Program, Set<string>>();
-
-/** The expressions that are a diamond's whole condition: their compare decides Yes or No. */
-function decisions(program: Program): Set<string> {
-  let ids = decided.get(program);
-  if (!ids) {
-    ids = new Set();
-    for (const node of nodesById(program).values()) {
-      const chart = getNode(keyOf(node)).chart;
-      const diamond = chart !== undefined && ("branch" in chart || "check" in chart);
-      const condition = diamond ? conditionOf(node) : undefined;
-      if (condition) ids.add(condition.id);
-    }
-    decided.set(program, ids);
-  }
-  return ids;
+/** A diamond's question: its condition as compared, except that one variable keeps its name. */
+function questionText(expr: Expr, frame: Frame | undefined, heap: Heap): string {
+  return variableOf(expr) === undefined ? comparedText(expr, frame, heap) : exprText(expr);
 }
 
 export function narrate(event: Event, ctx: NarrateContext): Narration {
@@ -87,11 +73,9 @@ export function narrate(event: Event, ctx: NarrateContext): Narration {
   switch (event.type) {
     case "enter": {
       if (!node) return { key: "run.narrate.enter", params: { sentence: "" } };
-      const chart = getNode(keyOf(node)).chart;
-      const diamond = chart !== undefined && ("branch" in chart || "check" in chart);
-      const condition = diamond ? conditionOf(node) : undefined;
+      const condition = conditionOf(node);
       return condition
-        ? { key: "run.narrate.check", params: { condition: exprText(condition) } }
+        ? { key: "run.narrate.check", params: { condition: exprText(condition.expr) } }
         : {
             key: "run.narrate.enter",
             params: { sentence: capitalise(sentence(node, ctx.program)) },
@@ -116,12 +100,14 @@ export function narrate(event: Event, ctx: NarrateContext): Narration {
       };
     }
     case "compare": {
-      const condition = node && isExpr(node) ? comparedText(node, frame, heap) : "";
+      const expr = node && isExpr(node) ? node : undefined;
       // A diamond's whole condition is its question and the edge taken; any other, its value.
-      if (decisions(ctx.program).has(event.nodeId)) {
+      if (diamondConditions(ctx.program).has(event.nodeId)) {
+        const condition = expr ? questionText(expr, frame, heap) : "";
         const answer = t(event.result ? "chart.yes" : "chart.no");
         return { key: "run.narrate.compareAnswer", params: { condition, answer } };
       }
+      const condition = expr ? comparedText(expr, frame, heap) : "";
       const key = event.result ? "run.narrate.compareTrue" : "run.narrate.compareFalse";
       return { key, params: { condition } };
     }

@@ -36,6 +36,26 @@ describe("while (nodes.md)", () => {
     expect(result.done).toMatchObject({ loops: 2 });
   });
 
+  it("R-35: a condition that is no comparison ends in a compare of its own each pass", () => {
+    const cond = v("stack");
+    const loop = while_(cond, [assign("stack", ast.none())]);
+    const inputs = [{ name: "stack", value: [1] }];
+    const result = runAll(program([loop], { inputs }), { stack: [1] });
+    expect(eventTypes(result.events)).toEqual([
+      "enter",
+      "compare",
+      "loop",
+      "enter",
+      "write",
+      "compare",
+    ]);
+    const checks = result.events.filter((event) => event.type === "compare");
+    expect(checks).toEqual([
+      { type: "compare", nodeId: cond.id, result: true },
+      { type: "compare", nodeId: cond.id, result: false },
+    ]);
+  });
+
   it("N-10: break leaves the loop", () => {
     const result = runAll(
       program([
@@ -47,6 +67,6 @@ describe("while (nodes.md)", () => {
   });
 
   it("N-09: a checked loop over `body`", () => {
-    expect(whileStmt.chart).toEqual({ check: "body" });
+    expect(whileStmt.chart).toEqual({ check: { cond: "cond", body: "body" } });
   });
 });

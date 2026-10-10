@@ -8,7 +8,7 @@ import { nodeText, t } from "@/i18n/t";
 import { toValue } from "@/lang/data";
 import type { Data, Expr, Heap, Node, NodeId, Program, Target, Value } from "@/lang/types";
 import { firstAssignments } from "@/lang/validate";
-import { isEmptyExpr, isExpr, variableOf } from "@/lang/walk";
+import { conditionOf, isEmptyExpr, isExpr, variableOf } from "@/lang/walk";
 import { getNode, hasNode, keyOf } from "@/nodes/registry";
 import type { NodeDef, Side } from "@/nodes/types";
 import { writeTarget } from "@/python/emit";
@@ -290,21 +290,11 @@ export function generatedParts(node: Node, part: "init" | "check" | "step"): Par
 
 /** A diamond's text: its condition followed by `?`, or the placeholder without it. */
 export function questionParts(node: Node): Part[] {
-  const def = getNode(keyOf(node));
-  const slot = def.slots.find((s) => s.role === "expr")?.name;
   const condition = conditionOf(node);
-  if (!slot || !condition) return [];
-  const parts = exprParts(condition).map((part) => ({ ...part, slot }));
-  if (isEmptyExpr(condition)) return parts;
+  if (!condition) return [];
+  const parts = exprParts(condition.expr).map((part) => ({ ...part, slot: condition.slot }));
+  if (isEmptyExpr(condition.expr)) return parts;
   return templateParts(t("chart.condition"), () => parts);
-}
-
-/** The expression a diamond asks about: the block's first `expr` slot (`branch`, `check`). */
-export function conditionOf(node: Node): Expr | undefined {
-  const def = getNode(keyOf(node));
-  const slot = def.slots.find((s) => s.role === "expr");
-  const value = slot ? (node as unknown as Bag)[slot.name] : undefined;
-  return isExpr(value) ? value : undefined;
 }
 
 /** A value as the blocks write it: `true` / `false` / `none`, a text in quotes, the rest as `str()`. */

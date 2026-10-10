@@ -95,12 +95,13 @@ export type FormContext = { creates: boolean };
 // ---------------------------------------------------------------- chart shape
 
 /**
- * How the chart draws a block: its body regions by slot name (a branch, a checked loop, a
- * counted loop), or where its edge jumps to (out of the innermost loop, or into its next pass).
+ * How the chart draws a block: the slot of the condition its diamond asks and its body regions
+ * by slot name (a branch, a checked loop, a counted loop), or where its edge jumps to (out of
+ * the innermost loop, or into its next pass).
  */
 export type ChartShape =
-  | { branch: { yes: string; no: string } }
-  | { check: string }
+  | { branch: { cond: string; yes: string; no: string } }
+  | { check: { cond: string; body: string } }
   | { counted: string }
   | { jump: "exit" | "next" };
 

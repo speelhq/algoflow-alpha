@@ -1,5 +1,5 @@
 // R-21: the driver. R-23 pre-run, R-25 Step, R-26 Play, R-27 Seek, R-28 Back, R-29 Stop; R-12
-// state; R-19 breakpoint and Skip; U-61 marks; C-15 verdict; R-10: Seek replays identically.
+// state; R-19 breakpoint and Skip; U-108, U-109 marks; C-15 verdict; R-10: Seek replays identically.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getChallenge } from "@/challenges";
 import { ast, program, runAll, tid } from "@/nodes/testing";
@@ -444,7 +444,7 @@ describe("run store (R-21)", () => {
   });
 
   it("R-19: a breakpoint on the last statement ends the run as done", async () => {
-    const last = if_(ast.bool(false), []);
+    const last = exprStmt(num(0));
     useProgram.setState({ program: program([print(str("a")), last]) });
     await paused();
     run().setBreakpoint(last.id);
@@ -452,9 +452,9 @@ describe("run store (R-21)", () => {
     expect(run()).toMatchObject({ status: "done", step: 3 });
   });
 
-  // ------------------------------------------------------------ U-61 marks
+  // ------------------------------------------------------------ U-108, U-109 marks
 
-  it("U-61: a compare marks its statement; a new pass clears every mark in the loop's body", async () => {
+  it("U-108, U-109: a compare marks its statement; a new pass clears every mark in the loop's body", async () => {
     const inner = if_(bin("==", v("i"), num(0)), [print(v("i"))]);
     const outer = if_(bin("<", v("i"), num(1)), [inner]);
     const loop = for_("i", num(0), num(2), [outer]);
@@ -477,7 +477,24 @@ describe("run store (R-21)", () => {
     expect(run().taken).toEqual({ [loop.id]: true, [outer.id]: true });
   });
 
-  it("U-61: entering a diamond again clears its mark; a while shows its last check when it exits", async () => {
+  it("U-108: a diamond is marked by its whole condition, not by a comparison inside it", async () => {
+    const negated = if_(ast.not(bin("<", v("i"), num(1))), []);
+    const found = if_(v("found"), []);
+    useProgram.setState({
+      program: program([assign("i", num(0)), negated, assign("found", num(1)), found]),
+    });
+    await paused();
+    // enter, write, enter negated, compare(i < 1: true), compare(not: false), enter, write,
+    // enter found, compare(found: true)
+    await run().seek(4);
+    expect(run().verdicts).toEqual({});
+    await run().seek(5);
+    expect(run().verdicts).toEqual({ [negated.id]: false });
+    await run().seek(9);
+    expect(run().verdicts).toEqual({ [negated.id]: false, [found.id]: true });
+  });
+
+  it("U-109: entering a diamond again clears its mark; a while shows its last check when it exits", async () => {
     const loop = while_(bin(">", v("n"), num(0)), [assign("n", bin("-", v("n"), num(1)))]);
     useProgram.setState({ program: program([assign("n", num(1)), loop]) });
     await paused();
@@ -490,7 +507,7 @@ describe("run store (R-21)", () => {
     expect(run()).toMatchObject({ status: "done", verdicts: { [loop.id]: false } });
   });
 
-  it("U-61: a for that ends loses its mark at the first statement after it", async () => {
+  it("U-109: a for that ends loses its mark at the first statement after it", async () => {
     const loop = for_("i", num(0), num(2), [print(v("i"))]);
     const after = print(str("x"));
     useProgram.setState({ program: program([loop, after]) });
@@ -502,7 +519,7 @@ describe("run store (R-21)", () => {
     expect(run()).toMatchObject({ activeId: after.id, verdicts: {} });
   });
 
-  it("U-61: a for left by break loses its mark too; a statement inside keeps it", async () => {
+  it("U-109: a for left by break loses its mark too; a statement inside keeps it", async () => {
     const exit = if_(bin("==", v("i"), num(1)), [ast.brk()]);
     const loop = for_("i", num(0), num(5), [exit]);
     const after = print(str("x"));

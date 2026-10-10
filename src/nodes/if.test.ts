@@ -27,6 +27,13 @@ describe("if (nodes.md)", () => {
     expect(varData(result, "x")).toBe(1);
   });
 
+  it("R-35: a condition that is no comparison ends in a compare of its own", () => {
+    const cond = v("ok");
+    const result = runAll(program([assign("ok", num(0)), if_(cond, [])]));
+    expect(eventTypes(result.events)).toEqual(["enter", "write", "enter", "compare"]);
+    expect(result.events[3]).toEqual({ type: "compare", nodeId: cond.id, result: false });
+  });
+
   it("N-10: a false condition runs else (L-18 truthiness)", () => {
     const result = runAll(program([if_(num(0), [assign("x", num(1))], [assign("x", num(2))])]));
     expect(varData(result, "x")).toBe(2);
@@ -43,6 +50,6 @@ describe("if (nodes.md)", () => {
   });
 
   it("N-09: a branch with `then` as Yes and `else` as No", () => {
-    expect(ifStmt.chart).toEqual({ branch: { yes: "then", no: "else" } });
+    expect(ifStmt.chart).toEqual({ branch: { cond: "cond", yes: "then", no: "else" } });
   });
 });

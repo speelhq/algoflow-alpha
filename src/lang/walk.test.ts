@@ -1,9 +1,9 @@
 // U-39: every node maps to the statement that contains it.
 import { describe, expect, it } from "vitest";
 import { ast, program, tid } from "@/nodes/testing";
-import { bodyStmts, ownerStmts } from "./walk";
+import { bodyStmts, conditionOf, diamondConditions, ownerStmts } from "./walk";
 
-const { assign, num, bin, v, if_, for_, print, ret } = ast;
+const { assign, num, bin, v, if_, for_, while_, print, ret } = ast;
 
 describe("ownerStmts (U-39)", () => {
   it("maps expressions to their statement and statements, functions, classes to themselves", () => {
@@ -26,7 +26,27 @@ describe("ownerStmts (U-39)", () => {
   });
 });
 
-describe("bodyStmts (U-61)", () => {
+describe("conditionOf and diamondConditions (U-108)", () => {
+  it("give the condition a branch or a checked loop asks, by its declared slot, and nothing else", () => {
+    const asked = v("ok");
+    const branch = if_(asked, []);
+    const loop = while_(bin("<", v("i"), num(3)), []);
+    const counted = for_("i", num(0), num(3), [branch]);
+    expect(conditionOf(branch)).toEqual({ slot: "cond", expr: asked });
+    expect(conditionOf(counted)).toBeUndefined();
+    expect(conditionOf(print(v("i")))).toBeUndefined();
+    const p = program([counted, loop]);
+    expect(diamondConditions(p)).toEqual(
+      new Map([
+        [asked.id, branch.id],
+        [loop.kind === "while" ? loop.cond.id : "", loop.id],
+      ]),
+    );
+    expect(diamondConditions(p)).toBe(diamondConditions(p));
+  });
+});
+
+describe("bodyStmts (U-109)", () => {
   it("lists every statement inside a statement's regions, at any depth, and skips plain statements", () => {
     const hit = print(v("i"));
     const miss = print(num(0));

@@ -355,7 +355,7 @@ class Builder {
     if ("jump" in chart) return this.box(stmt, this.depth > 0 ? chart.jump : null);
     if ("branch" in chart) return this.branch(stmt, chart.branch);
     return "check" in chart
-      ? this.loop(stmt, chart.check, false)
+      ? this.loop(stmt, chart.check.body, false)
       : this.loop(stmt, chart.counted, true);
   }
 

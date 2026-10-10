@@ -5,7 +5,6 @@ import { ast, program } from "@/nodes/testing";
 import { isParseError, parse } from "@/python/parse";
 import {
   capitalise,
-  conditionOf,
   drawn,
   exprParts,
   exprText,
@@ -115,7 +114,8 @@ describe("diamonds and generated nodes (U-33, N-09)", () => {
       "(remainder of i divided by 15) = 0?",
     );
     expect(joinParts(questionParts(if_(empty(), [])))).toBe("choose a value");
-    expect(conditionOf(if_(v("ok"), []))).toMatchObject({ kind: "var", name: "ok" });
+    // The condition's runs name its slot; the `?` names none.
+    expect(questionParts(if_(v("ok"), [])).map((part) => part.slot)).toEqual(["cond", undefined]);
   });
 
   it("a counted loop's generated nodes carry the loop's own slots", () => {

@@ -1,4 +1,6 @@
-// U-63: one sentence per event; a comparison as the chart writes it, with the values of the moment.
+// U-63, U-116, U-117, U-118, U-119: one sentence per event; a comparison as the chart writes it,
+// with the values of the moment; a diamond's question and its answer; values as the blocks write
+// them; a named node by its statement; a location by the variable that holds it.
 import { describe, expect, it } from "vitest";
 import { t } from "@/i18n/t";
 import type { Data, Input, Program } from "@/lang/types";
@@ -39,7 +41,12 @@ describe("narrate (U-63)", () => {
     expect(told(program([for_("i", num(1), num(3), [])]), "enter")).toBe("For i from 1 up to 3");
   });
 
-  it("compare: a diamond's whole condition is its question with the values, and its answer", () => {
+  it("U-118 enter: a named node is narrated by its statement, not its name", () => {
+    const named = { ...assign("i", num(6)), name: "start counting" };
+    expect(told(program([named]), "enter")).toBe("Create i and set it to 6");
+  });
+
+  it("U-116 compare: a diamond's whole condition is its question with the values, and its answer", () => {
     const p = program([
       assign("n", num(4)),
       if_(bin(">", bin("+", v("n"), num(1)), num(3)), []),
@@ -49,7 +56,7 @@ describe("narrate (U-63)", () => {
     expect(told(p, "compare", 2)).toBe("4 = 5? No");
   });
 
-  it("compare: FizzBuzz at i = 3 writes its operations as the chart does", () => {
+  it("U-116 compare: FizzBuzz at i = 3 writes its operations as the chart does", () => {
     const p = program([
       assign("i", num(3)),
       if_(bin("==", bin("%", v("i"), num(15)), num(0)), []),
@@ -67,12 +74,25 @@ describe("narrate (U-63)", () => {
       assign("ok", bin("!=", v("a"), num(1))),
     ]);
     expect(told(p, "compare", 1)).toBe("1 < 2 is true");
-    expect(told(p, "compare", 3)).toBe("1 ≠ 1 is false");
+    expect(told(p, "compare", 3)).toBe("1 < 2 and 1 < 9? Yes");
+    expect(told(p, "compare", 4)).toBe("1 ≠ 1 is false");
     const negated = program([assign("a", num(1)), while_(not(bin(">=", v("a"), num(1))), [])]);
-    expect(told(negated, "compare")).toBe("1 ≥ 1 is true");
+    expect(told(negated, "compare", 1)).toBe("1 ≥ 1 is true");
+    expect(told(negated, "compare", 2)).toBe("not (1 ≥ 1)? No");
   });
 
-  it("compare: values are written with the block words, never Python's", () => {
+  it("U-116 compare: a condition that is one variable keeps its name; inside one it is a value", () => {
+    const p = program([
+      assign("found", bool(true)),
+      assign("i", num(3)),
+      if_(v("found"), []),
+      while_(bin("and", not(v("found")), bin("<", v("i"), num(15))), []),
+    ]);
+    expect(told(p, "compare", 1)).toBe("found? Yes");
+    expect(told(p, "compare", 2)).toBe("(not true) and 3 < 15? No");
+  });
+
+  it("U-117 compare: values are written with the block words, never Python's", () => {
     const p = program([
       assign("done", bool(true)),
       assign("name", str("Fizz")),
@@ -101,7 +121,7 @@ describe("narrate (U-63)", () => {
     expect(told(p, "return")).toBe("f returned 4");
   });
 
-  it("read and swap name the list by the variable that holds it", () => {
+  it("U-119 read and swap name the list by the variable that holds it", () => {
     const p = withInputs(
       [if_(bin("in", v("x"), v("nums")), [])],
       [
@@ -150,7 +170,7 @@ describe("narrate (U-63)", () => {
     expect(say(narrateDifference({}))).toBe("The run ended here");
   });
 
-  it("valueText writes containers with the same words inside", () => {
+  it("U-117 valueText writes containers with the same words inside", () => {
     const runner = run(
       withInputs([], [{ name: "d", value: { a: [true, null, "x", { $float: 2 }], "$int:3": 1 } }]),
       {},

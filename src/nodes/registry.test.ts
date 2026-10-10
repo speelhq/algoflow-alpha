@@ -1,4 +1,4 @@
-// N-02, N-09: what every registered block owes the catalog and the chart.
+// N-02, N-09, N-16: what every registered block owes the catalog and the chart.
 import { describe, expect, it } from "vitest";
 import en from "@/i18n/en.json";
 import { flatten } from "@/i18n/flatten";
@@ -11,10 +11,16 @@ const keys = new Set(Object.keys(flatten(en)));
 function regionsIn(chart: ChartShape): string[] {
   if ("branch" in chart) return [chart.branch.yes, chart.branch.no];
   if ("jump" in chart) return [];
-  return "check" in chart ? [chart.check] : [chart.counted];
+  return "check" in chart ? [chart.check.body] : [chart.counted];
 }
 
-describe("registry (N-02, N-09)", () => {
+/** The slot a diamond's condition is in, for the shapes that draw one. */
+function conditionIn(chart: ChartShape): string | undefined {
+  if ("branch" in chart) return chart.branch.cond;
+  return "check" in chart ? chart.check.cond : undefined;
+}
+
+describe("registry (N-02, N-09, N-16)", () => {
   it("N-01: the categories are in menu order", () => {
     expect(CATEGORIES).toEqual(["basic", "control", "list", "function", "dict", "class"]);
   });
@@ -106,7 +112,7 @@ describe("registry (N-02, N-09)", () => {
     }
   });
 
-  it("N-09: a chart names body slots of its block; a counted loop has init, check, and step", () => {
+  it("N-09: a chart names the body slots of its block, and a diamond's condition an expr slot", () => {
     const shaped = [...NODES.values()].filter((def) => def.chart);
     expect(new Set(shaped.map((def) => def.key))).toEqual(
       new Set(["if", "while", "for", "break", "continue"]),
@@ -115,10 +121,18 @@ describe("registry (N-02, N-09)", () => {
       const regions = def.chart ? regionsIn(def.chart) : [];
       const bodies = def.slots.filter((slot) => slot.role === "body").map((slot) => slot.name);
       expect(new Set(regions)).toEqual(new Set(bodies));
-      if (def.chart && "counted" in def.chart) {
-        for (const part of ["init", "check", "step"]) {
-          expect(keys.has(`node.${def.key}.${part}`), `node.${def.key}.${part}`).toBe(true);
-        }
+      const cond = def.chart ? conditionIn(def.chart) : undefined;
+      if (cond !== undefined) {
+        expect(def.slots.find((slot) => slot.name === cond)?.role, def.key).toBe("expr");
+      }
+    }
+  });
+
+  it("N-16: a counted loop has the texts of init, check, and step", () => {
+    for (const def of NODES.values()) {
+      if (!def.chart || !("counted" in def.chart)) continue;
+      for (const part of ["init", "check", "step"]) {
+        expect(keys.has(`node.${def.key}.${part}`), `node.${def.key}.${part}`).toBe(true);
       }
     }
   });

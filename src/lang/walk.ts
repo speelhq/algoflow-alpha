@@ -132,6 +132,31 @@ export function ownerStmts(program: Program): Map<NodeId, NodeId> {
   return owners;
 }
 
+/** The condition a diamond asks: the slot its block's `branch` or `check` names, and what it holds. */
+export function conditionOf(node: Node): SlotExpr | undefined {
+  const chart = getNode(keyOf(node)).chart;
+  if (!chart || !("branch" in chart || "check" in chart)) return undefined;
+  const slot = "branch" in chart ? chart.branch.cond : chart.check.cond;
+  const value = (node as unknown as Bag)[slot];
+  return isExpr(value) ? { slot, expr: value } : undefined;
+}
+
+const conditions = new WeakMap<Program, Map<NodeId, NodeId>>();
+
+/** Each diamond's condition by id, with the statement whose diamond asks it; one pass per Program. */
+export function diamondConditions(program: Program): Map<NodeId, NodeId> {
+  let found = conditions.get(program);
+  if (!found) {
+    found = new Map();
+    for (const { stmt } of programStmts(program)) {
+      const condition = conditionOf(stmt);
+      if (condition) found.set(condition.expr.id, stmt.id);
+    }
+    conditions.set(program, found);
+  }
+  return found;
+}
+
 /**
  * For each statement with body regions, the ids of every statement inside them,
  * at any depth. A loop's `loop` event clears the marks of these statements.

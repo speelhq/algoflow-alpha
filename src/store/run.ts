@@ -10,7 +10,7 @@ import { firstDifference, resultRows, watchStep, type WatchStep } from "@/challe
 import type { Test } from "@/challenges/types";
 import type { Data, HeapEntry, Id, NodeId, Program } from "@/lang/types";
 import { validate } from "@/lang/validate";
-import { bodyStmts, nodesById, ownerStmts } from "@/lang/walk";
+import { bodyStmts, diamondConditions, nodesById, ownerStmts } from "@/lang/walk";
 import { getNode, keyOf } from "@/nodes/registry";
 import { outcomeOf, type Outcome } from "@/runtime/outcome";
 import { run as startRunner } from "@/runtime/run";
@@ -99,6 +99,8 @@ let runner: Runner | null = null;
 let origin: Origin | null = null;
 let plan: Plan | null = null;
 let owners = new Map<NodeId, NodeId>();
+/** Each diamond's condition, with its statement: the condition's `compare` marks the diamond. */
+let conditions = new Map<NodeId, NodeId>();
 let bodies = new Map<NodeId, NodeId[]>();
 /** Each loop with the statements inside it; leaving the loop clears its own mark. */
 let loops = new Map<NodeId, Set<NodeId>>();
@@ -187,7 +189,7 @@ function apply(event: Event): void {
       }
     }
   } else if (event.type === "compare") {
-    const owner = owners.get(event.nodeId);
+    const owner = conditions.get(event.nodeId);
     if (owner !== undefined) {
       p.verdicts[owner] = event.result;
       p.dirty.verdicts = true;
@@ -415,6 +417,7 @@ export const useRun = create<RunState>()((set, get) => {
       origin = from;
       plan = made;
       owners = ownerStmts(from.program);
+      conditions = diamondConditions(from.program);
       bodies = bodyStmts(from.program);
       loops = loopBodies(from.program, bodies);
       reset(from);

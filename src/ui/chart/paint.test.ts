@@ -1,4 +1,4 @@
-// U-39, U-60, U-61: the taken path, marks, current node, and breakpoint drawn while running.
+// U-39, U-60, U-61, U-115: the taken path, marks, current node, and breakpoint drawn while running.
 import { describe, expect, it } from "vitest";
 import { ast, program } from "@/nodes/testing";
 import { layout } from "./layout";
@@ -27,7 +27,7 @@ function view(partial: Partial<RunView>): RunView {
   };
 }
 
-describe("currentNode (U-61)", () => {
+describe("currentNode (U-115)", () => {
   it("is a counted loop's init on its enter and its check on a pass", () => {
     const enter = view({ activeId: loop.id, lastEvent: { type: "enter", nodeId: loop.id } });
     expect(currentNode(chart, enter)).toBe(nodeOf(loop.id, "init"));
