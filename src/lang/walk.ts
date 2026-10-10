@@ -1,5 +1,5 @@
 // Traversal driven by each block's slots, so no module lists block kinds.
-import { getNode, keyOf } from "@/nodes";
+import { getNode, keyOf } from "@/nodes/registry";
 import type { Expr, FunctionDef, Node, NodeId, Program, Stmt, Target } from "./types";
 
 type Bag = Record<string, unknown>;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { emit } from "@/python/emit";
-import { getNode } from "./index";
+import { getNode } from "./registry";
 import { ast, eventTypes, program, runAll } from "./testing";
 
 const { exprStmt, call, num, bin } = ast;

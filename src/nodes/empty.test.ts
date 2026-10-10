@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { unparse } from "@/python/emit";
-import { getNode, paletteNodes } from "./index";
+import { getNode, paletteNodes } from "./registry";
 import { ast } from "./testing";
 
 describe("empty (L-09)", () => {

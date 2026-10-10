@@ -1,7 +1,7 @@
 // What the value list and the name list know of a value before the program runs: an
 // expression's kind from its block's `kind`, and a variable's from its input, else the value
 // of its first assignment, else the kind its loop block declares. Registry-driven.
-import { getNode, keyOf } from "@/nodes";
+import { getNode, keyOf } from "@/nodes/registry";
 import { declaredBy } from "./scope";
 import type { Data, Expr, Id, Kind, NodeId, Program, Stmt } from "./types";
 import { allStmts, childSlots, variableOf } from "./walk";

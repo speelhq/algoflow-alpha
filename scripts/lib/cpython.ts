@@ -6,7 +6,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Data, Id } from "@/lang/types";
-import { NODES } from "@/nodes";
+import { NODES } from "@/nodes/registry";
 
 export const PYTHON = process.env.PYTHON ?? "python3";
 

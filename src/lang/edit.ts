@@ -1,6 +1,6 @@
 // Pure edit functions. Each returns a new Program and keeps
 // every NodeId unique. Statements are addressed by id or by Place.
-import { getNode, keyOf } from "@/nodes";
+import { getNode, keyOf } from "@/nodes/registry";
 import { newId } from "./id";
 import type {
   ClassDef,

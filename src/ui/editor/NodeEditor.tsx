@@ -24,7 +24,7 @@ import type { Diagnostic, Expr, Id, NodeId, Program, Stmt, Target } from "@/lang
 import { validate } from "@/lang/validate";
 import { allExprs, isEmptyExpr, isExpr, nodesById, ownerStmts } from "@/lang/walk";
 import { cn } from "@/lib/utils";
-import { getNode, keyOf } from "@/nodes";
+import { getNode, keyOf } from "@/nodes/registry";
 import { useEditor } from "@/store/editor";
 import { useProgram } from "@/store/program";
 import { nodeText, templateOf } from "@/ui/chart/text";

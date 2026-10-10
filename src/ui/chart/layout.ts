@@ -9,7 +9,7 @@
 import { t } from "@/i18n/t";
 import type { Data, Id, NodeId, Place, Program, Stmt } from "@/lang/types";
 import { regionsOf } from "@/lang/walk";
-import { getNode, keyOf } from "@/nodes";
+import { getNode, keyOf } from "@/nodes/registry";
 import {
   drawn,
   generatedParts,

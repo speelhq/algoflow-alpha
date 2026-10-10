@@ -1,7 +1,7 @@
 // G-01, G-02, G-03, G-04, G-05 and G-06.
 import { describe, expect, it } from "vitest";
 import type { Expr } from "@/lang/types";
-import { NODES } from "@/nodes";
+import { NODES } from "@/nodes/registry";
 import { BINOPS } from "@/nodes/binop";
 import { mulberry32 } from "@/runtime/random";
 import { unparse } from "./emit";

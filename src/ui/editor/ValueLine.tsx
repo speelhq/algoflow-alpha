@@ -7,7 +7,7 @@ import { t } from "@/i18n/t";
 import type { Expr, NodeId } from "@/lang/types";
 import { isEmptyExpr, variableOf } from "@/lang/walk";
 import { cn } from "@/lib/utils";
-import { getNode, keyOf } from "@/nodes";
+import { getNode, keyOf } from "@/nodes/registry";
 import type { Side } from "@/nodes/types";
 import { bracketed, exprTemplate, exprText, isWordOperation } from "@/ui/chart/text";
 import { inputs, type Line } from "./line";

@@ -9,7 +9,7 @@ import { toValue } from "@/lang/data";
 import type { Data, Expr, Heap, Node, NodeId, Program, Target, Value } from "@/lang/types";
 import { firstAssignments } from "@/lang/validate";
 import { isEmptyExpr, isExpr, variableOf } from "@/lang/walk";
-import { getNode, hasNode, keyOf } from "@/nodes";
+import { getNode, hasNode, keyOf } from "@/nodes/registry";
 import type { NodeDef, Side } from "@/nodes/types";
 import { writeTarget } from "@/python/emit";
 import { needsParens } from "@/python/precedence";

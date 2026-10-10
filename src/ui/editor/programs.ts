@@ -2,7 +2,7 @@
 // Playground` (each input becoming an assignment at the top of `main`), Export, and Import.
 import { migrate } from "@/lang/migrate";
 import type { Expr, Input, Program, Stmt } from "@/lang/types";
-import { getNode } from "@/nodes";
+import { getNode } from "@/nodes/registry";
 import { dataToPython } from "@/python/emit";
 import { isParseError, parse } from "@/python/parse";
 import { createPlaygroundProgram } from "@/store/program";

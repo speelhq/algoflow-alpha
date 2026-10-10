@@ -10,7 +10,7 @@ import type { Kinds } from "@/lang/kinds";
 import { exprKind } from "@/lang/kinds";
 import type { Expr, Id, NodeId } from "@/lang/types";
 import { allExprs, childSlots, isEmptyExpr, variableOf } from "@/lang/walk";
-import { getNode, keyOf } from "@/nodes";
+import { getNode, keyOf } from "@/nodes/registry";
 import { isParseError, parse, type ParseScope } from "@/python/parse";
 import { levelAssociativity } from "@/python/precedence";
 import { exprTemplate, exprText } from "@/ui/chart/text";

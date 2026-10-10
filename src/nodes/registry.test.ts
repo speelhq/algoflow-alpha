@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import en from "@/i18n/en.json";
 import { flatten } from "@/i18n/flatten";
 import { CATEGORIES } from "./categories";
-import { NODES } from "./index";
+import { NODES } from "./registry";
 import type { ChartShape } from "./types";
 
 const keys = new Set(Object.keys(flatten(en)));

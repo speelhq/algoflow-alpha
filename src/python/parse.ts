@@ -1,7 +1,7 @@
 // Typed expression text → Expr. No third-party imports.
 import { newId } from "@/lang/id";
 import type { BinOp, Expr, Id } from "@/lang/types";
-import { NODES, hasNode, keyOf } from "@/nodes";
+import { NODES, hasNode, keyOf } from "@/nodes/registry";
 import { BINOPS, PRECEDENCE, binopsAt, isBinOp, isComparison } from "./precedence";
 
 export type ParseScope = { classes: Id[]; functions: Id[] };

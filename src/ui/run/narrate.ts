@@ -5,7 +5,7 @@ import { keyValue } from "@/lang/data";
 import { t, type MessageKey, type Params } from "@/i18n/t";
 import type { Expr, Heap, Program, Value } from "@/lang/types";
 import { isExpr, nodesById } from "@/lang/walk";
-import { getNode, keyOf } from "@/nodes";
+import { getNode, keyOf } from "@/nodes/registry";
 import type { Done, Event, Frame, Ref, State } from "@/runtime/types";
 import { capitalise, conditionOf, exprText, sentence, valueText } from "@/ui/chart/text";
 

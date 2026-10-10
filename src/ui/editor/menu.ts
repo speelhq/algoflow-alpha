@@ -6,7 +6,7 @@ import { fillPlaceholders, t, type MessageKey } from "@/i18n/t";
 import { newId } from "@/lang/id";
 import { placeContext } from "@/lang/scope";
 import type { Expr, Place, Program, Stmt } from "@/lang/types";
-import { getNode, paletteNodes, type NodeDef } from "@/nodes";
+import { getNode, paletteNodes, type NodeDef } from "@/nodes/registry";
 import { CATEGORIES, type Category } from "@/nodes/categories";
 import { blankTemplate, nodeText } from "@/ui/chart/text";
 

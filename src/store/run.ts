@@ -11,7 +11,7 @@ import type { Test } from "@/challenges/types";
 import type { Data, HeapEntry, Id, NodeId, Program } from "@/lang/types";
 import { validate } from "@/lang/validate";
 import { bodyStmts, nodesById, ownerStmts } from "@/lang/walk";
-import { getNode, keyOf } from "@/nodes";
+import { getNode, keyOf } from "@/nodes/registry";
 import { outcomeOf, type Outcome } from "@/runtime/outcome";
 import { run as startRunner } from "@/runtime/run";
 import type { Done, Event, Runner, State } from "@/runtime/types";

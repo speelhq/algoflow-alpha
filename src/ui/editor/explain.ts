@@ -4,7 +4,7 @@ import { t, type MessageKey } from "@/i18n/t";
 import { chartOf, firstSetters, variableKinds } from "@/lang/kinds";
 import type { Expr, Id, Kind, NodeId, Program } from "@/lang/types";
 import { isEmptyExpr } from "@/lang/walk";
-import { getNode, keyOf } from "@/nodes";
+import { getNode, keyOf } from "@/nodes/registry";
 import {
   capitalise,
   exprTemplate,

@@ -2,7 +2,7 @@
 // owns frames, dispatch, counting, limits, and the Runner contract.
 import { toValue } from "@/lang/data";
 import type { Data, Expr, Heap, Id, NodeId, Program, Stmt, Value } from "@/lang/types";
-import { getNode, keyOf } from "@/nodes";
+import { getNode, keyOf } from "@/nodes/registry";
 import type { ExprRunner, RunContext, Signal, StmtRunner } from "@/nodes/types";
 import { RuntimeFailure } from "./errors";
 import { createRandom } from "./random";

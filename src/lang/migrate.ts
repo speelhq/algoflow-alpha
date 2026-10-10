@@ -1,6 +1,6 @@
 // Import validates and migrates by `version`. Only version 1 exists; the
 // check is structural (shape, known kinds, ids); semantics are validate()'s job.
-import { getNode, hasNode, keyOf } from "@/nodes";
+import { getNode, hasNode, keyOf } from "@/nodes/registry";
 import { isNodeId } from "./id";
 import type { Expr, Program, Stmt, Target } from "./types";
 import { isRecord } from "./record";

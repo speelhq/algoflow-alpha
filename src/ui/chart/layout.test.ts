@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { CHALLENGES } from "@/challenges";
 import type { Program, Stmt } from "@/lang/types";
 import { allStmts, regionsOf } from "@/lang/walk";
-import { getNode, keyOf } from "@/nodes";
+import { getNode, keyOf } from "@/nodes/registry";
 import { ast, program, tid } from "@/nodes/testing";
 import {
   layout,

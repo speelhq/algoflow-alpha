@@ -10,7 +10,7 @@ import type {
   Target,
 } from "@/lang/types";
 import { programExprs } from "@/lang/walk";
-import { getNode, keyOf } from "@/nodes";
+import { getNode, keyOf } from "@/nodes/registry";
 import type { EmitContext, PyLine, Side } from "@/nodes/types";
 import { floatRepr } from "@/runtime/values";
 import { PRECEDENCE, needsParens } from "./precedence";

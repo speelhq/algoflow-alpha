@@ -1,7 +1,7 @@
 // What the editor asks of a program's structure: the names visible at a statement,
 // whether a place lies inside a loop or a function, and where an expression sits.
 // Registry-driven: slots, `loop`, and regions, never a kind.
-import { getNode, keyOf } from "@/nodes";
+import { getNode, keyOf } from "@/nodes/registry";
 import type { Id, Node, NodeId, Place, Program, Stmt, Target } from "./types";
 import { childSlots, regionsOf } from "./walk";
 

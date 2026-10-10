@@ -1,7 +1,7 @@
 // The entries of the value list as the blocks declare them: each with its block, its
 // label and help, and how it makes its expression. Reads `menu` and `create()`, never a kind.
 import type { Expr } from "@/lang/types";
-import { NODES, getNode, keyOf, type NodeDef } from "@/nodes";
+import { NODES, getNode, keyOf, type NodeDef } from "@/nodes/registry";
 import type { MenuEntry, MenuGroup } from "@/nodes/types";
 import { nodeText } from "@/ui/chart/text";
 

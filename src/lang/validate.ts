@@ -1,7 +1,7 @@
 // Every validation code, run after every edit and before every run: scope rules,
 // names, empty slots, and field defaults.
 // Dispatch is registry-driven: slots, `requires`, `loop`, `params`, `callee`.
-import { getNode, hasNode, keyOf } from "@/nodes";
+import { getNode, hasNode, keyOf } from "@/nodes/registry";
 import type { NodeDef, Slot } from "@/nodes/types";
 import {
   CLASS_NAME_PATTERN,
