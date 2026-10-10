@@ -66,13 +66,11 @@ describe("migrate (L-53)", () => {
     expect(() => migrate(noId)).toThrow(/^main\[0\]\.args\[0\]\.id/);
   });
 
-  it("L-55: drops a comment statement at any depth", () => {
-    const p = program([assign("x", num(1)), for_("i", num(0), num(3), [print(v("i"))])]);
+  it("rejects a statement of a kind no block reads, at any depth", () => {
+    const p = program([for_("i", num(0), num(3), [print(v("i"))])]);
     const stored = json(p) as { main: Array<Record<string, unknown>> };
-    const note = { id: "c0000000000c", kind: "comment", text: "note" };
-    stored.main.splice(1, 0, note);
-    (stored.main[2]!.body as unknown[]).unshift({ ...note, id: "c0000000001c" });
-    expect(migrate(stored)).toEqual(p);
+    (stored.main[0]!.body as unknown[]).unshift({ id: "c0000000000c", kind: "comment" });
+    expect(() => migrate(stored)).toThrow(/^main\[0\]\.body\[0\]\.kind: unknown kind "comment"/);
   });
 
   it("L-58: keeps a statement's name and rejects one that is not one line of text", () => {

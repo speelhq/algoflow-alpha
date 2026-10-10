@@ -75,9 +75,6 @@ function checkExpr(value: unknown, path: string): void {
   for (const child of rawChildren(value, path)) checkExpr(child.value, child.path);
 }
 
-/** The kind of a statement no block reads any more; loading drops it. */
-const DROPPED = "comment";
-
 function checkStmts(value: unknown, path: string): void {
   const stmts = expectArray(value, path);
   stmts.forEach((stmt, i) => {
@@ -85,7 +82,6 @@ function checkStmts(value: unknown, path: string): void {
     if (!isRecord(stmt)) throw new MigrateError(at, "expected a statement");
     expectNodeId(stmt.id, `${at}.id`);
     const kind = expectString(stmt.kind, `${at}.kind`);
-    if (kind === DROPPED) return;
     if ("name" in stmt) {
       if (typeof stmt.name !== "string" || /[\n\r]/.test(stmt.name)) {
         throw new MigrateError(`${at}.name`, "expected one line of text");
@@ -103,8 +99,6 @@ function checkStmts(value: unknown, path: string): void {
       checkStmts(region.stmts, `${at}.${region.slot}`);
     }
   });
-  const kept = stmts.filter((stmt) => !isRecord(stmt) || stmt.kind !== DROPPED);
-  stmts.splice(0, stmts.length, ...kept);
 }
 
 function checkV1(json: Record<string, unknown>): Program {

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// C-13: opening a problem; L-52: history; L-53, L-55: storage; L-57: Playground programs.
+// C-13: opening a problem; L-52: history; L-53, L-55, L-67: storage; L-57: Playground programs.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Challenge } from "@/challenges/types";
 import type { Program } from "@/lang/types";
@@ -57,7 +57,7 @@ describe("program store", () => {
     });
   });
 
-  it("L-55: restores the stored program and lets the challenge overwrite challengeId and inputs", () => {
+  it("L-55, L-67: restores the stored program and lets the challenge overwrite challengeId and inputs", () => {
     const saved = {
       ...program([print(v("m"))], { inputs: [{ name: "m", kind: "text" }] }),
       title: "Mine",
@@ -79,7 +79,7 @@ describe("program store", () => {
     expect(restore("bare").main).toEqual([]);
   });
 
-  it("L-55: a Playground program restores without challengeId or inputs", () => {
+  it("L-67: a Playground program restores without challengeId or inputs", () => {
     const saved = {
       ...program([assign("k", num(2))], { inputs: [{ name: "n", kind: "number" }] }),
       challengeId: "stale",
