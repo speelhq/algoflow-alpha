@@ -3,9 +3,16 @@ import type { Data, Heap, HeapEntry, HeapId, Id, Value } from "./types";
 
 const INT_KEY = "$int:";
 
+/** A float: a fractional number, or the `{ $float: n }` form of an integral one. */
 export function isFloatData(data: Data): data is number | { $float: number } {
   if (typeof data === "number") return !Number.isInteger(data);
-  return typeof data === "object" && data !== null && !Array.isArray(data) && "$float" in data;
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    !Array.isArray(data) &&
+    "$float" in data &&
+    typeof data.$float === "number"
+  );
 }
 
 function isObjectData(data: Data): data is { $cls: string; [field: string]: Data } {
@@ -51,9 +58,7 @@ export function toValue(data: Data, heap: Heap): Value {
     const items = data.map((item) => toValue(item, heap));
     return { t: "list", ref: alloc(heap, { kind: "list", items }) };
   }
-  if ("$float" in data && typeof data.$float === "number") {
-    return { t: "float", v: data.$float };
-  }
+  if (isFloatData(data)) return { t: "float", v: floatOf(data) };
   if (isObjectData(data)) {
     const fields = new Map<string, Value>();
     for (const [name, field] of Object.entries(data)) {
@@ -127,7 +132,8 @@ function entryToData(ref: HeapId, entry: HeapEntry, heap: Heap, ctx: ToDataConte
 
 const FLOAT_TOLERANCE = 1e-6;
 
-function floatOf(data: number | { $float: number }): number {
+/** The number a float holds, in either form. */
+export function floatOf(data: number | { $float: number }): number {
   return typeof data === "number" ? data : data.$float;
 }
 

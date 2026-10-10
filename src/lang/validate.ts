@@ -15,6 +15,7 @@ import {
   type Program,
   type Stmt,
 } from "./types";
+import { isFloatData } from "./data";
 import { declaredBy } from "./scope";
 import { childSlots, programIds, regionsOf, stmtExprs } from "./walk";
 
@@ -34,7 +35,7 @@ export function isBuiltinName(name: string): boolean {
 }
 
 export function isValidDefault(data: Data): boolean {
-  if (data === null || typeof data !== "object") return true;
+  if (data === null || typeof data !== "object" || isFloatData(data)) return true;
   if (Array.isArray(data)) return data.length === 0;
   return Object.keys(data).length === 0;
 }

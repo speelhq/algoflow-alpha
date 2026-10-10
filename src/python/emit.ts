@@ -10,7 +10,7 @@ import type {
   Stmt,
   Target,
 } from "@/lang/types";
-import { inputValue } from "@/lang/data";
+import { floatOf, inputValue, isFloatData } from "@/lang/data";
 import { programExprs } from "@/lang/walk";
 import { getNode, keyOf } from "@/nodes/registry";
 import type { EmitContext, PyLine, Side } from "@/nodes/types";
@@ -48,7 +48,7 @@ export function dataToPython(data: Data): string {
   if (typeof data === "boolean") return data ? "True" : "False";
   if (data === null) return "None";
   if (Array.isArray(data)) return `[${data.map(dataToPython).join(", ")}]`;
-  if ("$float" in data && typeof data.$float === "number") return floatRepr(data.$float);
+  if (isFloatData(data)) return floatRepr(floatOf(data));
   if ("$cls" in data) throw new Error("objects cannot be emitted as input literals");
   const entries = Object.entries(data).map(
     ([key, value]) =>

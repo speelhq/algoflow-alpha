@@ -1,7 +1,7 @@
 // L-56: every validation code has a failing and a passing case; L-40, L-41, L-42.
 import { describe, expect, it } from "vitest";
 import { ast, program } from "@/nodes/testing";
-import type { Diagnostic, Program, Stmt } from "./types";
+import type { Diagnostic, Field, Program, Stmt } from "./types";
 import { firstAssignments, validate } from "./validate";
 
 const {
@@ -217,13 +217,14 @@ describe("validate (02 Validation)", () => {
       { nodeId: "c0000000000c", code: "E_DEFAULT", params: { field: "xs" } },
       { nodeId: "c0000000000c", code: "E_DEFAULT", params: { field: "d" } },
     ]);
-    const fields = [
+    const fields: Field[] = [
       { name: "xs", default: [] },
       { name: "d", default: {} },
       { name: "n", default: 0 },
       { name: "s", default: "" },
       { name: "b", default: false },
       { name: "z", default: null },
+      { name: "f", default: { $float: 2 } },
     ];
     expect(validate({ ...p, classes: [{ id: "c0000000000c", name: "P", fields }] })).toEqual([]);
   });
