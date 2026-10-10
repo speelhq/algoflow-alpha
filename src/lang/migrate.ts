@@ -2,9 +2,9 @@
 // check is structural (shape, known kinds, ids); semantics are validate()'s job.
 import { getNode, hasNode, keyOf } from "@/nodes/registry";
 import { isNodeId } from "./id";
-import { KINDS, type Expr, type InputDecl, type Program, type Stmt, type Target } from "./types";
+import { KINDS, type Expr, type InputDecl, type Program, type Target } from "./types";
 import { isRecord } from "./record";
-import { regionsOf, targetExprs } from "./walk";
+import { TARGET_PARTS, type TargetParts } from "./walk";
 
 export class MigrateError extends Error {
   constructor(
@@ -28,6 +28,10 @@ function expectString(value: unknown, path: string): string {
   return value;
 }
 
+function expectName(value: unknown, path: string): void {
+  if (typeof value !== "string") throw new MigrateError(path, "expected a name");
+}
+
 /** Whether a JSON value declares an input: a name with a known kind. */
 export function isInputDecl(value: unknown): value is InputDecl {
   return (
@@ -35,11 +39,18 @@ export function isInputDecl(value: unknown): value is InputDecl {
   );
 }
 
+function isTargetKind(kind: unknown): kind is Target["kind"] {
+  return typeof kind === "string" && Object.hasOwn(TARGET_PARTS, kind);
+}
+
 function expectNodeId(value: unknown, path: string): void {
   if (!isNodeId(value)) throw new MigrateError(path, "expected a 12-character node id");
 }
 
-/** The raw slot values of a node, by the registry's slot roles (no `isExpr` filtering). */
+/**
+ * The raw expression values of a node, by the registry's slot roles (no `isExpr` filtering);
+ * a required expression absent and a name that is no string are rejected here.
+ */
 function rawChildren(
   node: Record<string, unknown>,
   path: string,
@@ -48,18 +59,21 @@ function rawChildren(
   for (const slot of getNode(keyOf(node as unknown as Expr)).slots) {
     const value = node[slot.name];
     if (slot.role === "expr") {
-      if (value !== undefined) out.push({ value, path: `${path}.${slot.name}` });
+      if (value !== undefined || slot.required) out.push({ value, path: `${path}.${slot.name}` });
+    } else if (slot.role === "id") {
+      expectName(value, `${path}.${slot.name}`);
     } else if (slot.role === "exprs") {
       expectArray(value, `${path}.${slot.name}`).forEach((item, i) =>
         out.push({ value: item, path: `${path}.${slot.name}[${i}]` }),
       );
     } else if (slot.role === "target") {
-      if (!isRecord(value) || typeof value.kind !== "string") {
-        throw new MigrateError(`${path}.${slot.name}`, "expected a target");
+      const at = `${path}.${slot.name}`;
+      if (!isRecord(value) || !isTargetKind(value.kind)) {
+        throw new MigrateError(at, "expected a target");
       }
-      targetExprs(value as unknown as Target).forEach((item, i) =>
-        out.push({ value: item, path: `${path}.${slot.name}[${i}]` }),
-      );
+      const parts: TargetParts = TARGET_PARTS[value.kind];
+      for (const name of parts.names) expectName(value[name], `${at}.${name}`);
+      for (const name of parts.exprs) out.push({ value: value[name], path: `${at}.${name}` });
     }
   }
   return out;
@@ -95,8 +109,9 @@ function checkStmts(value: unknown, path: string): void {
       throw new MigrateError(`${at}.kind`, `unknown kind "${kind}"`);
     }
     for (const child of rawChildren(stmt, at)) checkExpr(child.value, child.path);
-    for (const region of regionsOf(stmt as unknown as Stmt)) {
-      checkStmts(region.stmts, `${at}.${region.slot}`);
+    // Every region by the block's slots: `regionsOf` passes over one that is no array.
+    for (const slot of getNode(kind).slots) {
+      if (slot.role === "body") checkStmts(stmt[slot.name], `${at}.${slot.name}`);
     }
   });
 }

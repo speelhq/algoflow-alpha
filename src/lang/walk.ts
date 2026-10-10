@@ -4,17 +4,29 @@ import type { Expr, FunctionDef, Node, NodeId, Program, Stmt, Target } from "./t
 
 type Bag = Record<string, unknown>;
 
+/** The fields of a target that hold names, and those that hold expressions, in order. */
+export type TargetParts = { names: readonly string[]; exprs: readonly string[] };
+
+/** A kind's parts, each a field of that kind of target. */
+type PartsOf<T> = TargetParts & {
+  names: ReadonlyArray<Extract<keyof T, string>>;
+  exprs: ReadonlyArray<Extract<keyof T, string>>;
+};
+
+/** The parts of each kind of assignment target: the names it holds and its expressions, in order. */
+export const TARGET_PARTS: {
+  readonly [K in Target["kind"]]: PartsOf<Extract<Target, { kind: K }>>;
+} = {
+  var: { names: ["name"], exprs: [] },
+  index: { names: [], exprs: ["list", "index"] },
+  key: { names: [], exprs: ["dict", "key"] },
+  field: { names: ["field"], exprs: ["obj"] },
+};
+
 export function targetExprs(target: Target): Expr[] {
-  switch (target.kind) {
-    case "var":
-      return [];
-    case "index":
-      return [target.list, target.index];
-    case "key":
-      return [target.dict, target.key];
-    case "field":
-      return [target.obj];
-  }
+  const bag = target as unknown as Bag;
+  const parts: TargetParts = TARGET_PARTS[target.kind];
+  return parts.exprs.map((name) => bag[name] as Expr);
 }
 
 export function isExpr(value: unknown): value is Expr {

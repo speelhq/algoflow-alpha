@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { ast, program } from "@/nodes/testing";
 import { MigrateError, migrate } from "./migrate";
 
-const { assign, print, num, bin, v, for_ } = ast;
+const { assign, print, num, bin, v, for_, ret } = ast;
 
 function json(value: unknown): unknown {
   return JSON.parse(JSON.stringify(value));
@@ -66,6 +66,23 @@ describe("migrate (L-53)", () => {
     expect(() => migrate(noId)).toThrow(/^main\[0\]\.args\[0\]\.id/);
   });
 
+  it("rejects a missing required value, a name that is no text, and a region that is no list", () => {
+    type Stored = { main: Array<Record<string, unknown>> };
+    const noValue = json(program([assign("x", num(1))])) as Stored;
+    delete noValue.main[0]!.value;
+    expect(() => migrate(noValue)).toThrow(/^main\[0\]\.value: expected an expression/);
+    const badVar = json(program([for_("i", num(0), num(3), [])])) as Stored;
+    badVar.main[0]!.var = 3;
+    expect(() => migrate(badVar)).toThrow(/^main\[0\]\.var: expected a name/);
+    const badRegion = json(program([for_("i", num(0), num(3), [])])) as Stored;
+    badRegion.main[0]!.body = "nothing";
+    expect(() => migrate(badRegion)).toThrow(/^main\[0\]\.body: expected an array/);
+    // An optional value may be absent.
+    const fn = { id: "f0000000000f", name: "f", params: [], body: [ret()] };
+    const bare = program([], { functions: [fn] });
+    expect(migrate(json(bare))).toEqual(bare);
+  });
+
   it("rejects a statement of a kind no block reads, at any depth", () => {
     const p = program([for_("i", num(0), num(3), [print(v("i"))])]);
     const stored = json(p) as { main: Array<Record<string, unknown>> };
@@ -111,5 +128,13 @@ describe("migrate (L-53)", () => {
     };
     badTarget.main[0]!.target = "x";
     expect(() => migrate(badTarget)).toThrow(/^main\[0\]\.target: expected a target/);
+    badTarget.main[0]!.target = { kind: "slice" };
+    expect(() => migrate(badTarget)).toThrow(/^main\[0\]\.target: expected a target/);
+    badTarget.main[0]!.target = { kind: "var", name: 3 };
+    expect(() => migrate(badTarget)).toThrow(/^main\[0\]\.target\.name: expected a name/);
+    badTarget.main[0]!.target = { kind: "field", obj: v("o"), field: 5 };
+    expect(() => migrate(badTarget)).toThrow(/^main\[0\]\.target\.field: expected a name/);
+    badTarget.main[0]!.target = { kind: "index", list: v("xs") };
+    expect(() => migrate(badTarget)).toThrow(/^main\[0\]\.target\.index: expected an expression/);
   });
 });
