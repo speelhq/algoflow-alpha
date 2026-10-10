@@ -25,7 +25,7 @@ const {
 const codes = (p: Program) => validate(p).map((d) => d.code);
 const withInput = (main: Stmt[]) => program(main, { inputs: [{ name: "c", kind: "number" }] });
 
-describe("validate (02 Validation)", () => {
+describe("validate (language.md, Validation)", () => {
   it("returns no diagnostics for a well-formed program", () => {
     expect(validate(program([assign("x", num(1)), print(bin("+", v("x"), num(1)))]))).toEqual([]);
   });
