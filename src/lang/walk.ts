@@ -21,7 +21,7 @@ export function isExpr(value: unknown): value is Expr {
   return typeof value === "object" && value !== null && "kind" in value && "id" in value;
 }
 
-/** An unfilled slot (L-09): the one expression that is no block a learner chooses. */
+/** An unfilled slot: the one expression that is no block a learner chooses. */
 export function isEmptyExpr(value: unknown): boolean {
   return isExpr(value) && value.kind === "empty";
 }
