@@ -1,4 +1,4 @@
-// U-50, U-52, U-53, U-54, U-93: the value line as keys and choices change it.
+// U-50, U-122, U-52, U-53, U-54, U-93: the value line as keys and choices change it.
 import { describe, expect, it } from "vitest";
 import type { Expr, Kind } from "@/lang/types";
 import { ast } from "@/nodes/testing";
@@ -11,6 +11,7 @@ import {
   clickAt,
   endText,
   exactRow,
+  lineTakes,
   matches,
   move,
   openLine,
@@ -104,6 +105,19 @@ describe("typing (U-50, U-93)", () => {
     expect(py(keys("1..5"))).toBe("1.5");
     expect(py(keys("i 5"))).toBe("i");
     expect(keys("i 5").root).toMatchObject({ kind: "var", name: "i" });
+  });
+
+  it("U-122: the line takes keys without Ctrl or Cmd, and what AltGr makes", () => {
+    const key = (ctrlKey: boolean, metaKey: boolean, altGraph = false) => ({
+      ctrlKey,
+      metaKey,
+      getModifierState: (state: string) => altGraph && state === "AltGraph",
+    });
+    expect(lineTakes(key(false, false))).toBe(true);
+    expect(lineTakes(key(true, false))).toBe(false);
+    expect(lineTakes(key(false, true))).toBe(false);
+    // AltGr on Windows reports Ctrl too.
+    expect(lineTakes(key(true, false, true))).toBe(true);
   });
 
   it("an operator's key at an input still to fill inserts nothing", () => {

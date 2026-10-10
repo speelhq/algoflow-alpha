@@ -4,21 +4,23 @@
 import { useEffect } from "react";
 import { useEditor } from "@/store/editor";
 import { useRun } from "@/store/run";
+import { lineTakes } from "@/ui/editor/line";
 import { startRun } from "./actions";
 
-/** Keys typed into a field or a slider belong to it. */
-export function ownsKeys(target: EventTarget | null): boolean {
+/** Keys typed into a field or a slider belong to it, and the keys a value line takes to the line. */
+export function ownsKeys(event: KeyboardEvent): boolean {
+  const { target } = event;
   if (!(target instanceof Element)) return false;
-  return (
-    target.closest("input, textarea, select, [contenteditable], [role=slider], [role=textbox]") !==
-    null
-  );
+  if (target.closest("input, textarea, select, [contenteditable], [role=slider]") !== null) {
+    return true;
+  }
+  return target.closest("[data-value-line]") !== null && lineTakes(event);
 }
 
 export function useRunKeys(): void {
   useEffect(() => {
     const keydown = (event: KeyboardEvent) => {
-      if (event.defaultPrevented || ownsKeys(event.target)) return;
+      if (event.defaultPrevented || ownsKeys(event)) return;
       const run = useRun.getState();
       const mod = event.ctrlKey || event.metaKey;
       const running = run.status !== "idle";

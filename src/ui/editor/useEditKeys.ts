@@ -17,7 +17,7 @@ function inPopup(target: EventTarget | null): boolean {
 export function useEditKeys(): void {
   useEffect(() => {
     const keydown = (event: KeyboardEvent) => {
-      if (event.defaultPrevented || ownsKeys(event.target)) return;
+      if (event.defaultPrevented || ownsKeys(event)) return;
       const mod = event.ctrlKey || event.metaKey;
       const key = event.key.toLowerCase();
       const selected = useEditor.getState().selectedId;

@@ -447,6 +447,16 @@ function typeDigit(line: Line, ch: string): Outcome {
   return done(replace(base, last.id, { ...made, id: last.id }));
 }
 
+/**
+ * Whether the line takes a key: one typed without Ctrl or Cmd, or a character AltGr makes (which
+ * Windows reports with Ctrl). Every other key is the page's.
+ */
+export function lineTakes(
+  event: Pick<KeyboardEvent, "ctrlKey" | "metaKey" | "getModifierState">,
+): boolean {
+  return (!event.ctrlKey && !event.metaKey) || event.getModifierState("AltGraph");
+}
+
 /** One key typed in the line. */
 export function type(line: Line, key: string, ctx: LineContext): Outcome {
   if (key.length !== 1) return refused(line);

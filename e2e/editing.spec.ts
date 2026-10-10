@@ -48,6 +48,27 @@ test("Delete removes the selected node, and undo and redo walk it back (U-35, U-
   await expect(redo).toBeEnabled();
 });
 
+test("undo, redo, and duplicate act while a value line has the keyboard (U-122)", async ({
+  page,
+}) => {
+  await page.goto("/#/p/tutorial");
+  await page.locator('[data-testid="connector"][data-place="main/main/0"]').click();
+  await page.getByTestId("block-menu").locator('[data-entry="print"]').click();
+  const line = page.getByTestId("node-editor").locator("[data-value-line]");
+  const chart = page.getByTestId("chart");
+  await expect(line).toBeFocused();
+  await page.keyboard.type("1");
+  await expect(chart).toContainText("Print 1");
+  await page.keyboard.press("Control+z");
+  await expect(chart).not.toContainText("Print 1");
+  await expect(line).toBeFocused();
+  await page.keyboard.press("Control+Shift+z");
+  await expect(chart).toContainText("Print 1");
+  await expect(line).toBeFocused();
+  await page.keyboard.press("Control+d");
+  await expect(chart.locator("text", { hasText: "Print 1" })).toHaveCount(2);
+});
+
 test("Ctrl+D duplicates the selected node, and Esc clears the selection (U-35)", async ({
   page,
 }) => {

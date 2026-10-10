@@ -47,6 +47,7 @@ import {
   clickAt,
   endText,
   find,
+  lineTakes,
   matches,
   move,
   openLine,
@@ -408,7 +409,7 @@ function Body({ stmt, program, initial }: { stmt: Stmt; program: Program; initia
   const onValueKey = (event: KeyboardEvent<HTMLDivElement>, rows: Row[]) => {
     // Keys typed in a text field inside the line are the field's.
     if (event.target instanceof HTMLInputElement) return;
-    if (!line || !focus || event.ctrlKey || event.metaKey || event.altKey) return;
+    if (!line || !focus || !lineTakes(event)) return;
     const shown = shownHighlight(rows);
     switch (event.key) {
       case "Escape":
