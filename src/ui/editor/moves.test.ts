@@ -1,4 +1,4 @@
-// U-36, L-54: where a dragged statement lands, which connectors accept it, and refused drops.
+// U-36, L-60: where a dragged statement lands, which connectors accept it, and refused drops.
 import { describe, expect, it } from "vitest";
 import { ast, program } from "@/nodes/testing";
 import { emit } from "@/python/emit";
@@ -8,7 +8,7 @@ const { assign, num, print, v, while_, brk, if_ } = ast;
 const code = (p: ReturnType<typeof program>) => emit(p).code.trim().split("\n");
 
 describe("moves (U-36)", () => {
-  it("L-54: a place after the statement in its own region counts after its removal", () => {
+  it("L-60: a place after the statement in its own region counts after its removal", () => {
     const a = print(num(1));
     const b = print(num(2));
     const c = print(num(3));

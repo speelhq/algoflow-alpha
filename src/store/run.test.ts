@@ -1,5 +1,5 @@
-// R-21: the driver. R-11 pre-run, Step, Play, Seek, Back, Stop; R-12 state; R-19 breakpoint
-// and Skip; U-61 marks; C-15 verdict; R-10: Seek replays identically.
+// R-21: the driver. R-23 pre-run, R-25 Step, R-26 Play, R-27 Seek, R-28 Back, R-29 Stop; R-12
+// state; R-19 breakpoint and Skip; U-61 marks; C-15 verdict; R-10: Seek replays identically.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getChallenge } from "@/challenges";
 import { ast, program, runAll, tid } from "@/nodes/testing";
@@ -54,7 +54,7 @@ function fizzbuzz() {
   return challenge;
 }
 
-describe("run store (R-21: R-11, R-12, R-19)", () => {
+describe("run store (R-21)", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     useProgram.setState({ program: counting() });
@@ -101,9 +101,9 @@ describe("run store (R-21: R-11, R-12, R-19)", () => {
     expect(run()).toMatchObject({ status: "idle", step: 0, breakpoint: null });
   });
 
-  // ------------------------------------------------------------ R-11 pre-run
+  // ------------------------------------------------------------ R-23 pre-run
 
-  it("R-11 pre-run: total, outcome, and the step of each print; then step 0, playing", async () => {
+  it("R-23 pre-run: total, outcome, and the step of each print; then step 0, playing", async () => {
     await settle(run().run());
     expect(run()).toMatchObject({
       status: "playing",
@@ -118,7 +118,7 @@ describe("run store (R-21: R-11, R-12, R-19)", () => {
     expect(run().state?.frames).toHaveLength(1);
   });
 
-  it("R-11 pre-run: batches of 2000 with setTimeout(0) between them; idle and busy meanwhile", async () => {
+  it("R-23, R-24, R-30 pre-run: batches of 2000 with setTimeout(0) between them; idle and busy meanwhile", async () => {
     useProgram.setState({ program: long() });
     const action = run().run();
     expect(run()).toMatchObject({ status: "idle", busy: true, total: 0 });
@@ -131,7 +131,7 @@ describe("run store (R-21: R-11, R-12, R-19)", () => {
     expect(run().prints[1499]).toBe(4501);
   });
 
-  it("R-11 error run: the failing step is step total, with no event and the error's statement", async () => {
+  it("R-23, R-32 error run: the failing step is step total, with no event and the error's statement", async () => {
     const div = bin("/", num(1), num(0));
     const stmt = assign("x", div);
     useProgram.setState({ program: program([stmt]) });
@@ -155,7 +155,7 @@ describe("run store (R-21: R-11, R-12, R-19)", () => {
     expect(position(run())).toEqual(stepped);
   });
 
-  it("R-11: an empty main is done at 0 of 0 and arms no timer", async () => {
+  it("R-32: an empty main is done at 0 of 0 and arms no timer", async () => {
     useProgram.setState({ program: program([]) });
     await settle(run().run());
     expect(run()).toMatchObject({ status: "done", step: 0, total: 0 });
@@ -179,9 +179,9 @@ describe("run store (R-21: R-11, R-12, R-19)", () => {
     expect(run()).toMatchObject({ status: "idle", busy: false });
   });
 
-  // ------------------------------------------------------------ R-11 Step, Play
+  // ------------------------------------------------------------ R-25 Step, R-26 Play
 
-  it("Step: one visible step per call, state refreshed each time", async () => {
+  it("R-25 Step: one visible step per call, state refreshed each time", async () => {
     await paused();
     run().stepOnce();
     expect(run()).toMatchObject({ status: "paused", step: 1, lastEvent: { type: "enter" } });
@@ -191,7 +191,7 @@ describe("run store (R-21: R-11, R-12, R-19)", () => {
     expect(run().state?.frames[0]?.vars.get("i")).toEqual({ t: "int", v: 0 });
   });
 
-  it("Play: one Step every 1000/speed ms at the layout's speed; a new speed re-arms the timer", async () => {
+  it("R-26 Play: one Step every 1000/speed ms at the layout's speed; a new speed re-arms the timer", async () => {
     await settle(run().run());
     vi.advanceTimersByTime(245);
     expect(run().step).toBe(0);
@@ -209,7 +209,7 @@ describe("run store (R-21: R-11, R-12, R-19)", () => {
     expect(run()).toMatchObject({ status: "playing", step: 3 });
   });
 
-  it("the run is done on reaching step total; a finished run ignores Step and Play", async () => {
+  it("R-32: the run is done on reaching step total; a finished run ignores Step and Play", async () => {
     await settle(run().run());
     vi.advanceTimersByTime(250 * 10);
     expect(run()).toMatchObject({ status: "done", step: 10, stdout: ["0", "1", "2"] });
@@ -234,9 +234,9 @@ describe("run store (R-21: R-11, R-12, R-19)", () => {
     });
   });
 
-  // ------------------------------------------------------------ R-11 Seek, Back, Stop
+  // ------------------------------------------------------------ R-27 Seek, R-28 Back, R-29 Stop
 
-  it("Seek rebuilds the position from every event it passes, forward or from a fresh runner (R-11, R-10)", async () => {
+  it("Seek rebuilds the position from every event it passes, forward or from a fresh runner (R-27, R-10)", async () => {
     const hit = if_(bin("==", v("i"), num(1)), [print(v("i"))]);
     useProgram.setState({ program: program([for_("i", num(0), num(3), [hit])]) });
     const reference = runAll(useProgram.getState().program).events;
@@ -254,7 +254,7 @@ describe("run store (R-21: R-11, R-12, R-19)", () => {
     expect(position(run())).toEqual(forward);
   });
 
-  it("Seek clamps to [0, total]; Back is Seek(step - 1) and leaves a finished run paused", async () => {
+  it("R-27, R-28: Seek clamps to [0, total]; Back is Seek(step - 1) and leaves a finished run paused", async () => {
     await paused();
     await run().seek(99);
     expect(run()).toMatchObject({ status: "done", step: 10 });
@@ -266,7 +266,7 @@ describe("run store (R-21: R-11, R-12, R-19)", () => {
     expect(run().step).toBe(0);
   });
 
-  it("Seek works in batches and is busy meanwhile; Back held during it stacks on its target", async () => {
+  it("R-27, R-28, R-30: Seek works in batches and is busy meanwhile; Back held during it stacks on its target", async () => {
     useProgram.setState({ program: long() });
     await paused();
     const seeking = run().seek(4400);
@@ -277,7 +277,7 @@ describe("run store (R-21: R-11, R-12, R-19)", () => {
     expect(run()).toMatchObject({ status: "paused", busy: false, step: 4398 });
   });
 
-  it("Stop discards the runner, the pre-run's findings, and the timer", async () => {
+  it("R-29: Stop discards the runner, the pre-run's findings, and the timer", async () => {
     await settle(run().run());
     vi.advanceTimersByTime(1000);
     run().stop();
@@ -297,7 +297,7 @@ describe("run store (R-21: R-11, R-12, R-19)", () => {
     expect(run().step).toBe(0);
   });
 
-  it("Stop during a pre-run publishes nothing later; a second Run in flight wins", async () => {
+  it("R-29: Stop during a pre-run publishes nothing later; a second Run in flight wins", async () => {
     useProgram.setState({ program: long() });
     const stopped = run().run();
     run().stop();
@@ -311,7 +311,7 @@ describe("run store (R-21: R-11, R-12, R-19)", () => {
     expect(run().step).toBe(1);
   });
 
-  it("Pause during the pre-run opens the run paused; Step and Play wait for a Seek in flight", async () => {
+  it("R-31, R-30: Pause during the pre-run opens the run paused; Step and Play wait for a Seek in flight", async () => {
     useProgram.setState({ program: long() });
     const starting = run().run();
     run().pause();

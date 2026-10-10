@@ -35,7 +35,7 @@ describe("layout store (U-03, U-24, U-60)", () => {
     expect(panelWidth(333.3, 1281)).toBe(333);
   });
 
-  it("U-60, R-11: the speed is Normal at first, one of 1, 4, and 15, and persists", () => {
+  it("U-60, R-26: the speed is Normal at first, one of 1, 4, and 15, and persists", () => {
     expect(useLayout.getState().speed).toBe(4);
     useLayout.getState().setSpeed(SPEEDS.fast);
     expect(useLayout.getState().speed).toBe(15);

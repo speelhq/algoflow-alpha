@@ -18,7 +18,7 @@ function run() {
   return checkI18n({ root, files: repoFiles(root), i18nDir: join(root, "src", "i18n") });
 }
 
-describe("scripts/i18n (U-71)", () => {
+describe("the key check (U-100, U-101)", () => {
   beforeEach(() => {
     root = mkdtempSync(join(tmpdir(), "algoflow-i18n-"));
     execFileSync("git", ["init", "-q"], { cwd: root });
