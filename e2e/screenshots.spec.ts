@@ -1,9 +1,15 @@
-// U-91: one screenshot per screen state, saved under e2e/screenshots/ for review. Drawn at
-// 1280 × 800, the size of the boards in docs/design/.
+// U-91, U-112: one screenshot per screen state, written to e2e/screenshots/ for review by
+// `pnpm screenshots` and under test-results/ by any other run. Drawn at 1280 × 800, the size of
+// the boards in docs/design/.
 import { expect, test } from "@playwright/test";
 import { programWith, seedProgram, seedProgress, solutionOf } from "./seed";
 
-const DIR = "e2e/screenshots";
+/** Where the screenshot `name` goes: the tracked folder only when snapshots are being updated. */
+function shot(name: string): string {
+  const info = test.info();
+  const asked = info.config.updateSnapshots === "all" || info.config.updateSnapshots === "changed";
+  return asked ? `e2e/screenshots/${name}.png` : info.outputPath(`${name}.png`);
+}
 
 test.use({ viewport: { width: 1280, height: 800 } });
 
@@ -15,7 +21,7 @@ test("Problems", async ({ page }) => {
   });
   await page.goto("/#/");
   await expect(page.getByTestId("problems")).toBeVisible();
-  await page.screenshot({ path: `${DIR}/problems.png`, animations: "disabled" });
+  await page.screenshot({ path: shot("problems"), animations: "disabled" });
 });
 
 test.describe("FizzBuzz", () => {
@@ -27,14 +33,14 @@ test.describe("FizzBuzz", () => {
   test("Build", async ({ page }) => {
     await page.goto("/#/p/fizzbuzz");
     await expect(page.getByTestId("chart")).toContainText("(remainder of i divided by 15) = 0?");
-    await page.screenshot({ path: `${DIR}/build.png`, animations: "disabled" });
+    await page.screenshot({ path: shot("build"), animations: "disabled" });
   });
 
   test("Solution", async ({ page }) => {
     await page.goto("/#/p/fizzbuzz");
     await page.getByRole("button", { name: "Show solution" }).click();
     await expect(page.getByTestId("solution-band")).toBeVisible();
-    await page.screenshot({ path: `${DIR}/solution.png`, animations: "disabled" });
+    await page.screenshot({ path: shot("solution"), animations: "disabled" });
   });
 
   test("Run", async ({ page }) => {
@@ -49,7 +55,7 @@ test.describe("FizzBuzz", () => {
     await expect(page.getByTestId("narration")).toHaveText(
       "Checking (remainder of i divided by 3) = 0",
     );
-    await page.screenshot({ path: `${DIR}/run.png`, animations: "disabled" });
+    await page.screenshot({ path: shot("run"), animations: "disabled" });
   });
 
   test("Accepted", async ({ page }) => {
@@ -57,7 +63,7 @@ test.describe("FizzBuzz", () => {
     await page.getByTestId("tab-result").click();
     await page.getByRole("button", { name: "✓ Submit" }).click();
     await expect(page.getByTestId("verdict")).toHaveText("Accepted");
-    await page.screenshot({ path: `${DIR}/accepted.png`, animations: "disabled" });
+    await page.screenshot({ path: shot("accepted"), animations: "disabled" });
   });
 
   test("Python tab", async ({ page }) => {
@@ -68,7 +74,7 @@ test.describe("FizzBuzz", () => {
       "data-selected",
       "true",
     );
-    await page.screenshot({ path: `${DIR}/python.png`, animations: "disabled" });
+    await page.screenshot({ path: shot("python"), animations: "disabled" });
   });
 });
 
@@ -82,7 +88,7 @@ test("Wrong Answer", async ({ page }) => {
   await page.getByTestId("tab-result").click();
   await page.getByRole("button", { name: "✓ Submit" }).click();
   await expect(page.getByTestId("verdict")).toHaveText("Wrong Answer");
-  await page.screenshot({ path: `${DIR}/wrong.png`, animations: "disabled" });
+  await page.screenshot({ path: shot("wrong"), animations: "disabled" });
 });
 
 test("Playground", async ({ page }) => {
@@ -104,5 +110,5 @@ test("Playground", async ({ page }) => {
   );
   await page.goto("/#/play");
   await expect(page.getByTestId("playground-row")).toHaveCount(4);
-  await page.screenshot({ path: `${DIR}/playground.png`, animations: "disabled" });
+  await page.screenshot({ path: shot("playground"), animations: "disabled" });
 });

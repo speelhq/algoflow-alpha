@@ -8,6 +8,7 @@
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "screenshots": "playwright test e2e/screenshots.spec.ts --update-snapshots",
     "lint": "oxlint --type-aware --type-check --deny-warnings",
     "format": "oxfmt",
     "check": "tsx scripts/check.ts"
