@@ -93,6 +93,9 @@ describe("G-02 / G-03 call resolution", () => {
       params: { name: "nope" },
     });
     expect(err("1 + nope(1)", scope)).toMatchObject({ code: "E_UNKNOWN_CALL", position: 4 });
+    // The name's token, whatever stands between it and the bracket.
+    expect(err("1 + nope (1)", scope)).toMatchObject({ code: "E_UNKNOWN_CALL", position: 4 });
+    expect(err("1 + Value (1)", scope)).toEqual({ code: "E_PARSE_SYNTAX", position: 4 });
   });
 
   it("accepts the Python aliases of builtins", () => {

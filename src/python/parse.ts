@@ -261,6 +261,8 @@ class Parser {
   }
 
   private postfix(): Expr {
+    // A call is placed at its callee, which starts where the atom does.
+    const start = this.peek().pos;
     let expr = this.atom();
     for (;;) {
       if (this.isOp("[")) {
@@ -283,7 +285,7 @@ class Parser {
         const open = this.take();
         if (expr.kind !== "var") fail("E_PARSE_SYNTAX", open.pos);
         const args = this.args(")");
-        expr = this.resolveCall(expr.name, open.pos - expr.name.length, args);
+        expr = this.resolveCall(expr.name, start, args);
       } else {
         return expr;
       }
