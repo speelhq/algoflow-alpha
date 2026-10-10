@@ -30,7 +30,7 @@ import { useProgram } from "@/store/program";
 import { templateOf } from "@/ui/chart/text";
 import { Button } from "@/ui/primitives/button";
 import { Input } from "@/ui/primitives/input";
-import { Popover, PopoverTrigger } from "@/ui/primitives/popover";
+import { Popover } from "@/ui/primitives/popover";
 import { apply } from "./edits";
 import { EditorList, type ListItem, type ListSection } from "./EditorList";
 import { allEntries, entryOf } from "./entries";
@@ -845,7 +845,8 @@ export function NodeEditor({ id }: { id: NodeId }) {
   const hole = useEditor((s) => s.hole);
   const select = useEditor((s) => s.select);
   const closeEditor = useEditor((s) => s.closeEditor);
-  const [boundary, setBoundary] = useState<Element | null>(null);
+  // The node's box, which the editor is placed beside; it is no control of its own.
+  const [anchor, setAnchor] = useState<Element | null>(null);
   const node = nodesById(program).get(id);
   if (!node || !("kind" in node) || getNode(keyOf(node)).shape !== "stmt") return null;
   return (
@@ -857,23 +858,16 @@ export function NodeEditor({ id }: { id: NodeId }) {
         else closeEditor();
       }}
     >
-      <PopoverTrigger
-        render={
-          <div
-            ref={(element) => setBoundary(element?.closest("[data-canvas]") ?? null)}
-            className="pointer-events-none size-full"
-            aria-hidden
-          />
-        }
-      />
+      <div ref={setAnchor} className="pointer-events-none size-full" aria-hidden />
       {/* On the node's right, where the chart makes room, and inside the canvas, so the
           panel's statement stays readable; it moves only down or up to fit. */}
       <PopoverPrimitive.Portal>
         <PopoverPrimitive.Positioner
+          anchor={anchor}
           side="right"
           align="start"
           sideOffset={EDITOR_GAP}
-          collisionBoundary={boundary ?? "clipping-ancestors"}
+          collisionBoundary={anchor?.closest("[data-canvas]") ?? "clipping-ancestors"}
           collisionPadding={EDITOR_GAP}
           collisionAvoidance={{ side: "none", align: "shift", fallbackAxisSide: "none" }}
           className="isolate z-50"

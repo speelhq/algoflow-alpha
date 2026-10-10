@@ -167,6 +167,20 @@ test("the editor opens on the node's right inside the canvas, the chart scrolled
     .toBe("ok");
 });
 
+test("the editor is placed by its node without a control on it (U-121)", async ({ page }) => {
+  await seedProgress(page, {});
+  await seedProgram(page, "fizzbuzz", solutionOf("fizzbuzz"));
+  await page.goto("/#/p/fizzbuzz");
+  await page.locator('[data-chart-node="fzb-prfz-001"]').click({ position: { x: 8, y: 20 } });
+  await expect(editor(page)).toBeVisible();
+  // Nothing under the node is focusable or announces a popup, apart from the popup's focus guards.
+  await expect(
+    page
+      .getByTestId("editor-anchor")
+      .locator("[tabindex]:not([data-base-ui-focus-guard]), [aria-haspopup]"),
+  ).toHaveCount(0);
+});
+
 test("`,` in a list of values opens the next value after this one (U-93)", async ({ page }) => {
   await seedProgress(page, {});
   await page.goto("/#/p/tutorial");
