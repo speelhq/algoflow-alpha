@@ -3,13 +3,18 @@
 import { DIFFICULTIES, TOPICS, type Challenge, type Localized } from "@/challenges/types";
 import { migrate } from "@/lang/migrate";
 import { isRecord } from "@/lang/record";
-import { isValidName, validate } from "@/lang/validate";
+import { isValidClassName, isValidName, validate } from "@/lang/validate";
 
 export function isLocalized(value: unknown, requireJa: boolean): value is Localized {
   if (!isRecord(value) || typeof value.en !== "string") return false;
   if (requireJa && typeof value.ja !== "string") return false;
   return value.ja === undefined || typeof value.ja === "string";
 }
+
+const isName = (value: unknown): value is string => typeof value === "string" && isValidName(value);
+/** A name `defines` may list: a function's or a class's. */
+const isDefinable = (value: unknown): value is string =>
+  typeof value === "string" && (isValidName(value) || isValidClassName(value));
 
 function sameData(a: unknown, b: unknown): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
@@ -60,6 +65,12 @@ export function checkChallengeSchema(
   if (!isLocalized(json.description, requireJa)) problems.push("description must be { en, ja? }");
   if (json.takeaway !== undefined && !isLocalized(json.takeaway, requireJa))
     problems.push("takeaway must be { en, ja? }");
+  if (json.module !== undefined && !isName(json.module))
+    problems.push("module must be a valid name");
+  const defines: string[] = [];
+  if (Array.isArray(json.defines) && json.defines.every(isDefinable)) defines.push(...json.defines);
+  else if (json.defines !== undefined)
+    problems.push("defines must be an array of function or class names");
 
   const inputs = Array.isArray(json.inputs) ? json.inputs : [];
   if (!Array.isArray(json.inputs)) problems.push("inputs must be an array");
@@ -117,6 +128,9 @@ export function checkChallengeSchema(
       problems.push(`solution.challengeId must be "${fileId}"`);
     for (const d of validate(program))
       problems.push(`solution: ${d.code} at ${d.nodeId} ${JSON.stringify(d.params)}`);
+    const own = new Set([...program.functions, ...program.classes].map((def) => def.name));
+    for (const name of defines)
+      if (!own.has(name)) problems.push(`solution does not define "${name}"`);
   } catch (error) {
     problems.push(`solution: ${error instanceof Error ? error.message : String(error)}`);
   }

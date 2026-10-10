@@ -7,7 +7,7 @@ import { buildScript, randomShims } from "./lib/cpython";
 import { execute } from "./lib/interp";
 import { checkPlans } from "./lib/plans";
 
-const { assign, num, bin, v, print } = ast;
+const { assign, num, bin, v, print, ret } = ast;
 
 function valid() {
   const solution = program([assign("total", bin("+", v("n"), num(1)))], {
@@ -77,6 +77,26 @@ describe("checkChallengeSchema (C-01, C-03)", () => {
     expect(checkChallengeSchema(c, "demo").problems).toEqual([
       expect.stringContaining('topic "knitting"'),
     ]);
+  });
+
+  it("C-01, C-21: module is a name, and defines lists names the solution itself defines", () => {
+    const c = valid() as unknown as Record<string, unknown>;
+    c.module = "Heap";
+    c.defines = ["twice", 3];
+    expect(checkChallengeSchema(c, "demo").problems).toEqual([
+      "module must be a valid name",
+      "defines must be an array of function or class names",
+    ]);
+    c.module = "heap";
+    c.defines = ["twice", "Pair"];
+    expect(checkChallengeSchema(c, "demo").problems).toEqual([
+      'solution does not define "twice"',
+      'solution does not define "Pair"',
+    ]);
+    const twice = { id: "f0000000000f", name: "twice", params: ["x"], body: [ret(v("x"))] };
+    const pair = { id: "c0000000000c", name: "Pair", fields: [] };
+    c.solution = { ...valid().solution, functions: [twice], classes: [pair] };
+    expect(checkChallengeSchema(c, "demo").problems).toEqual([]);
   });
 
   it("requires at least three tests and a non-empty expect", () => {
