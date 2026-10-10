@@ -73,11 +73,8 @@ export function mergePersisted(persisted: unknown, current: LayoutState): Layout
   return { ...current, ...readLayout(persisted) };
 }
 
-/** The key holds `{ state, version: 1 }`, as zustand's default storage wrote it. */
-const storage = persistStorage<Persisted>(
-  (stored) => (isRecord(stored) ? readLayout(stored.state) : undefined),
-  (state) => ({ state, version: 1 }),
-);
+/** The key holds the record itself, with no wrapper and no version. */
+const storage = persistStorage<Persisted>(readLayout, (state) => state);
 
 export const useLayout = create<LayoutState>()(
   persist(
@@ -96,7 +93,6 @@ export const useLayout = create<LayoutState>()(
     }),
     {
       name: LAYOUT_STORAGE_KEY,
-      version: 1,
       storage,
       partialize: ({ panel, collapsed, speed }) => ({ panel, collapsed, speed }),
       merge: mergePersisted,

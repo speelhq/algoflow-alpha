@@ -42,7 +42,7 @@ describe("layout store (U-03, U-24, U-60)", () => {
     useLayout.getState().setSpeed(Number.NaN);
     expect(useLayout.getState().speed).toBe(15);
     const saved: unknown = JSON.parse(localStorage.getItem(LAYOUT_STORAGE_KEY) ?? "{}");
-    expect(saved).toMatchObject({ state: { speed: 15 } });
+    expect(saved).toMatchObject({ speed: 15 });
     const current = useLayout.getState();
     // A speed stored by the former slider becomes the nearest of the three.
     expect(mergePersisted({ speed: 50 }, current).speed).toBe(15);
@@ -50,13 +50,13 @@ describe("layout store (U-03, U-24, U-60)", () => {
     expect(mergePersisted({ speed: "fast" }, current).speed).toBe(4);
   });
 
-  it("persists the width and the collapsed state under algoflow:layout", () => {
+  it("U-114: persists the width, the collapsed state, and the speed as a bare record", () => {
     useLayout.getState().setPanel(360, 1280);
     useLayout.getState().setCollapsed(true);
     const raw = localStorage.getItem(LAYOUT_STORAGE_KEY);
     expect(raw).not.toBeNull();
     const saved: unknown = JSON.parse(raw ?? "{}");
-    expect(saved).toMatchObject({ state: { panel: 360, collapsed: true } });
+    expect(saved).toEqual({ panel: 360, collapsed: true, speed: SPEEDS.normal });
     expect(localStorage.length).toBe(1);
   });
 
@@ -80,10 +80,7 @@ describe("layout store (U-03, U-24, U-60)", () => {
   });
 
   it("re-hydrates from storage through the same validation", async () => {
-    localStorage.setItem(
-      LAYOUT_STORAGE_KEY,
-      JSON.stringify({ state: { panel: 5000, collapsed: true }, version: 1 }),
-    );
+    localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify({ panel: 5000, collapsed: true }));
     await useLayout.persist.rehydrate();
     expect(useLayout.getState()).toMatchObject({ panel: 5000, collapsed: true });
     expect(panelWidth(useLayout.getState().panel, 1280)).toBe(640);
