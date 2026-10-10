@@ -6,7 +6,7 @@ import { Copy, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 import { getChallenge } from "@/challenges";
-import { errorText, t, type MessageKey } from "@/i18n/t";
+import { errorText, nodeText, t, type MessageKey } from "@/i18n/t";
 import {
   duplicateStmt,
   hoistAssign,
@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 import { getNode, keyOf } from "@/nodes/registry";
 import { useEditor } from "@/store/editor";
 import { useProgram } from "@/store/program";
-import { nodeText, templateOf } from "@/ui/chart/text";
+import { templateOf } from "@/ui/chart/text";
 import { Button } from "@/ui/primitives/button";
 import { Input } from "@/ui/primitives/input";
 import { Popover, PopoverTrigger } from "@/ui/primitives/popover";

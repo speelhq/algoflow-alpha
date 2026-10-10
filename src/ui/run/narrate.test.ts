@@ -142,6 +142,10 @@ describe("narrate (U-63)", () => {
     expect(say(narrateEnd({ type: "error", error, steps: 8 }, 9))).toBe(
       "Item 5 does not exist (length 3)",
     );
+    const value = { nodeId: "x", code: "E_VALUE" as const, params: { op: "unop", type: "str" } };
+    expect(say(narrateEnd({ type: "error", error: value, steps: 2 }, 3))).toBe(
+      "Negate cannot be used on str",
+    );
     expect(say(narrateDifference({ line: 1 }))).toBe("This printed line 1");
     expect(say(narrateDifference({}))).toBe("The run ended here");
   });

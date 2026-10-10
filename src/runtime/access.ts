@@ -75,7 +75,7 @@ export function asObject(
   field: string,
 ): { ref: HeapId; cls: string; fields: Map<string, Value> } {
   if (obj.t !== "obj") {
-    return ctx.fail(nodeId, "E_TYPE", { left: typeName(obj, ctx.heap), right: field });
+    return ctx.fail(nodeId, "E_FIELD", { cls: typeName(obj, ctx.heap), field });
   }
   const entry = entryOf(ctx.heap, obj.ref);
   if (entry.kind !== "obj") throw new Error("obj ref is not an object");

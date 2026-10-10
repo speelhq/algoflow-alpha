@@ -64,6 +64,10 @@ export type RunContext = {
   set(name: Id, value: Value): void;
   call(fn: Id, args: Value[], nodeId: NodeId): Generator<Event, Value, void>;
   fail(nodeId: NodeId, code: RuntimeCode, params?: Record<string, string | number>): never;
+  /** `E_VALUE`: the operation of `node` does not take a value of this type. */
+  valueError(node: Expr, value: Value): never;
+  /** `E_NUMBER_TEXT`: the operation of `node` cannot read this text as its number. */
+  textError(node: Expr, text: string): never;
   random: { int(a: number, b: number): number; float(a: number, b: number): number };
   print(line: string): void;
 };

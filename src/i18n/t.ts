@@ -51,9 +51,20 @@ export function t(key: MessageKey, params?: Params): string {
   return interpolate(text, params);
 }
 
+/** The one place a registry key becomes an i18n key (the key check does not scan dynamic keys). */
+export function nodeText(key: string, part: string, params?: Record<string, string>): string {
+  return t(`node.${key}.${part}` as MessageKey, params);
+}
+
+/** An error's params as its message writes them: `op`, a registry key, as that block's label. */
+export function errorParams(params: Params): Params {
+  const { op } = params;
+  return typeof op === "string" ? { ...params, op: nodeText(op, "label") } : params;
+}
+
 /** The message of a diagnostic or runtime error. */
 export function errorText(error: { code: string; params: Params }): string {
-  return t(`error.${error.code}` as MessageKey, error.params);
+  return t(`error.${error.code}` as MessageKey, errorParams(error.params));
 }
 
 /** A challenge-file text (`Localized`) in the current locale, falling back to `en`. */

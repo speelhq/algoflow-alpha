@@ -1,5 +1,5 @@
 // The builtin `abs`
-import { isNumber, makeNumber, typeName } from "@/runtime/values";
+import { isNumber, makeNumber } from "@/runtime/values";
 import { defineBuiltin } from "./builtin";
 
 export const abs = defineBuiltin({
@@ -9,8 +9,7 @@ export const abs = defineBuiltin({
   kind: () => "number",
   menu: [{ name: "", group: "calculate", on: ["number"] }],
   evaluate([x = { t: "none" }], node, ctx) {
-    if (!isNumber(x))
-      return ctx.fail(node.id, "E_TYPE", { left: "abs", right: typeName(x, ctx.heap) });
+    if (!isNumber(x)) return ctx.valueError(node, x);
     return makeNumber(Math.abs(x.v), x.t === "float");
   },
 });

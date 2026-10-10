@@ -1,5 +1,5 @@
 // The builtin `int`: truncates floats, parses integer text, `True` → 1.
-import { makeNumber, typeName } from "@/runtime/values";
+import { makeNumber } from "@/runtime/values";
 import { defineBuiltin } from "./builtin";
 
 const INTEGER = /^\s*[+-]?\d+\s*$/;
@@ -20,9 +20,9 @@ export const intCall = defineBuiltin({
         return { t: "int", v: x.v ? 1 : 0 };
       case "str":
         if (INTEGER.test(x.v)) return makeNumber(Number(x.v.trim()), false);
-        return ctx.fail(node.id, "E_TYPE", { left: "int", right: x.v });
+        return ctx.textError(node, x.v);
       default:
-        return ctx.fail(node.id, "E_TYPE", { left: "int", right: typeName(x, ctx.heap) });
+        return ctx.valueError(node, x);
     }
   },
 });

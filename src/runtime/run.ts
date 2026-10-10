@@ -6,6 +6,7 @@ import { getNode, keyOf } from "@/nodes/registry";
 import type { ExprRunner, RunContext, Signal, StmtRunner } from "@/nodes/types";
 import { RuntimeFailure } from "./errors";
 import { createRandom } from "./random";
+import { typeName } from "./values";
 import type { Done, Event, Frame, Runner, RuntimeCode } from "./types";
 
 export const STEP_LIMIT = 1_000_000;
@@ -69,6 +70,13 @@ export function run(program: Program, inputs: Record<Id, Data>, seed: number): R
     },
     fail(nodeId: NodeId, code: RuntimeCode, params = {}) {
       throw new RuntimeFailure(nodeId, code, params);
+    },
+    // The operation is named by the expression's registry key; a message writes its label.
+    valueError(node, value) {
+      return ctx.fail(node.id, "E_VALUE", { op: keyOf(node), type: typeName(value, heap) });
+    },
+    textError(node, text) {
+      return ctx.fail(node.id, "E_NUMBER_TEXT", { op: keyOf(node), text });
     },
     random: {
       int: (a, b) => random.int(a, b),

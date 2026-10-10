@@ -14,10 +14,11 @@ describe("builtin abs (nodes.md)", () => {
     expect(evalExpr(call("abs", float(-2.5))).value).toEqual({ t: "float", v: 2.5 });
   });
 
-  it("N-10: a non-number → E_TYPE", () => {
-    expect(evalExpr(call("abs", str("a"))).done).toMatchObject({
+  it("N-10 / R-34: a non-number → E_VALUE naming abs and the type", () => {
+    const e = call("abs", str("a"));
+    expect(evalExpr(e).done).toMatchObject({
       type: "error",
-      error: { code: "E_TYPE" },
+      error: { nodeId: e.id, code: "E_VALUE", params: { op: "call:abs", type: "str" } },
     });
   });
 });

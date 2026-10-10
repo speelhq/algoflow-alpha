@@ -23,11 +23,11 @@ describe("unop (nodes.md)", () => {
     expect(evalExpr(not(v("xs")), { xs: [] }).data).toBe(true);
   });
 
-  it("N-10: negating a non-number → E_TYPE", () => {
+  it("N-10 / R-34: negating a non-number → E_VALUE naming the operation and the type", () => {
     const e = neg(str("a"));
     expect(evalExpr(e).done).toMatchObject({
       type: "error",
-      error: { nodeId: e.id, code: "E_TYPE" },
+      error: { nodeId: e.id, code: "E_VALUE", params: { op: "unop", type: "str" } },
     });
   });
 });

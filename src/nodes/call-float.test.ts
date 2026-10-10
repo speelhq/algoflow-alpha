@@ -16,14 +16,14 @@ describe("builtin float (nodes.md)", () => {
     expect(evalExpr(call("float", bool(false))).value).toEqual({ t: "float", v: 0 });
   });
 
-  it("N-10: non-numeric text or none → E_TYPE", () => {
+  it("N-10 / R-34: non-numeric text → E_NUMBER_TEXT, none → E_VALUE", () => {
     expect(evalExpr(call("float", str("x"))).done).toMatchObject({
       type: "error",
-      error: { code: "E_TYPE" },
+      error: { code: "E_NUMBER_TEXT", params: { op: "call:float", text: "x" } },
     });
     expect(evalExpr(call("float", none())).done).toMatchObject({
       type: "error",
-      error: { code: "E_TYPE" },
+      error: { code: "E_VALUE", params: { op: "call:float", type: "none" } },
     });
   });
 });

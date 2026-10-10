@@ -70,10 +70,10 @@ describe("the semantics table of language.md", () => {
     });
   });
 
-  it("L-32 random_int with a > b fails like CPython's empty range", () => {
+  it("L-63 random_int(5, 1) → E_EMPTY_RANGE, as CPython's empty range", () => {
     expect(evalExpr(call("random_int", num(5), num(1))).done).toMatchObject({
       type: "error",
-      error: { code: "E_TYPE" },
+      error: { code: "E_EMPTY_RANGE", params: { a: 5, b: 1 } },
     });
   });
 
@@ -209,6 +209,15 @@ describe("the semantics table of language.md", () => {
     expect(varData(ok, "p")).toEqual({ $cls: "P", $id: 1, x: 2 });
   });
 
+  it("L-64 a field of a value that is no object → E_FIELD with its type name (n.x, n = 3)", () => {
+    const stmt = assignTo({ kind: "field", obj: v("n"), field: "x" }, num(0));
+    const result = runAll(program([stmt], { inputs: [{ name: "n", value: 3 }] }), { n: 3 });
+    expect(result.done).toMatchObject({
+      type: "error",
+      error: { nodeId: stmt.id, code: "E_FIELD", params: { cls: "int", field: "x" } },
+    });
+  });
+
   it("L-24 assignment copies the reference", () => {
     const result = runAll(
       program(
@@ -296,6 +305,17 @@ describe("R-09 codes reachable with basic and control blocks", () => {
     expect(evalExpr(e).done).toMatchObject({
       type: "error",
       error: { nodeId: e.id, code: "E_ARITY", params: { name: "min", expected: 2, got: 1 } },
+    });
+  });
+
+  it("R-34 E_VALUE and E_NUMBER_TEXT carry the registry key of the failing expression as op", () => {
+    expect(evalExpr(neg(v("xs")), { xs: [] }).done).toMatchObject({
+      type: "error",
+      error: { code: "E_VALUE", params: { op: "unop", type: "list" } },
+    });
+    expect(evalExpr(call("int", str("seven"))).done).toMatchObject({
+      type: "error",
+      error: { code: "E_NUMBER_TEXT", params: { op: "call:int", text: "seven" } },
     });
   });
 

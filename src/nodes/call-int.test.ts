@@ -16,14 +16,14 @@ describe("builtin int (nodes.md)", () => {
     expect(evalExpr(call("int", num(3))).value).toEqual({ t: "int", v: 3 });
   });
 
-  it("N-10: non-integer text or none → E_TYPE", () => {
+  it("N-10 / R-34: non-integer text → E_NUMBER_TEXT, none → E_VALUE", () => {
     expect(evalExpr(call("int", str("4.2"))).done).toMatchObject({
       type: "error",
-      error: { code: "E_TYPE" },
+      error: { code: "E_NUMBER_TEXT", params: { op: "call:int", text: "4.2" } },
     });
     expect(evalExpr(call("int", none())).done).toMatchObject({
       type: "error",
-      error: { code: "E_TYPE" },
+      error: { code: "E_VALUE", params: { op: "call:int", type: "none" } },
     });
   });
 });

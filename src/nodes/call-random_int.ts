@@ -20,7 +20,7 @@ export const randomInt = defineBuiltin({
       });
     }
     // CPython raises ValueError("empty range") when a > b.
-    if (a.v > b.v) return ctx.fail(node.id, "E_TYPE", { left: a.v, right: b.v });
+    if (a.v > b.v) return ctx.fail(node.id, "E_EMPTY_RANGE", { a: a.v, b: b.v });
     return { t: "int", v: ctx.random.int(a.v, b.v) };
   },
 });

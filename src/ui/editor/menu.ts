@@ -2,13 +2,13 @@
 // grouped by category in menu order, each in registration order, those whose `requires`
 // the place does not meet disabled with the reason, then the program's own functions as
 // calls. Reads `shape`, `hidden`, `category`, and `requires`, never a kind.
-import { fillPlaceholders, t, type MessageKey } from "@/i18n/t";
+import { fillPlaceholders, nodeText, t, type MessageKey } from "@/i18n/t";
 import { newId } from "@/lang/id";
 import { placeContext } from "@/lang/scope";
 import type { Expr, Place, Program, Stmt } from "@/lang/types";
 import { getNode, paletteNodes, type NodeDef } from "@/nodes/registry";
 import { CATEGORIES, type Category } from "@/nodes/categories";
-import { blankTemplate, nodeText } from "@/ui/chart/text";
+import { blankTemplate } from "@/ui/chart/text";
 
 export type MenuEntry = {
   /** The registry key, or `call:<name>` for a function of the program. */

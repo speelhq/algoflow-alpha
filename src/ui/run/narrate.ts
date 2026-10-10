@@ -2,7 +2,7 @@
 // are written the way blocks write them (`true`, `none`, `"text"`), never in Python notation,
 // and a comparison as the chart writes it, with the values of the shown frame.
 import { keyValue } from "@/lang/data";
-import { t, type MessageKey, type Params } from "@/i18n/t";
+import { errorParams, t, type MessageKey, type Params } from "@/i18n/t";
 import type { Expr, Heap, Program, Value } from "@/lang/types";
 import { isExpr, nodesById } from "@/lang/walk";
 import { getNode, keyOf } from "@/nodes/registry";
@@ -166,7 +166,7 @@ export function narrate(event: Event, ctx: NarrateContext): Narration {
 /** The end of the run: `Finished in N steps`, or the error's message. */
 export function narrateEnd(outcome: Done, total: number): Narration {
   return outcome.type === "error"
-    ? { key: `error.${outcome.error.code}`, params: outcome.error.params }
+    ? { key: `error.${outcome.error.code}`, params: errorParams(outcome.error.params) }
     : { key: "run.narrate.done", params: { steps: total } };
 }
 

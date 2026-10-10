@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { flatten } from "./flatten";
-import { getLocale, interpolate, setLocale, t, type MessageKey } from "./t";
+import { errorText, getLocale, interpolate, setLocale, t, type MessageKey } from "./t";
 
 describe("t (U-71, U-73)", () => {
   afterEach(() => {
@@ -20,6 +20,18 @@ describe("t (U-71, U-73)", () => {
 
   it("does not read placeholders from Object.prototype", () => {
     expect(interpolate("{toString} {constructor}", {})).toBe("{toString} {constructor}");
+  });
+
+  it("U-107: a message writes its op parameter as the label of that block", () => {
+    expect(errorText({ code: "E_VALUE", params: { op: "call:abs", type: "str" } })).toBe(
+      "Absolute value cannot be used on str",
+    );
+    expect(errorText({ code: "E_NUMBER_TEXT", params: { op: "call:int", text: "4.2" } })).toBe(
+      'As whole number cannot read the text "4.2"',
+    );
+    expect(errorText({ code: "E_EMPTY_RANGE", params: { a: 5, b: 1 } })).toBe(
+      "There is no whole number from 5 to 1",
+    );
   });
 
   it("returns the key itself for an unknown key and warns", () => {

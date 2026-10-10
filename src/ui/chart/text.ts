@@ -4,7 +4,7 @@
 // next to an operator and inside another operation's input, and operators among themselves
 // are parenthesised as the emitter does. Reads slot roles, `params`, `form`, `text`, and
 // `precedence` only, never a kind.
-import { t, type MessageKey } from "@/i18n/t";
+import { nodeText, t } from "@/i18n/t";
 import { toValue } from "@/lang/data";
 import type { Data, Expr, Heap, Node, NodeId, Program, Target, Value } from "@/lang/types";
 import { firstAssignments } from "@/lang/validate";
@@ -16,11 +16,6 @@ import { needsParens } from "@/python/precedence";
 import { str, writeValue } from "@/runtime/values";
 
 type Bag = Record<string, unknown>;
-
-/** The one place a registry key becomes an i18n key (the key check does not scan dynamic keys). */
-export function nodeText(key: string, part: string, params?: Record<string, string>): string {
-  return t(`node.${key}.${part}` as MessageKey, params);
-}
 
 /** A template with every `{slot}` written as `…`. */
 export function blankTemplate(template: string): string {
