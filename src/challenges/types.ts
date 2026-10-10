@@ -40,6 +40,10 @@ export type Challenge = {
   hints: Localized[];
   /** One sentence shown as `What you used`. */
   takeaway?: Localized;
+  /** The learner module the challenge's functions and classes belong to. */
+  module?: Id;
+  /** Names the submission must define itself, in the program or a learner module. */
+  defines?: Id[];
   solution: Program;
 };
 
