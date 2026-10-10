@@ -3,6 +3,17 @@ import type { Data, Heap, HeapEntry, HeapId, Id, Value } from "./types";
 
 const INT_KEY = "$int:";
 
+/**
+ * The largest `int` magnitude: a double holds every integer up to 2^53, but 2^53 is also what
+ * 2^53 + 1 rounds to, so the range stops below it.
+ */
+const INT_MAX = 2 ** 53 - 1;
+
+/** Whether `n` is an `int`: an integer within the int range; any other number is a float. */
+export function fitsInt(n: number): boolean {
+  return Number.isInteger(n) && Math.abs(n) <= INT_MAX;
+}
+
 /** A float: a fractional number, or the `{ $float: n }` form of an integral one. */
 export function isFloatData(data: Data): data is number | { $float: number } {
   if (typeof data === "number") return !Number.isInteger(data);
@@ -49,7 +60,7 @@ export function inputValue(inputs: Readonly<Record<Id, Data>>, name: Id): Data {
 
 export function toValue(data: Data, heap: Heap): Value {
   if (typeof data === "number") {
-    return Number.isInteger(data) ? { t: "int", v: data } : { t: "float", v: data };
+    return fitsInt(data) ? { t: "int", v: data } : { t: "float", v: data };
   }
   if (typeof data === "string") return { t: "str", v: data };
   if (typeof data === "boolean") return { t: "bool", v: data };

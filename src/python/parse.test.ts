@@ -73,10 +73,10 @@ describe("parse (G-01)", () => {
     expect(ok('"a\\x41\\x01"')).toMatchObject({ kind: "str", value: "aA" });
   });
 
-  it("G-07: an int literal beyond ±2^53 is a syntax error at its token", () => {
-    expect(ok("9007199254740992")).toMatchObject({ kind: "num", value: 2 ** 53, float: false });
-    expect(err("1 + 9007199254740993")).toEqual({ code: "E_PARSE_SYNTAX", position: 4 });
-    expect(err("-9007199254740993")).toEqual({ code: "E_PARSE_SYNTAX", position: 1 });
+  it("G-07: an int literal outside the int range is a syntax error at its token", () => {
+    expect(ok("9007199254740991")).toMatchObject({ kind: "num", value: 2 ** 53 - 1, float: false });
+    expect(err("1 + 9007199254740992")).toEqual({ code: "E_PARSE_SYNTAX", position: 4 });
+    expect(err("-9007199254740992")).toEqual({ code: "E_PARSE_SYNTAX", position: 1 });
     expect(ok("9007199254740993.0")).toMatchObject({ kind: "num", float: true });
   });
 

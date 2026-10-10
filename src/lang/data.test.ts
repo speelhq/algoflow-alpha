@@ -18,6 +18,13 @@ describe("L-06 toValue / toData", () => {
     expect(roundTrip({ $float: 2 })).toEqual({ $float: 2 });
   });
 
+  it("L-68, L-69: a Data number outside the int range is a float", () => {
+    const heap: Heap = new Map();
+    expect(toValue(2 ** 53 - 1, heap)).toEqual({ t: "int", v: 2 ** 53 - 1 });
+    expect(toValue(2 ** 53, heap)).toEqual({ t: "float", v: 2 ** 53 });
+    expect(toValue(-(2 ** 53), heap)).toEqual({ t: "float", v: -(2 ** 53) });
+  });
+
   it("round-trips scalars", () => {
     expect(roundTrip("ab")).toBe("ab");
     expect(roundTrip(true)).toBe(true);

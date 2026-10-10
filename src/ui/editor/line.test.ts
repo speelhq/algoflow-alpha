@@ -107,10 +107,10 @@ describe("typing (U-50, U-93)", () => {
     expect(keys("i 5").root).toMatchObject({ kind: "var", name: "i" });
   });
 
-  it("U-120: a digit that would make an int beyond ±2^53 is not taken", () => {
-    expect(py(keys("9007199254740992"))).toBe("9007199254740992");
-    expect(py(keys("90071992547409921"))).toBe("9007199254740992");
-    expect(py(keys("9007199254740993"))).toBe("900719925474099");
+  it("U-120: a digit that would make an int outside the int range is not taken", () => {
+    expect(py(keys("9007199254740991"))).toBe("9007199254740991");
+    expect(py(keys("90071992547409911"))).toBe("9007199254740991");
+    expect(py(keys("9007199254740992"))).toBe("900719925474099");
   });
 
   it("U-122: the line takes keys without Ctrl or Cmd, and what AltGr makes", () => {

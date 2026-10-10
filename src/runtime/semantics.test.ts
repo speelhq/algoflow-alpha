@@ -33,9 +33,20 @@ describe("the semantics table of language.md", () => {
     expect(evalExpr(bin("**", num(3), num(2))).value).toEqual({ t: "int", v: 9 });
   });
 
-  it("L-07 an int result beyond ±2^53 becomes float", () => {
-    expect(evalExpr(bin("**", num(2), num(53))).value).toEqual({ t: "int", v: 2 ** 53 });
-    expect(evalExpr(bin("**", num(2), num(60))).value.t).toBe("float");
+  it("L-68, L-69 an int result outside the int range becomes float", () => {
+    expect(evalExpr(bin("+", num(9007199254740990), num(1))).value).toEqual({
+      t: "int",
+      v: 2 ** 53 - 1,
+    });
+    // 2^53 is also what 2^53 + 1 rounds to, so it is no int.
+    expect(evalExpr(bin("+", num(9007199254740991), num(1))).value.t).toBe("float");
+    expect(evalExpr(bin("+", num(9007199254740991), num(2))).value.t).toBe("float");
+    expect(evalExpr(bin("**", num(2), num(53))).value.t).toBe("float");
+    const lowest = bin("-", num(0), num(9007199254740991));
+    expect(evalExpr(lowest).value).toEqual({ t: "int", v: -(2 ** 53 - 1) });
+    expect(evalExpr(bin("-", lowest, num(1))).value.t).toBe("float");
+    // A stored literal outside the range is a float too.
+    expect(evalExpr(num(2 ** 53)).value).toEqual({ t: "float", v: 2 ** 53 });
   });
 
   it("L-12 float // and % follow CPython, including the sign of zero", () => {
