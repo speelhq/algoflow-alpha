@@ -128,6 +128,17 @@ test.describe("running FizzBuzz", () => {
     expect(line.y + line.height).toBeLessThanOrEqual(bar.y + 1);
   });
 
+  test("once the run has ended, a click on a slot opens the editor on that slot (U-60, U-41)", async ({
+    page,
+  }) => {
+    await runPaused(page);
+    await page.getByRole("button", { name: "Skip ▶▶" }).click();
+    await expect(page.getByTestId("narration")).toHaveText(/Finished in/);
+    await page.locator('[data-chart-node="fzb-if15-001"] tspan[data-slot="cond"]').first().click();
+    await expect(page.getByTestId("position")).toHaveCount(0);
+    await expect(page.getByTestId("node-editor").locator("[data-value-line]")).toBeFocused();
+  });
+
   test("Esc clears the breakpoint first, then stops", async ({ page }) => {
     await runPaused(page);
     await page.locator('[data-chart-node="fzb-prfz-001"]').click();

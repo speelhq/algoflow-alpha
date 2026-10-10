@@ -208,18 +208,18 @@ export function Canvas({ challenge }: { challenge?: Challenge }) {
     [empty],
   );
 
-  // In build mode a click selects; while running it sets or clears the breakpoint,
-  // pausing first; once the run has ended it returns to build mode with the node selected.
+  // While playing or paused a click sets or clears the breakpoint, pausing first; otherwise it
+  // selects the node and the slot clicked, first returning to build mode once the run has ended.
   const onSelect = useCallback(
     (owner: NodeId, slot?: string, hole?: NodeId) => {
       const run = useRun.getState();
-      if (run.status === "idle") return select(owner, slot, true, hole);
-      if (run.status === "done" || run.status === "error") {
-        run.stop();
-        return select(owner);
+      if (run.status === "playing" || run.status === "paused") {
+        if (run.status === "playing") run.pause();
+        run.setBreakpoint(run.breakpoint === owner ? null : owner);
+        return;
       }
-      if (run.status === "playing") run.pause();
-      run.setBreakpoint(run.breakpoint === owner ? null : owner);
+      if (run.status !== "idle") run.stop();
+      select(owner, slot, true, hole);
     },
     [select],
   );
