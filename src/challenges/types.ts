@@ -17,7 +17,6 @@ export const TOPICS = [
   "recursion",
   "dictionaries",
   "classes",
-  "gradients",
 ] as const;
 export type Topic = (typeof TOPICS)[number];
 
