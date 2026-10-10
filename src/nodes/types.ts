@@ -114,11 +114,11 @@ export type NodeDef = {
   imports?: "math" | "random";
   /** Precedence of this expression; undefined = atom. */
   precedence?: (node: Expr) => number;
-  /** Not offered in the palette (the `empty` placeholder). */
+  /** Not in the block menu (`empty`, `expr`). */
   hidden?: boolean;
   /** For literal blocks: the zero-like literal of the same type. */
   zeroLike?(node: Expr): Expr;
-  /** For call-like expressions without `params`: what is called and with how many arguments. */
+  /** For call-like expressions: what is called and with how many arguments. */
   callee?(node: Expr): Callee;
   /** Its body regions are loop bodies (`break` / `continue` allowed inside). */
   loop?: boolean;
