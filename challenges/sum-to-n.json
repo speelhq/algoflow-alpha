@@ -17,9 +17,11 @@
     { "inputs": { "n": 1 }, "expect": { "variables": { "total": 1 } } }
   ],
   "hints": [
-    { "en": "Start with `total` set to 0 before the loop." },
-    { "en": "Use a **for** block from 1 up to `n + 1`; the stop value is not included." },
-    { "en": "Inside the loop, set `total` to `total + i`." }
+    { "en": "Use a **for** block, which counts a variable through a range of whole numbers." },
+    {
+      "en": "Count `i` from 1 up to `n + 1`: the stop value is not included, so `i` takes 1, 2, … up to `n`."
+    },
+    { "en": "Before the loop, set `total` to 0; inside it, set `total` to `total + i`." }
   ],
   "takeaway": { "en": "A **for** loop added each number to a running total." },
   "solution": {

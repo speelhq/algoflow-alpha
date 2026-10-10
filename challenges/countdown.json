@@ -16,9 +16,11 @@
     { "inputs": { "n": 2 }, "expect": { "stdout": ["2", "1", "0"] } }
   ],
   "hints": [
-    { "en": "Copy `n` into a variable you can change, such as `k`." },
-    { "en": "Loop **while** `k >= 0`; inside, print `k`." },
-    { "en": "After printing, set `k` to `k - 1`, or the loop never ends." }
+    { "en": "Use a **while** block, which repeats its body as long as its condition holds." },
+    {
+      "en": "Count down with a variable you can change: set `k` to `n` before the loop, and loop **while** `k >= 0`."
+    },
+    { "en": "Inside the loop, print `k`, then set `k` to `k - 1`, or the loop never ends." }
   ],
   "takeaway": { "en": "A **while** loop kept going until its condition became false." },
   "solution": {
