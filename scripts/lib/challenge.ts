@@ -45,19 +45,18 @@ export function checkChallengeSchema(
 
   if (json.id !== fileId)
     problems.push(`id "${String(json.id)}" does not match the file name "${fileId}"`);
-  for (const key of Object.keys(json))
-    if (!KEYS.has(key)) problems.push(`unknown key "${key}" (C-01)`);
+  for (const key of Object.keys(json)) if (!KEYS.has(key)) problems.push(`unknown key "${key}"`);
   if (!isLocalized(json.title, requireJa)) problems.push("title must be { en, ja? }");
   if (!DIFFICULTIES.some((d) => d === json.difficulty))
     problems.push(
       `difficulty "${String(json.difficulty)}" is not one of ${DIFFICULTIES.join(", ")}`,
     );
   if (!Array.isArray(json.topics) || json.topics.length === 0)
-    problems.push("topics must be a non-empty array (C-01)");
+    problems.push("topics must be a non-empty array");
   else
     for (const topic of json.topics)
       if (!TOPICS.some((t) => t === topic))
-        problems.push(`topic "${String(topic)}" is not one of ${TOPICS.join(", ")} (U-14)`);
+        problems.push(`topic "${String(topic)}" is not one of ${TOPICS.join(", ")}`);
   if (!isLocalized(json.description, requireJa)) problems.push("description must be { en, ja? }");
   if (json.takeaway !== undefined && !isLocalized(json.takeaway, requireJa))
     problems.push("takeaway must be { en, ja? }");
@@ -71,7 +70,7 @@ export function checkChallengeSchema(
       return;
     }
     if (!isValidName(input.name))
-      problems.push(`inputs[${i}] name "${input.name}" is not a valid name (L-01, L-03)`);
+      problems.push(`inputs[${i}] name "${input.name}" is not a valid name`);
     if (inputNames.includes(input.name))
       problems.push(`inputs[${i}] name "${input.name}" is duplicated`);
     inputNames.push(input.name);
@@ -79,7 +78,7 @@ export function checkChallengeSchema(
 
   const tests = Array.isArray(json.tests) ? json.tests : [];
   if (!Array.isArray(json.tests) || tests.length < 3)
-    problems.push("tests must be an array of at least 3 (C-01)");
+    problems.push("tests must be an array of at least 3");
   let edge = false;
   tests.forEach((test, i) => {
     if (!isRecord(test)) return problems.push(`tests[${i}] must be an object`);
@@ -103,19 +102,17 @@ export function checkChallengeSchema(
       problems.push(`tests[${i}].expect needs variables and/or stdout`);
     }
   });
-  if (tests.length > 0 && !edge) problems.push("no test has edge: true (C-03)");
+  if (tests.length > 0 && !edge) problems.push("no test has edge: true");
 
   const hints = Array.isArray(json.hints) ? json.hints : [];
-  if (!Array.isArray(json.hints) || hints.length !== 3)
-    problems.push("hints must be exactly 3 (C-01)");
+  if (!Array.isArray(json.hints) || hints.length !== 3) problems.push("hints must be exactly 3");
   hints.forEach((hint, i) => {
     if (!isLocalized(hint, requireJa)) problems.push(`hints[${i}] must be { en, ja? }`);
   });
 
   try {
     const program = migrate(json.solution);
-    if (!sameData(program.inputs, inputs))
-      problems.push("solution.inputs must equal inputs (C-01)");
+    if (!sameData(program.inputs, inputs)) problems.push("solution.inputs must equal inputs");
     if (program.challengeId !== undefined && program.challengeId !== fileId)
       problems.push(`solution.challengeId must be "${fileId}"`);
     for (const d of validate(program))

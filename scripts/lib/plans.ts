@@ -35,7 +35,7 @@ export function checkPlans(
       problems.push(`${label}: problems must be an array`);
       return;
     }
-    if (plan.problems.length === 0) problems.push(`${label} has no problems (C-18)`);
+    if (plan.problems.length === 0) problems.push(`${label} has no problems`);
     const seen = new Set<string>();
     plan.problems.forEach((id, i) => {
       if (typeof id !== "string") {
@@ -47,7 +47,7 @@ export function checkPlans(
       seen.add(id);
       const other = owners.get(id);
       if (other !== undefined && other.index !== p)
-        problems.push(`"${id}" is in ${other.label} and ${label} (C-16)`);
+        problems.push(`"${id}" is in ${other.label} and ${label}`);
       owners.set(id, { index: p, label });
     });
   });

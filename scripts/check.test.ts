@@ -47,7 +47,7 @@ describe("checkChallengeSchema (C-01, C-03)", () => {
     expect(problems).toEqual(
       expect.arrayContaining([
         expect.stringContaining("does not match the file name"),
-        expect.stringContaining("edge: true (C-03)"),
+        expect.stringContaining("no test has edge: true"),
         expect.stringContaining("hints must be exactly 3"),
         expect.stringContaining('tests[2].inputs is missing "n"'),
         expect.stringContaining("solution.inputs must equal inputs"),
@@ -58,7 +58,7 @@ describe("checkChallengeSchema (C-01, C-03)", () => {
   it("C-01: rejects a key the schema does not have, such as the removed starter", () => {
     const c = valid() as unknown as Record<string, unknown>;
     c.starter = c.solution;
-    expect(checkChallengeSchema(c, "demo").problems).toEqual(['unknown key "starter" (C-01)']);
+    expect(checkChallengeSchema(c, "demo").problems).toEqual(['unknown key "starter"']);
   });
 
   it("C-01: checks difficulty, topics (U-14), and takeaway", () => {
@@ -136,7 +136,7 @@ describe("checkPlans (C-16, C-18)", () => {
       expect.stringContaining('"a" is listed twice'),
       expect.stringContaining('"a" is in plan "p" and plan "q"'),
       expect.stringContaining('plan "q" is listed twice'),
-      expect.stringContaining('plan "q" has no problems (C-18)'),
+      expect.stringContaining('plan "q" has no problems'),
       expect.stringContaining("plans[3] needs a string id"),
       expect.stringContaining("plans[3]: title must be"),
       expect.stringContaining("plans[3]: description must be"),
@@ -149,7 +149,7 @@ describe("checkPlans (C-16, C-18)", () => {
     const { problems } = checkPlans([plan("p", ["a"]), plan("p", ["a", 7])], known);
     expect(problems).toEqual([
       expect.stringContaining('plan "p" is listed twice'),
-      expect.stringContaining('"a" is in plan "p" and plan "p" (C-16)'),
+      expect.stringContaining('"a" is in plan "p" and plan "p"'),
       expect.stringContaining('plan "p": problems[1] must be a challenge id'),
     ]);
   });

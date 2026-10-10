@@ -1,12 +1,13 @@
 // `pnpm check` runs this after scripts/check.ts.
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
+import { repoFiles } from "./lib/files";
 import { checkI18n, formatReport } from "./lib/i18n-check";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const report = checkI18n({
   root,
-  srcDir: join(root, "src"),
+  files: repoFiles(root),
   i18nDir: join(root, "src", "i18n"),
 });
 

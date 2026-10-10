@@ -10,6 +10,7 @@ import type { Data } from "@/lang/types";
 import { emit } from "@/python/emit";
 import { checkChallengeSchema } from "./lib/challenge";
 import { runPython } from "./lib/cpython";
+import { repoFiles } from "./lib/files";
 import { checkI18n, formatReport } from "./lib/i18n-check";
 import { execute } from "./lib/interp";
 import { checkPlans } from "./lib/plans";
@@ -128,7 +129,8 @@ const plansPassed = checkFile(join(root, "challenges", PLANS_FILE), "plans", (js
 });
 if (!plansPassed) failed += 1;
 
-const i18n = checkI18n({ root, srcDir: join(root, "src"), i18nDir: join(root, "src", "i18n") });
+const repository = repoFiles(root);
+const i18n = checkI18n({ root, files: repository, i18nDir: join(root, "src", "i18n") });
 for (const line of formatReport(i18n)) console.log(line);
 const i18nFailed = i18n.unknown.length + i18n.missing.length > 0;
 
