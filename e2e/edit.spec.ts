@@ -1,4 +1,4 @@
-// M-04 exit: build FizzBuzz from an empty chart through the + menu and the node editors, by
+// Editing: build FizzBuzz from an empty chart through the + menu and the node editors, by
 // typing and choosing in value lines, and submit it to Accepted. U-34, U-40, U-41, U-50, U-51,
 // U-52, U-53, U-54, U-93, U-94, U-95, U-96.
 import { expect, test, type Page } from "@playwright/test";
@@ -43,7 +43,7 @@ async function printText(page: Page, place: string, text: string): Promise<void>
   await page.keyboard.press("Enter");
 }
 
-test("M-04 exit: FizzBuzz is built from an empty chart by typing and choosing, and accepted", async ({
+test("FizzBuzz is built from an empty chart by typing and choosing, and accepted", async ({
   page,
 }) => {
   await seedProgress(page, {});

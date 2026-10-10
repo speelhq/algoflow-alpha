@@ -1,5 +1,5 @@
 // The 52 px header of the Problems, Playground, and Modules pages: the app name, the
-// three page tabs, and Help. The JA/EN switch arrives with Japanese (M-10).
+// three page tabs, and Help. It has no JA/EN switch while `en.json` is the only catalog.
 import { useState } from "react";
 import { t } from "@/i18n/t";
 import { cn } from "@/lib/utils";

@@ -1,5 +1,5 @@
 // Always present above the chart: `▾` lists the program's charts, then the path, one
-// segment per chart. With `main` alone (functions arrive in M-06) both name `main`.
+// segment per chart. Both name `main` alone: the bar lists no function or class.
 import { t } from "@/i18n/t";
 import { Button } from "@/ui/primitives/button";
 import {

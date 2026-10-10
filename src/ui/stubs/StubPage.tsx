@@ -1,4 +1,4 @@
-// The Modules page shares the header; it is a stub until its milestone (M-07).
+// The Modules page: the shared header over a placeholder.
 import { t } from "@/i18n/t";
 import { Header } from "@/ui/app/Header";
 import { useTitle } from "@/ui/hooks/useTitle";

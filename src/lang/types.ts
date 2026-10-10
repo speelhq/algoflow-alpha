@@ -10,7 +10,7 @@ export type Program = {
   version: 1;
   title: string;
   challengeId?: string;
-  inputs: Input[]; // empty in free mode
+  inputs: Input[]; // empty in a Playground program
   classes: ClassDef[];
   functions: FunctionDef[];
   main: Stmt[];
@@ -140,7 +140,7 @@ list dict set len print range min max sum abs input str int float bool
 tuple id type self math random round sorted`.split(/\s+/),
 );
 
-// ---------------------------------------------------------------- Validation (02 "Validation")
+// ---------------------------------------------------------------- Validation
 
 export const DIAGNOSTIC_CODES = [
   "E_UNDEFINED",

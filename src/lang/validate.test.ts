@@ -158,7 +158,7 @@ describe("validate (02 Validation)", () => {
     const fn = { id: "f0000000000f", name: "f", params: ["a", "b"], body: [] };
     expect(codes(program([exprStmt(call("f", num(1)))], { functions: [fn] }))).toEqual(["E_ARITY"]);
     expect(codes(program([exprStmt(call("f", num(1), num(2)))], { functions: [fn] }))).toEqual([]);
-    // constructors (`new`) and methods are covered with their blocks in M-04/M-05
+    // constructors (`new`) and methods have no registered block to call here
   });
 
   it("E_UNKNOWN_CALL: unknown function", () => {

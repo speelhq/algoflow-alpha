@@ -58,7 +58,7 @@ describe("parse (G-01)", () => {
   });
 
   it("reports grammar forms whose block is not registered yet as E_PARSE_SYNTAX at their token", () => {
-    // index, field, list, and dict blocks arrive in M-04/M-05; until then the registry says no.
+    // index, field, list, and dict have no registered block, so the registry says no.
     expect(err("xs[i + 1]")).toEqual({ code: "E_PARSE_SYNTAX", position: 2 });
     expect(err("p.x")).toEqual({ code: "E_PARSE_SYNTAX", position: 2 });
     expect(err("[1, 2]")).toEqual({ code: "E_PARSE_SYNTAX", position: 0 });
@@ -83,7 +83,7 @@ describe("parse (G-01)", () => {
 describe("G-02 / G-03 call resolution", () => {
   it("resolves a class, a builtin, or a user function by name, else E_UNKNOWN_CALL", () => {
     const scope = { classes: ["Value"], functions: ["fib"] };
-    // `new` has no block until M-05, so a constructor call is refused at its name.
+    // `new` has no registered block, so a constructor call is refused at its name.
     expect(err("Value(1, 2)", scope)).toEqual({ code: "E_PARSE_SYNTAX", position: 0 });
     expect(ok("abs(x)", scope)).toMatchObject({ kind: "call", fn: "abs" });
     expect(ok("fib(n)", scope)).toMatchObject({ kind: "call", fn: "fib" });

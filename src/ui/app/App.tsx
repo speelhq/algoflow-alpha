@@ -28,7 +28,7 @@ export function App() {
   );
 }
 
-/** One page per route; Modules is a stub until M-07. */
+/** One page per route; the Modules page is a stub. */
 function Page({ route }: { route: Route }) {
   switch (route.page) {
     case "problems":
