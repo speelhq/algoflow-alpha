@@ -24,7 +24,7 @@ const {
   exprStmt,
 } = ast;
 
-describe("02 semantics table", () => {
+describe("the semantics table of language.md", () => {
   it("L-10 int ∘ int is int for + - * // % ** (non-negative exponent); / is float", () => {
     expect(evalExpr(bin("//", num(7), num(2))).value).toEqual({ t: "int", v: 3 });
     expect(evalExpr(bin("/", num(4), num(2))).value).toEqual({ t: "float", v: 2 });
@@ -122,6 +122,25 @@ describe("02 semantics table", () => {
     expect(evalExpr(bin("==", v("p"), v("q")), objects).data).toBe(false);
     expect(evalExpr(bin("==", v("p"), v("p")), objects).data).toBe(true);
     expect(evalExpr(bin("==", num(1), str("1"))).data).toBe(false);
+  });
+
+  it("L-16 == compares a bool and a number as 0 or 1 and the number, as Python does", () => {
+    expect(evalExpr(bin("==", bool(true), num(1))).data).toBe(true);
+    expect(evalExpr(bin("==", num(0), bool(false))).data).toBe(true);
+    expect(evalExpr(bin("==", bool(true), float(1))).data).toBe(true);
+    expect(evalExpr(bin("!=", num(2), bool(true))).data).toBe(true);
+    expect(evalExpr(bin("==", bool(true), str("1"))).data).toBe(false);
+    expect(evalExpr(bin("==", v("p"), v("q")), { p: [1, 0], q: [true, false] }).data).toBe(true);
+    expect(evalExpr(bin("in", num(0), v("xs")), { xs: [false] }).data).toBe(true);
+  });
+
+  it("R-15 a bool is still no number for arithmetic and ordering", () => {
+    for (const op of ["+", "<"] as const) {
+      expect(evalExpr(bin(op, bool(true), num(1))).done).toMatchObject({
+        type: "error",
+        error: { code: "E_TYPE", params: { left: "bool", right: "int" } },
+      });
+    }
   });
 
   it("L-17 and / or short-circuit and return the deciding operand", () => {

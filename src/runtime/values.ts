@@ -95,8 +95,17 @@ export function compare(a: Value, b: Value): -1 | 0 | 1 | undefined {
   return 0;
 }
 
+/** A number's value, or a bool's as `==` reads it beside a number (Python: `True == 1`). */
+function numberFor(value: Value): number | undefined {
+  if (isNumber(value)) return value.v;
+  return value.t === "bool" ? Number(value.v) : undefined;
+}
+
 export function equals(a: Value, b: Value, heap: Heap): boolean {
-  if (isNumber(a) && isNumber(b)) return a.v === b.v;
+  if (isNumber(a) || isNumber(b)) {
+    const x = numberFor(a);
+    return x !== undefined && x === numberFor(b);
+  }
   if (a.t !== b.t) return false;
   switch (a.t) {
     case "str":
