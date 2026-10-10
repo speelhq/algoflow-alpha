@@ -3,7 +3,7 @@ import type { FunctionDef } from "@/lang/types";
 import { emit, unparse } from "@/python/emit";
 import { ast, eventTypes, program, runAll, varData } from "./testing";
 
-const { call, num, bin, v, assign, ret, print } = ast;
+const { call, num, bin, v, assign, ret, print, if_ } = ast;
 
 const twice: FunctionDef = {
   id: "f0000000000f",
@@ -56,5 +56,22 @@ describe("call (nodes.md)", () => {
     };
     const result = runAll(program([assign("r", call("down", num(0)))], { functions: [forever] }));
     expect(result.done).toMatchObject({ type: "error", error: { code: "E_RECURSION" } });
+  });
+
+  it("R-14: a stack of 200 frames runs; a call that would make it deeper is E_RECURSION", () => {
+    const down: FunctionDef = {
+      id: "f0000000000i",
+      name: "down",
+      params: ["n"],
+      body: [
+        if_(bin(">", v("n"), num(0)), [ret(call("down", bin("-", v("n"), num(1))))]),
+        ret(num(0)),
+      ],
+    };
+    // `main` and one frame per call: down(198) … down(0) make 200 frames, down(199) 201.
+    const deepest = (n: number) =>
+      runAll(program([assign("r", call("down", num(n)))], { functions: [down] })).done;
+    expect(deepest(198)).toMatchObject({ type: "done" });
+    expect(deepest(199)).toMatchObject({ type: "error", error: { code: "E_RECURSION" } });
   });
 });

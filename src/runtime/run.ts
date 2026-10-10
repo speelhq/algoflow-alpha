@@ -55,7 +55,8 @@ export function run(program: Program, inputs: Record<Id, Data>, seed: number): R
       if (def.params.length !== args.length) {
         ctx.fail(nodeId, "E_ARITY", { name: fn, expected: def.params.length, got: args.length });
       }
-      if (frames.length > CALL_DEPTH_LIMIT) ctx.fail(nodeId, "E_RECURSION");
+      // The stack holds at most CALL_DEPTH_LIMIT frames, `main` included.
+      if (frames.length >= CALL_DEPTH_LIMIT) ctx.fail(nodeId, "E_RECURSION");
       const vars = new Map<Id, Value>();
       def.params.forEach((param, i) => vars.set(param, args[i] ?? { t: "none" }));
       frames.push({ fn, callNodeId: nodeId, vars });
