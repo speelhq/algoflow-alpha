@@ -23,8 +23,7 @@ const {
 } = ast;
 
 const codes = (p: Program) => validate(p).map((d) => d.code);
-const withInput = (main: Stmt[], name = "c", value = 1) =>
-  program(main, { inputs: [{ name, value }] });
+const withInput = (main: Stmt[]) => program(main, { inputs: [{ name: "c", kind: "number" }] });
 
 describe("validate (02 Validation)", () => {
   it("returns no diagnostics for a well-formed program", () => {
@@ -122,7 +121,9 @@ describe("validate (02 Validation)", () => {
       { nodeId: b.id, code: "E_DUPLICATE_NAME", params: { name: "f" } },
     ]);
     expect(
-      codes(program([], { functions: [{ ...a, name: "n" }], inputs: [{ name: "n", value: 1 }] })),
+      codes(
+        program([], { functions: [{ ...a, name: "n" }], inputs: [{ name: "n", kind: "number" }] }),
+      ),
     ).toEqual(["E_DUPLICATE_NAME"]);
     expect(codes(program([], { functions: [a, { ...b, name: "g" }] }))).toEqual([]);
   });
@@ -252,7 +253,7 @@ describe("firstAssignments (N-02 templateCreate, L-40/L-43)", () => {
     const body = assign("a", num(0));
     const fn = { id: "f0000000000f", name: "f", params: ["a"], body: [body, assign("b", num(1))] };
     const p = program([create, set, input, loop], {
-      inputs: [{ name: "c", value: 0 }],
+      inputs: [{ name: "c", kind: "number" }],
       functions: [fn],
     });
     const ids = firstAssignments(p);

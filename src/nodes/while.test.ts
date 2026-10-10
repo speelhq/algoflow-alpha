@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { emit } from "@/python/emit";
 import { whileStmt } from "./while";
-import { ast, eventTypes, program, runAll, varData } from "./testing";
+import { ast, eventTypes, program, runAll, varData, withInputs } from "./testing";
 
 const { while_, assign, num, bin, v, brk, bool } = ast;
 const lines = (main: Parameters<typeof program>[0]) =>
-  emit(program(main)).code.trimEnd().split("\n");
+  emit(program(main), {}).code.trimEnd().split("\n");
 
 describe("while (nodes.md)", () => {
   it("N-03: emits `while <cond>:`", () => {
@@ -39,8 +39,8 @@ describe("while (nodes.md)", () => {
   it("R-35: a condition that is no comparison ends in a compare of its own each pass", () => {
     const cond = v("stack");
     const loop = while_(cond, [assign("stack", ast.none())]);
-    const inputs = [{ name: "stack", value: [1] }];
-    const result = runAll(program([loop], { inputs }), { stack: [1] });
+    const made = withInputs({ stack: [1] }, [loop]);
+    const result = runAll(made.program, made.inputs);
     expect(eventTypes(result.events)).toEqual([
       "enter",
       "compare",

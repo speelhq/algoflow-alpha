@@ -86,6 +86,19 @@ test("Show solution draws the solution read-only; Back to my chart returns (U-22
   await expect(page.getByTestId("chart").locator("[data-chart-node]")).toHaveCount(3);
 });
 
+test("opening another problem while a solution is shown draws that problem's chart (C-13)", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/#/p/fizzbuzz");
+  await page.getByRole("button", { name: "Show solution" }).click();
+  await expect(page.getByTestId("solution-band")).toBeVisible();
+  await page.goto("/#/p/max-of-three");
+  await expect(page.getByTestId("chart")).toContainText("Input a = 3");
+  expect(errors).toEqual([]);
+});
+
 test("Load into my chart replaces the program with the solution as one undoable edit (U-22)", async ({
   page,
 }) => {

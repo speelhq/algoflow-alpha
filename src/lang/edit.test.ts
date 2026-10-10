@@ -1,6 +1,6 @@
 // L-56: each edit of L-50 does what it says, leaves the input untouched, and preserves L-04.
 import { describe, expect, it } from "vitest";
-import { ast, program } from "@/nodes/testing";
+import { ast, program, withInputs } from "@/nodes/testing";
 import {
   addClass,
   addFunction,
@@ -22,7 +22,7 @@ import {
 } from "./edit";
 import { unparse } from "@/python/emit";
 import { emit } from "@/python/emit";
-import type { Program, Stmt } from "./types";
+import type { Data, Program, Stmt } from "./types";
 import { validate } from "./validate";
 
 const { assign, print, num, str, bin, v, if_, for_, call, exprStmt } = ast;
@@ -31,8 +31,8 @@ function idsUnique(p: Program): boolean {
   return !validate(p).some((d) => d.code === "E_DUPLICATE_ID");
 }
 
-function lines(p: Program): string[] {
-  return emit(p).code.trimEnd().split("\n");
+function lines(p: Program, inputs: Record<string, Data> = {}): string[] {
+  return emit(p, inputs).code.trimEnd().split("\n");
 }
 
 function sample(): { p: Program; a: Stmt; loop: Stmt; inner: Stmt; b: Stmt } {
@@ -210,22 +210,15 @@ describe("edit (L-50)", () => {
 
   it("hoistAssign inserts `name = <default of the same type>` before the frame (L-41)", () => {
     const frame = if_(v("c"), [assign("x", num(1))], [assign("s", str("a"))]);
-    const p = program([frame, print(v("x"))], { inputs: [{ name: "c", value: 1 }] });
+    const { program: p, inputs } = withInputs({ c: 1 }, [frame, print(v("x"))]);
     expect(validate(p).map((d) => d.code)).toEqual(["E_DECLARE_FIRST"]);
     const fixed = hoistAssign(p, frame.id, "x");
-    expect(lines(fixed)[1]).toBe("x = 0");
+    expect(lines(fixed, inputs)[1]).toBe("x = 0");
     expect(validate(fixed)).toEqual([]);
-    expect(lines(hoistAssign(p, frame.id, "s"))[1]).toBe('s = ""');
+    expect(lines(hoistAssign(p, frame.id, "s"), inputs)[1]).toBe('s = ""');
     const floatFrame = if_(v("c"), [assign("y", ast.float(1.5))]);
-    expect(
-      lines(
-        hoistAssign(
-          program([floatFrame], { inputs: [{ name: "c", value: 1 }] }),
-          floatFrame.id,
-          "y",
-        ),
-      )[1],
-    ).toBe("y = 0.0");
-    expect(lines(hoistAssign(p, frame.id, "unknown"))[1]).toBe("unknown = None");
+    const floats = withInputs({ c: 1 }, [floatFrame]);
+    expect(lines(hoistAssign(floats.program, floatFrame.id, "y"), inputs)[1]).toBe("y = 0.0");
+    expect(lines(hoistAssign(p, frame.id, "unknown"), inputs)[1]).toBe("unknown = None");
   });
 });

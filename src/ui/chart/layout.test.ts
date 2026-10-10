@@ -1,5 +1,6 @@
 // U-92: layout() places every node of every challenge solution without overlap; loops and
 // branches match U-33. Synthetic programs cover the nestings no challenge has yet.
+import { caseInputs } from "@/challenges/cases";
 import { describe, expect, it } from "vitest";
 import { CHALLENGES } from "@/challenges";
 import type { Program, Stmt } from "@/lang/types";
@@ -135,7 +136,11 @@ const bodyOf = (c: Case): Stmt[] =>
   c.chart ? (c.program.functions.find((f) => f.id === c.chart)?.body ?? []) : c.program.main;
 
 const lay = (c: Case, measure?: Measure): ChartLayout =>
-  layout(c.program, { ...(c.chart ? { chart: c.chart } : {}), ...(measure ? { measure } : {}) });
+  layout(c.program, {
+    inputs: caseInputs(c.program, 0),
+    ...(c.chart ? { chart: c.chart } : {}),
+    ...(measure ? { measure } : {}),
+  });
 
 /** A Return, or a jump (every jump of these cases is inside a loop): no edge to the next node. */
 const leaves = (stmt: Stmt): boolean => {
@@ -398,7 +403,7 @@ describe("layout of jumps (U-33, N-09)", () => {
     const skip = cont();
     const loop = for_("i", num(0), num(9), [if_(lt("i", 2), [skip], [stop])]);
     const after = print(str("after"));
-    const chart = layout(program([loop, after]));
+    const chart = layout(program([loop, after]), { inputs: {} });
     expect(jumpsOf(chart, stop.id).map((edge) => edge.to)).toEqual([`${loop.id}:exit`]);
     expect(jumpsOf(chart, skip.id).map((edge) => edge.to)).toEqual([`${loop.id}:step`]);
     const no = chart.edges.find((edge) => edge.from === `${loop.id}:check` && edge.label === "no");
@@ -412,7 +417,7 @@ describe("layout of jumps (U-33, N-09)", () => {
     const stop = brk();
     const skip = cont();
     const loop = while_(lt("i", 9), [if_(lt("i", 2), [skip]), stop]);
-    const chart = layout(program([assign("i", num(0)), loop]));
+    const chart = layout(program([assign("i", num(0)), loop]), { inputs: {} });
     expect(jumpsOf(chart, skip.id).map((edge) => edge.to)).toEqual([`${loop.id}:next`]);
     expect(jumpsOf(chart, stop.id)).toMatchObject([
       { to: `${loop.id}:exit`, place: { parent: loop.id, slot: "body", index: 2 } },
@@ -423,7 +428,7 @@ describe("layout of jumps (U-33, N-09)", () => {
 
   it("U-33: a jump outside every loop is an ordinary box with an edge to the next node", () => {
     const stop = brk();
-    const chart = layout(program([stop, print(num(1))]));
+    const chart = layout(program([stop, print(num(1))]), { inputs: {} });
     expect(jumpsOf(chart, stop.id)).toHaveLength(1);
     expect(jumpsOf(chart, stop.id)[0]?.jump).toBeUndefined();
   });
@@ -435,7 +440,9 @@ describe("layout (U-31, U-33 texts)", () => {
     if (!sum) throw new Error("sum-to-n missing");
     const chart = layout(sum.solution, { inputs: { n: 0 } });
     expect(chart.nodes.slice(0, 2).map((node) => node.text)).toEqual(["Start", "Input n = 0"]);
-    expect(layout(sum.solution).nodes[1]?.text).toBe("Input n = 10");
+    expect(layout(sum.solution, { inputs: caseInputs(sum.solution, 0) }).nodes[1]?.text).toBe(
+      "Input n = 10",
+    );
     expect(chart.nodes.at(-1)?.text).toBe("End");
     const texts = chart.nodes.filter((node) => node.generated).map((node) => node.text);
     expect(texts).toEqual(["Set i to 1", "i < n + 1?", "Set i to i + 1"]);
@@ -444,8 +451,9 @@ describe("layout (U-31, U-33 texts)", () => {
   it("a diamond asks its condition; a function chart starts with its signature and has no inputs", () => {
     const check = if_(bin("==", bin("%", v("x"), num(15)), num(0)), [ret(v("x"))]);
     const f = fn("f", [check, ret(num(0))]);
-    const chart = layout(program([], { functions: [f], inputs: [{ name: "n", value: 1 }] }), {
+    const chart = layout(program([], { functions: [f], inputs: [{ name: "n", kind: "number" }] }), {
       chart: f.id,
+      inputs: {},
     });
     expect(chart.nodes[0]?.text).toBe("Start f(x)");
     expect(chart.nodes.some((node) => node.role === "input")).toBe(false);
@@ -461,7 +469,9 @@ describe("layout (U-31, U-33 texts)", () => {
     const unfinished = { ...print(ast.empty()), name: "Show y" };
     const loop = { ...for_("i", num(0), num(3), []), name: "Three times" };
     const check = { ...if_(bin("<", v("x"), num(2)), []), name: "Small?" };
-    const chart = layout(program([assign("x", num(1)), named, unfinished, loop, check]));
+    const chart = layout(program([assign("x", num(1)), named, unfinished, loop, check]), {
+      inputs: {},
+    });
     const node = (id: string) => chart.nodes.find((n) => n.id === id);
     expect(node(named.id)).toMatchObject({ text: "Show x", title: "Print x" });
     expect(node(unfinished.id)).toMatchObject({ text: "Print choose a value" });
@@ -469,7 +479,7 @@ describe("layout (U-31, U-33 texts)", () => {
     expect(node(`${loop.id}:check`)).toMatchObject({ text: "Three times" });
     expect(node(`${loop.id}:init`)?.text).toBe("Set i to 0");
     const startless = { ...for_("k", ast.empty(), num(3), []), name: "Counting" };
-    const unfinishedLoop = layout(program([startless]));
+    const unfinishedLoop = layout(program([startless]), { inputs: {} });
     expect(unfinishedLoop.nodes.find((n) => n.id === `${startless.id}:check`)?.text).toBe("k < 3?");
     expect(node(check.id)).toMatchObject({ text: "Small?", title: "If x < 2" });
   });
@@ -478,7 +488,7 @@ describe("layout (U-31, U-33 texts)", () => {
     const measure: Measure = (text) => text.length * 7;
     const check = if_(bin("==", bin("%", v("i"), num(15)), num(0)), []);
     const short = if_(bin("<", v("i"), num(2)), []);
-    const chart = layout(program([assign("i", num(1)), check, short]), { measure });
+    const chart = layout(program([assign("i", num(1)), check, short]), { inputs: {}, measure });
     const lines = (id: string) => {
       const parts = chart.nodes.find((n) => n.id === id)?.parts ?? [];
       return [-LINE / 2, LINE / 2].map((dy) =>
@@ -500,7 +510,7 @@ describe("layout (U-31, U-33 texts)", () => {
   it("N-08: a variable's run is measured bold", () => {
     const measure: Measure = (text, _shape, bold) => text.length * (bold ? 10 : 5);
     const shown = print(v("abc"));
-    const chart = layout(program([shown]), { measure });
+    const chart = layout(program([shown]), { inputs: {}, measure });
     const parts = chart.nodes.find((n) => n.id === shown.id)?.parts ?? [];
     expect(parts.map((part) => [part.text, part.w, part.variable])).toEqual([
       ["Print ", 30, undefined],
@@ -509,7 +519,7 @@ describe("layout (U-31, U-33 texts)", () => {
   });
 
   it("an empty main offers its one connector between Start and End (U-34)", () => {
-    const chart = layout(program([]));
+    const chart = layout(program([]), { inputs: {} });
     expect(chart.edges).toHaveLength(1);
     expect(chart.edges[0]).toMatchObject({
       from: "start",

@@ -6,7 +6,7 @@
   "description": {
     "en": "Print `n`, then `n - 1`, and so on down to `0`, one number per line. Use a **while** block."
   },
-  "inputs": [{ "name": "n", "value": 5 }],
+  "inputs": [{ "name": "n", "kind": "number" }],
   "tests": [
     {
       "inputs": { "n": 5 },
@@ -27,7 +27,7 @@
     "version": 1,
     "title": "Countdown",
     "challengeId": "countdown",
-    "inputs": [{ "name": "n", "value": 5 }],
+    "inputs": [{ "name": "n", "kind": "number" }],
     "classes": [],
     "functions": [],
     "main": [

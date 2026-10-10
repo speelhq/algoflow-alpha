@@ -5,7 +5,7 @@ import { emit } from "@/python/emit";
 import { accepts, moveTarget, tryMove } from "./moves";
 
 const { assign, num, print, v, while_, brk, if_ } = ast;
-const code = (p: ReturnType<typeof program>) => emit(p).code.trim().split("\n");
+const code = (p: ReturnType<typeof program>) => emit(p, {}).code.trim().split("\n");
 
 describe("moves (U-36)", () => {
   it("L-60: a place after the statement in its own region counts after its removal", () => {

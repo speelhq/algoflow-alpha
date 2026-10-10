@@ -26,7 +26,7 @@ const bare: Challenge = {
   difficulty: "easy",
   topics: ["output"],
   description: { en: "" },
-  inputs: [{ name: "m", value: 7 }],
+  inputs: [{ name: "m", kind: "number" }],
   tests: [],
   hints: [],
   solution: program([assign("x", num(0))]),
@@ -53,13 +53,13 @@ describe("program store", () => {
     expect(restore("bare")).toEqual({
       ...emptyProgram(),
       challengeId: "bare",
-      inputs: [{ name: "m", value: 7 }],
+      inputs: [{ name: "m", kind: "number" }],
     });
   });
 
   it("L-55: restores the stored program and lets the challenge overwrite challengeId and inputs", () => {
     const saved = {
-      ...program([print(v("m"))], { inputs: [{ name: "m", value: 1 }] }),
+      ...program([print(v("m"))], { inputs: [{ name: "m", kind: "text" }] }),
       title: "Mine",
     };
     localStorage.setItem(programKey("bare"), JSON.stringify(saved));
@@ -67,7 +67,7 @@ describe("program store", () => {
     expect(p.title).toBe("Mine");
     expect(p.main).toEqual(saved.main);
     expect(p.challengeId).toBe("bare");
-    expect(p.inputs).toEqual([{ name: "m", value: 7 }]);
+    expect(p.inputs).toEqual([{ name: "m", kind: "number" }]);
   });
 
   it("L-55: ignores a stored value that migrate() rejects", () => {
@@ -81,7 +81,7 @@ describe("program store", () => {
 
   it("L-55: a Playground program restores without challengeId or inputs", () => {
     const saved = {
-      ...program([assign("k", num(2))], { inputs: [{ name: "n", value: 1 }] }),
+      ...program([assign("k", num(2))], { inputs: [{ name: "n", kind: "number" }] }),
       challengeId: "stale",
     };
     localStorage.setItem(programKey("play-abcdefghijkl"), JSON.stringify(saved));

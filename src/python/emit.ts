@@ -4,11 +4,13 @@ import type {
   Data,
   Expr,
   FunctionDef,
+  Id,
   NodeId,
   Program,
   Stmt,
   Target,
 } from "@/lang/types";
+import { inputValue } from "@/lang/data";
 import { programExprs } from "@/lang/walk";
 import { getNode, keyOf } from "@/nodes/registry";
 import type { EmitContext, PyLine, Side } from "@/nodes/types";
@@ -190,8 +192,8 @@ function importsOf(program: Program): string[] {
 
 type Section = { kind: "imports" | "class" | "function" | "main"; write: (w: Writer) => void };
 
-/** One blank line between sections, two around classes and functions. */
-export function emit(program: Program): Emitted {
+/** One blank line between sections, two around classes and functions; `inputs` values the inputs. */
+export function emit(program: Program, inputs: Readonly<Record<Id, Data>>): Emitted {
   const writer = new Writer();
   const sections: Section[] = [];
 
@@ -213,8 +215,9 @@ export function emit(program: Program): Emitted {
     sections.push({
       kind: "main",
       write: (w) => {
-        for (const input of program.inputs)
-          w.line(`${input.name} = ${dataToPython(input.value)}`, 0);
+        for (const input of program.inputs) {
+          w.line(`${input.name} = ${dataToPython(inputValue(inputs, input.name))}`, 0);
+        }
         for (const stmt of program.main) w.stmt(stmt, 0);
       },
     });

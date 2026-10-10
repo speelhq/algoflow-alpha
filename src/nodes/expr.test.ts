@@ -11,7 +11,7 @@ describe("expr (nodes.md)", () => {
   });
 
   it("N-03: emits the expression alone", () => {
-    expect(emit(program([exprStmt(call("abs", num(-1)))])).code).toBe("abs(-1)\n");
+    expect(emit(program([exprStmt(call("abs", num(-1)))]), {}).code).toBe("abs(-1)\n");
   });
 
   it("N-10: evaluates the expression for its events and discards the value", () => {

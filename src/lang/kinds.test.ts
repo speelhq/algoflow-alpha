@@ -1,4 +1,4 @@
-// L-59, N-12: kinds known before the program runs.
+// L-59, L-65, L-66, N-12: kinds known before the program runs.
 import { describe, expect, it } from "vitest";
 import { ast, program, tid } from "@/nodes/testing";
 import { isParseError, parse } from "@/python/parse";
@@ -22,7 +22,7 @@ const known = new Map<string, Kind>([
 ]);
 const kind = (python: string) => exprKind(expr(python), known);
 
-describe("kinds (L-59, N-12)", () => {
+describe("kinds (L-59, L-65, L-66, N-12)", () => {
   it("N-12: literals, unary operators, and the builtins give their kinds", () => {
     expect(["1", "2.5", '"a"', "True", "None"].map(kind)).toEqual([
       "number",
@@ -76,7 +76,7 @@ describe("kinds (L-59, N-12)", () => {
     );
   });
 
-  it("an input's kind, else its first assignment's, else its loop's; a parameter has none", () => {
+  it("L-66: an input's declared kind, else its first assignment's, else its loop's; a parameter has none", () => {
     const p = program(
       [
         assign("total", num(0)),
@@ -89,10 +89,10 @@ describe("kinds (L-59, N-12)", () => {
       ],
       {
         inputs: [
-          { name: "n", value: 3 },
-          { name: "words", value: ["a"] },
-          { name: "point", value: { $cls: "P", x: 1 } },
-          { name: "counts", value: { a: 1 } },
+          { name: "n", kind: "number" },
+          { name: "words", kind: "list" },
+          { name: "point", kind: "object" },
+          { name: "counts", kind: "dict" },
         ],
         functions: [{ id: "fun000000001", name: "f", params: ["x"], body: [print(v("x"))] }],
       },

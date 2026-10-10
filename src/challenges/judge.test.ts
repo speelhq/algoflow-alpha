@@ -63,7 +63,7 @@ describe("judge (C-10)", () => {
 
   it("uses the test inputs", () => {
     const p = program([assign("y", bin("*", v("n"), num(2)))], {
-      inputs: [{ name: "n", value: 1 }],
+      inputs: [{ name: "n", kind: "number" }],
     });
     expect(judge(test({ variables: { y: 10 } }, { n: 5 }), outcome(p, { n: 5 })).status).toBe(
       "pass",

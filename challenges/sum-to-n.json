@@ -6,7 +6,7 @@
   "description": {
     "en": "Add up every whole number from 1 to `n` and store the result in `total`.\n\nFor `n = 10` the answer is `55`."
   },
-  "inputs": [{ "name": "n", "value": 10 }],
+  "inputs": [{ "name": "n", "kind": "number" }],
   "tests": [
     { "inputs": { "n": 10 }, "expect": { "variables": { "total": 55 } } },
     {
@@ -28,7 +28,7 @@
     "version": 1,
     "title": "Sum to n",
     "challengeId": "sum-to-n",
-    "inputs": [{ "name": "n", "value": 10 }],
+    "inputs": [{ "name": "n", "kind": "number" }],
     "classes": [],
     "functions": [],
     "main": [

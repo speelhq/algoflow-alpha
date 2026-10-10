@@ -10,12 +10,13 @@ export type Program = {
   version: 1;
   title: string;
   challengeId?: string;
-  inputs: Input[]; // empty in a Playground program
+  inputs: InputDecl[]; // empty in a Playground program
   classes: ClassDef[];
   functions: FunctionDef[];
   main: Stmt[];
 };
-export type Input = { name: Id; value: Data };
+/** An input of the program: its name and kind; its value comes from the chosen case. */
+export type InputDecl = { name: Id; kind: Kind };
 export type ClassDef = { id: NodeId; name: Id; fields: Field[] };
 export type Field = { name: Id; default: Data };
 export type FunctionDef = { id: NodeId; name: Id; params: Id[]; body: Stmt[] };

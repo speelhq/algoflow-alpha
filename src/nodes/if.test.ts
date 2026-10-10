@@ -5,7 +5,7 @@ import { ast, eventTypes, program, runAll, varData } from "./testing";
 
 const { if_, assign, num, bin, v, for_, brk } = ast;
 const lines = (main: Parameters<typeof program>[0]) =>
-  emit(program(main)).code.trimEnd().split("\n");
+  emit(program(main), {}).code.trimEnd().split("\n");
 
 describe("if (nodes.md)", () => {
   it("N-03: emits `if <cond>:` and `else:`; else omitted when empty; empty region → pass", () => {

@@ -13,7 +13,7 @@ describe("return (nodes.md)", () => {
       params: [],
       body: [if_(v("ok"), [ret(num(1))]), ret()],
     };
-    expect(emit(program([], { functions: [fn] })).code).toBe(
+    expect(emit(program([], { functions: [fn] }), {}).code).toBe(
       "def f():\n    if ok:\n        return 1\n    return\n",
     );
   });

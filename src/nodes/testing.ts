@@ -1,11 +1,12 @@
 // Builders and runners shared by tests. Ids are deterministic (t00000000001 …).
 import { toData } from "@/lang/data";
+import { dataKind } from "@/lang/kinds";
 import type {
   BinOp,
   Data,
   Expr,
   FunctionDef,
-  Input,
+  InputDecl,
   NodeId,
   Program,
   Stmt,
@@ -91,7 +92,7 @@ export const ast = {
 
 export function program(
   main: Stmt[],
-  opts: { inputs?: Input[]; functions?: FunctionDef[]; title?: string } = {},
+  opts: { inputs?: InputDecl[]; functions?: FunctionDef[]; title?: string } = {},
 ): Program {
   return {
     version: 1,
@@ -101,6 +102,16 @@ export function program(
     functions: opts.functions ?? [],
     main,
   };
+}
+
+/** A program of `main` declaring one input per value, of that value's kind, and the values. */
+export function withInputs(
+  values: Record<string, Data>,
+  main: Stmt[],
+  opts: { functions?: FunctionDef[] } = {},
+): { program: Program; inputs: Record<string, Data> } {
+  const inputs = Object.entries(values).map(([name, value]) => ({ name, kind: dataKind(value) }));
+  return { program: program(main, { ...opts, inputs }), inputs: values };
 }
 
 export type RunResult = {
@@ -148,10 +159,10 @@ export function varValue(result: RunResult, name: string): Value {
 /** Evaluates one expression through `result = <expr>` and returns its Data and the expression's events. */
 export function evalExpr(
   expr: Expr,
-  inputs: Record<string, Data> = {},
-  inputDecls: Input[] = Object.entries(inputs).map(([name, value]) => ({ name, value })),
+  values: Record<string, Data> = {},
 ): { data: Data; value: Value; events: Event[]; done: Done } {
-  const result = runAll(program([ast.assign("result", expr)], { inputs: inputDecls }), inputs);
+  const made = withInputs(values, [ast.assign("result", expr)]);
+  const result = runAll(made.program, made.inputs);
   const events = result.events.filter((e) => e.type !== "enter" && e.type !== "write");
   if (result.done.type === "error")
     return { data: null, value: { t: "none" }, events, done: result.done };

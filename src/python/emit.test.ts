@@ -1,6 +1,6 @@
 // E-01, E-02, E-03, E-04, E-05, E-06 and E-10.
 import { describe, expect, it } from "vitest";
-import { ast, program } from "@/nodes/testing";
+import { ast, program, withInputs } from "@/nodes/testing";
 import { dataToPython, emit, pyString, unparse } from "./emit";
 import { EXPRESSION_FIXTURE } from "./fixtures/expressions";
 import { isParseError, parse } from "./parse";
@@ -16,7 +16,7 @@ describe("emit (emitter.md)", () => {
     const inner = assign("x", num(1));
     const frame = if_(bin("<", v("a"), v("b")), [inner], [assign("x", num(2))]);
     const after = print(v("x"));
-    const { code, map } = emit(program([frame, after]));
+    const { code, map } = emit(program([frame, after]), {});
     expect(code).toBe("if a < b:\n    x = 1\nelse:\n    x = 2\nprint(x)\n");
     expect(map[frame.id]).toEqual({ start: 1, end: 1 });
     expect(map[inner.id]).toEqual({ start: 2, end: 2 });
@@ -26,7 +26,7 @@ describe("emit (emitter.md)", () => {
 
   it("E-02: sections separated by one blank line, two around classes and functions", () => {
     const prog = program([assign("d", call("random_int", num(1), num(6)))], {
-      inputs: [{ name: "n", value: 3 }],
+      inputs: [{ name: "n", kind: "number" }],
       functions: [
         {
           id: "f0000000000f",
@@ -48,7 +48,7 @@ describe("emit (emitter.md)", () => {
         ],
       },
     ];
-    const { code, map } = emit(prog);
+    const { code, map } = emit(prog, { n: 3 });
     expect(code).toBe(
       [
         "import random",
@@ -81,23 +81,24 @@ describe("emit (emitter.md)", () => {
   it("E-11: a named statement is preceded by its name as a comment, where its map entry starts", () => {
     const inner = { ...print(v("i")), name: "Show it" };
     const loop = { ...for_("i", num(0), num(3), [inner]), name: "Count to three" };
-    const { code, map } = emit(program([loop]));
+    const { code, map } = emit(program([loop]), {});
     expect(code).toBe("# Count to three\nfor i in range(3):\n    # Show it\n    print(i)\n");
     expect(map[loop.id]).toEqual({ start: 1, end: 2 });
     expect(map[inner.id]).toEqual({ start: 3, end: 4 });
   });
 
-  it("E-03: inputs are emitted as assignments of their Data in declaration order", () => {
-    const { code } = emit(
-      program([], {
-        inputs: [
-          { name: "nums", value: [5, 3, 1] },
-          { name: "name", value: "Claude" },
-          { name: "x", value: { $float: 2 } },
-          { name: "d", value: { a: 1, "$int:2": [true, null] } },
-        ],
-      }),
+  it("E-03: inputs are emitted as assignments of their values, in declaration order", () => {
+    const made = withInputs(
+      {
+        nums: [5, 3, 1],
+        name: "Claude",
+        x: { $float: 2 },
+        d: { a: 1, "$int:2": [true, null] },
+      },
+      [],
     );
+    const { code } = emit(made.program, made.inputs);
+    expect(() => emit(made.program, { nums: [1] })).toThrow(/no value for input name/);
     expect(code).toBe(
       'nums = [5, 3, 1]\nname = "Claude"\nx = 2.0\nd = {"a": 1, 2: [True, None]}\n',
     );
@@ -111,7 +112,10 @@ describe("emit (emitter.md)", () => {
   });
 
   it("E-04: 4-space indentation, no trailing whitespace, one trailing newline", () => {
-    const { code } = emit(program([for_("i", num(0), num(3), [while_(v("ok"), [print(v("i"))])])]));
+    const { code } = emit(
+      program([for_("i", num(0), num(3), [while_(v("ok"), [print(v("i"))])])]),
+      {},
+    );
     expect(code).toBe("for i in range(3):\n    while ok:\n        print(i)\n");
     expect(code.endsWith("\n\n")).toBe(false);
     expect(code.split("\n").some((line) => /\s$/.test(line))).toBe(false);
@@ -126,8 +130,9 @@ describe("emit (emitter.md)", () => {
   });
 
   it("emits an empty program as an empty file and an empty main region under inputs", () => {
-    expect(emit(program([])).code).toBe("\n");
-    expect(emit(program([], { inputs: [{ name: "n", value: 1 }] })).code).toBe("n = 1\n");
+    expect(emit(program([]), {}).code).toBe("\n");
+    const made = withInputs({ n: 1 }, []);
+    expect(emit(made.program, made.inputs).code).toBe("n = 1\n");
   });
 });
 

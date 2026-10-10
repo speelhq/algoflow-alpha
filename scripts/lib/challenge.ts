@@ -1,8 +1,10 @@
 // Structural checks of a challenge file (used by scripts/check.ts).
 // The schema types live in src/challenges/types.ts.
 import { DIFFICULTIES, TOPICS, type Challenge, type Localized } from "@/challenges/types";
-import { migrate } from "@/lang/migrate";
+import { dataKind } from "@/lang/kinds";
+import { isInputDecl, migrate } from "@/lang/migrate";
 import { isRecord } from "@/lang/record";
+import type { Data, Kind } from "@/lang/types";
 import { isValidClassName, isValidName, validate } from "@/lang/validate";
 
 export function isLocalized(value: unknown, requireJa: boolean): value is Localized {
@@ -74,17 +76,17 @@ export function checkChallengeSchema(
 
   const inputs = Array.isArray(json.inputs) ? json.inputs : [];
   if (!Array.isArray(json.inputs)) problems.push("inputs must be an array");
-  const inputNames: string[] = [];
+  /** Each declared input with its kind. */
+  const declared = new Map<string, Kind>();
   inputs.forEach((input, i) => {
-    if (!isRecord(input) || typeof input.name !== "string" || !("value" in input)) {
-      problems.push(`inputs[${i}] must be { name, value }`);
+    if (!isInputDecl(input)) {
+      problems.push(`inputs[${i}] must be { name, kind }`);
       return;
     }
     if (!isValidName(input.name))
       problems.push(`inputs[${i}] name "${input.name}" is not a valid name`);
-    if (inputNames.includes(input.name))
-      problems.push(`inputs[${i}] name "${input.name}" is duplicated`);
-    inputNames.push(input.name);
+    if (declared.has(input.name)) problems.push(`inputs[${i}] name "${input.name}" is duplicated`);
+    declared.set(input.name, input.kind);
   });
 
   const tests = Array.isArray(json.tests) ? json.tests : [];
@@ -98,11 +100,14 @@ export function checkChallengeSchema(
     else if (test.edge === true) edge = true;
     if (!isRecord(test.inputs)) problems.push(`tests[${i}].inputs must be an object`);
     else {
-      for (const name of inputNames)
-        if (!(name in test.inputs)) problems.push(`tests[${i}].inputs is missing "${name}"`);
+      for (const [name, kind] of declared) {
+        if (!Object.hasOwn(test.inputs, name))
+          problems.push(`tests[${i}].inputs is missing "${name}"`);
+        else if (dataKind(test.inputs[name] as Data) !== kind)
+          problems.push(`tests[${i}].inputs.${name} is not of the kind ${kind}`);
+      }
       for (const name of Object.keys(test.inputs))
-        if (!inputNames.includes(name))
-          problems.push(`tests[${i}].inputs has unknown input "${name}"`);
+        if (!declared.has(name)) problems.push(`tests[${i}].inputs has unknown input "${name}"`);
     }
     if (test.seed !== undefined && typeof test.seed !== "number")
       problems.push(`tests[${i}].seed must be a number`);

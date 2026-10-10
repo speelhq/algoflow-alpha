@@ -4,7 +4,7 @@
 // scope; the store holds what the UI renders. A backward Seek replays a fresh runner
 // that reaches the same position, so a step number fully identifies a position.
 import { create } from "zustand";
-import { getChallenge } from "@/challenges";
+import { caseInputs, caseOf } from "@/challenges/cases";
 import { judge, type TestResult } from "@/challenges/judge";
 import { firstDifference, resultRows, watchStep, type WatchStep } from "@/challenges/rows";
 import type { Test } from "@/challenges/types";
@@ -75,7 +75,12 @@ export function canRun(program: Program): boolean {
 
 // ---------------------------------------------------------------- module state
 
-type Origin = { program: Program; inputs: Record<Id, Data>; seed: number; test: Test | undefined };
+type Origin = {
+  program: Program;
+  inputs: Readonly<Record<Id, Data>>;
+  seed: number;
+  test: Test | undefined;
+};
 /** What the pre-run found, with the chosen case's verdict. */
 type Plan = {
   total: number;
@@ -267,19 +272,11 @@ function sleep(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-/** The values the Input nodes show: the chosen test's. */
-export function shownInputs(
-  tests: readonly Test[] | undefined,
-  caseIndex: number,
-): Record<Id, Data> | undefined {
-  return tests?.[caseIndex]?.inputs;
-}
-
 function originFor(caseIndex: number): Origin | null {
   const program = useProgram.getState().program;
   if (!canRun(program)) return null;
-  const test = getChallenge(program.challengeId)?.tests[caseIndex];
-  return { program, inputs: test?.inputs ?? {}, seed: test?.seed ?? 1, test };
+  const test = caseOf(program, caseIndex);
+  return { program, inputs: caseInputs(program, caseIndex), seed: test?.seed ?? 1, test };
 }
 
 function reset(from: Origin): void {

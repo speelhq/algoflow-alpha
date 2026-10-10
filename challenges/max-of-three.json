@@ -7,9 +7,9 @@
     "en": "Store the largest of `a`, `b`, and `c` in `biggest` using **if** blocks, not the `max` builtin."
   },
   "inputs": [
-    { "name": "a", "value": 3 },
-    { "name": "b", "value": 9 },
-    { "name": "c", "value": 5 }
+    { "name": "a", "kind": "number" },
+    { "name": "b", "kind": "number" },
+    { "name": "c", "kind": "number" }
   ],
   "tests": [
     {
@@ -45,9 +45,9 @@
     "title": "Max of three",
     "challengeId": "max-of-three",
     "inputs": [
-      { "name": "a", "value": 3 },
-      { "name": "b", "value": 9 },
-      { "name": "c", "value": 5 }
+      { "name": "a", "kind": "number" },
+      { "name": "b", "kind": "number" },
+      { "name": "c", "kind": "number" }
     ],
     "classes": [],
     "functions": [],

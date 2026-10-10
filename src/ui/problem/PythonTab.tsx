@@ -2,6 +2,7 @@
 // coloured. Hovering a line outlines its node, clicking it selects the node, the selected
 // node's lines are highlighted, and while running the current statement's line is too.
 import { useEffect, useMemo, useRef } from "react";
+import { caseInputs } from "@/challenges/cases";
 import { t } from "@/i18n/t";
 import { cn } from "@/lib/utils";
 import { emit } from "@/python/emit";
@@ -31,13 +32,17 @@ function copy(code: string): void {
 
 export function PythonTab() {
   const program = useProgram((s) => s.program);
+  const caseIndex = useRun((s) => s.caseIndex);
   const running = useRun((s) => s.status !== "idle");
   const activeId = useRun((s) => s.activeId);
   const selectedId = useEditor((s) => s.selectedId);
   const setHovered = useEditor((s) => s.setHovered);
   const select = useEditor((s) => s.select);
 
-  const { code, map } = useMemo(() => emit(program), [program]);
+  const { code, map } = useMemo(
+    () => emit(program, caseInputs(program, caseIndex)),
+    [program, caseIndex],
+  );
   const lines = useMemo(() => code.replace(/\n$/, "").split("\n").map(highlight), [code]);
   const owners = useMemo(() => lineOwners(map), [map]);
   const selected = useMemo(() => linesOf(map, selectedId), [map, selectedId]);

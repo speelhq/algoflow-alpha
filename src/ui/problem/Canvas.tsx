@@ -3,12 +3,13 @@
 // every case.
 import { useCallback, useMemo } from "react";
 import type { Challenge } from "@/challenges";
+import { caseInputs } from "@/challenges/cases";
 import { t } from "@/i18n/t";
 import type { NodeId, Place, Program } from "@/lang/types";
 import { useEditor } from "@/store/editor";
 import { useProgram } from "@/store/program";
 import { useShallow } from "zustand/react/shallow";
-import { shownInputs, useRun, type RunState } from "@/store/run";
+import { useRun, type RunState } from "@/store/run";
 import { Chart } from "@/ui/chart/Chart";
 import type { Moves } from "@/ui/chart/drag";
 import { layout, type ChartLayout } from "@/ui/chart/layout";
@@ -153,10 +154,15 @@ export function Canvas({ challenge }: { challenge?: Challenge }) {
   const fonts = useFontLoads();
   const shown = solution && challenge !== undefined;
   const program: Program = shown ? challenge.solution : mine;
-  const inputs = shownInputs(challenge?.tests, caseIndex);
+  // Until the page's effect loads the problem's program, the store holds the previous page's.
+  const loaded = challenge === undefined || mine.challengeId === challenge.id;
+  // The chosen case is the open program's; a challenge's solution declares the same inputs.
   const chart = useMemo(
-    () => (fonts ? layout(program, { inputs, measure: measureText }) : null),
-    [program, inputs, fonts],
+    () =>
+      fonts && loaded
+        ? layout(program, { inputs: caseInputs(mine, caseIndex), measure: measureText })
+        : null,
+    [program, mine, caseIndex, fonts, loaded],
   );
   const cases = useMemo(
     () =>

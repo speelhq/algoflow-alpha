@@ -13,7 +13,7 @@ describe("name list", () => {
   it("U-94: the problem's names first, in order, then the program's other variables, with no limit", () => {
     const p = program(
       [assign("count", num(0)), for_("k", num(0), num(3), []), assign("total", num(1))],
-      { inputs: [{ name: "n", value: 3 }] },
+      { inputs: [{ name: "n", kind: "number" }] },
     );
     expect(shown(nameSections(p, ["total", "best"], ""))).toEqual([
       ["problem", ["total", "best"]],
@@ -27,7 +27,7 @@ describe("name list", () => {
     const sum = CHALLENGES.find((challenge) => challenge.id === "sum-to-n");
     if (!sum) throw new Error("sum-to-n missing");
     const asked = Object.keys(sum.tests[0]?.expect.variables ?? {});
-    const p = program([], { inputs: [{ name: "n", value: 10 }] });
+    const p = program([], { inputs: [{ name: "n", kind: "number" }] });
     expect(shown(nameSections(p, asked, ""))[0]).toEqual(["problem", ["total"]]);
     expect(shown(nameSections(p, asked, "to"))).toEqual([
       ["problem", ["total"]],

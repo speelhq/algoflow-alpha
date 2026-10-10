@@ -1,7 +1,7 @@
 // R-21: the semantics examples of language.md, the R-09 codes reachable with
 // the basic and control blocks, and the R-03/R-08/R-10 event rules.
 import { describe, expect, it } from "vitest";
-import { ast, evalExpr, eventTypes, program, runAll, varData } from "@/nodes/testing";
+import { ast, evalExpr, eventTypes, program, runAll, varData, withInputs } from "@/nodes/testing";
 import { run, STEP_LIMIT } from "./run";
 import { floatRepr, strRepr } from "./values";
 
@@ -60,10 +60,8 @@ describe("the semantics table of language.md", () => {
 
   it("R-09 E_UNDEFINED at run time: a loop variable read after a loop that never ran", () => {
     const read = v("i");
-    const result = runAll(
-      program([for_("i", num(0), v("n"), []), print(read)], { inputs: [{ name: "n", value: 0 }] }),
-      { n: 0 },
-    );
+    const made = withInputs({ n: 0 }, [for_("i", num(0), v("n"), []), print(read)]);
+    const result = runAll(made.program, made.inputs);
     expect(result.done).toMatchObject({
       type: "error",
       error: { nodeId: read.id, code: "E_UNDEFINED", params: { name: "i" } },
@@ -169,12 +167,11 @@ describe("the semantics table of language.md", () => {
   });
 
   it("L-20 a list index is int, negative from the end, else E_INDEX (write path)", () => {
-    const write = (index: number) =>
-      runAll(
-        program([assignTo({ kind: "index", list: v("xs"), index: num(index) }, num(0))], {
-          inputs: [{ name: "xs", value: [1, 2] }],
-        }),
-      );
+    const write = (index: number) => {
+      const stmt = assignTo({ kind: "index", list: v("xs"), index: num(index) }, num(0));
+      const made = withInputs({ xs: [1, 2] }, [stmt]);
+      return runAll(made.program, made.inputs);
+    };
     expect(varData(write(-1), "xs")).toEqual([1, 0]);
     expect(write(2).done).toMatchObject({
       type: "error",
@@ -183,12 +180,10 @@ describe("the semantics table of language.md", () => {
   });
 
   it("L-21 dict keys are int or str, else E_TYPE (write path)", () => {
-    const write = (key: ReturnType<typeof num>) =>
-      runAll(
-        program([assignTo({ kind: "key", dict: v("d"), key }, num(0))], {
-          inputs: [{ name: "d", value: {} }],
-        }),
-      );
+    const write = (key: ReturnType<typeof num>) => {
+      const made = withInputs({ d: {} }, [assignTo({ kind: "key", dict: v("d"), key }, num(0))]);
+      return runAll(made.program, made.inputs);
+    };
     expect(varData(write(str("k")), "d")).toEqual({ k: 0 });
     expect(varData(write(num(3)), "d")).toEqual({ "$int:3": 0 });
     expect(write(float(1.5)).done).toMatchObject({ type: "error", error: { code: "E_TYPE" } });
@@ -196,22 +191,22 @@ describe("the semantics table of language.md", () => {
 
   it("L-23 setting a field the class does not have → E_FIELD", () => {
     const stmt = assignTo({ kind: "field", obj: v("p"), field: "nope" }, num(0));
-    const result = runAll(program([stmt], { inputs: [{ name: "p", value: { $cls: "P", x: 1 } }] }));
+    const made = withInputs({ p: { $cls: "P", x: 1 } }, [stmt]);
+    const result = runAll(made.program, made.inputs);
     expect(result.done).toMatchObject({
       type: "error",
       error: { nodeId: stmt.id, code: "E_FIELD", params: { cls: "P", field: "nope" } },
     });
-    const ok = runAll(
-      program([assignTo({ kind: "field", obj: v("p"), field: "x" }, num(2))], {
-        inputs: [{ name: "p", value: { $cls: "P", x: 1 } }],
-      }),
-    );
+    const set = assignTo({ kind: "field", obj: v("p"), field: "x" }, num(2));
+    const fine = withInputs({ p: { $cls: "P", x: 1 } }, [set]);
+    const ok = runAll(fine.program, fine.inputs);
     expect(varData(ok, "p")).toEqual({ $cls: "P", $id: 1, x: 2 });
   });
 
   it("L-64 a field of a value that is no object → E_FIELD with its type name (n.x, n = 3)", () => {
     const stmt = assignTo({ kind: "field", obj: v("n"), field: "x" }, num(0));
-    const result = runAll(program([stmt], { inputs: [{ name: "n", value: 3 }] }), { n: 3 });
+    const made = withInputs({ n: 3 }, [stmt]);
+    const result = runAll(made.program, made.inputs);
     expect(result.done).toMatchObject({
       type: "error",
       error: { nodeId: stmt.id, code: "E_FIELD", params: { cls: "int", field: "x" } },
@@ -219,12 +214,11 @@ describe("the semantics table of language.md", () => {
   });
 
   it("L-24 assignment copies the reference", () => {
-    const result = runAll(
-      program(
-        [assign("ys", v("xs")), assignTo({ kind: "index", list: v("ys"), index: num(0) }, num(9))],
-        { inputs: [{ name: "xs", value: [1] }] },
-      ),
-    );
+    const made = withInputs({ xs: [1] }, [
+      assign("ys", v("xs")),
+      assignTo({ kind: "index", list: v("ys"), index: num(0) }, num(9)),
+    ]);
+    const result = runAll(made.program, made.inputs);
     expect(varData(result, "xs")).toEqual([9]);
   });
 
@@ -252,22 +246,15 @@ describe("the semantics table of language.md", () => {
       d: { a: 1 },
       val: { $cls: "Value", data: { $float: 2 }, grad: { $float: 0 }, prev: [], op: "" },
     };
-    const result = runAll(
-      program(
-        [
-          print(bool(true)),
-          print(none()),
-          print(float(2)),
-          print(v("xs")),
-          print(v("d")),
-          print(v("val")),
-        ],
-        {
-          inputs: Object.entries(inputs).map(([name, value]) => ({ name, value })),
-        },
-      ),
-      inputs,
-    );
+    const made = withInputs(inputs, [
+      print(bool(true)),
+      print(none()),
+      print(float(2)),
+      print(v("xs")),
+      print(v("d")),
+      print(v("val")),
+    ]);
+    const result = runAll(made.program, made.inputs);
     expect(result.stdout).toEqual([
       "True",
       "None",

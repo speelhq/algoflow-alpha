@@ -11,7 +11,7 @@ const { assign, num, bin, v, print, ret } = ast;
 
 function valid() {
   const solution = program([assign("total", bin("+", v("n"), num(1)))], {
-    inputs: [{ name: "n", value: 1 }],
+    inputs: [{ name: "n", kind: "number" }],
   });
   return {
     id: "demo",
@@ -20,7 +20,7 @@ function valid() {
     topics: ["variables"],
     description: { en: "Add one." },
     takeaway: { en: "You added one." },
-    inputs: [{ name: "n", value: 1 }],
+    inputs: [{ name: "n", kind: "number" }],
     tests: [
       { inputs: { n: 1 }, edge: false, expect: { variables: { total: 2 } } },
       { inputs: { n: 0 }, edge: true, expect: { variables: { total: 1 } } },
@@ -42,7 +42,7 @@ describe("checkChallengeSchema (C-01, C-03)", () => {
     c.hints = c.hints.slice(0, 2);
     c.tests[1]!.edge = false;
     delete (c.tests[2]!.inputs as Record<string, unknown>).n;
-    c.solution.inputs = [{ name: "n", value: 2 }];
+    c.solution.inputs = [{ name: "n", kind: "text" }];
     const { problems } = checkChallengeSchema(c, "demo");
     expect(problems).toEqual(
       expect.arrayContaining([
@@ -112,10 +112,23 @@ describe("checkChallengeSchema (C-01, C-03)", () => {
     );
   });
 
+  it("C-01: inputs are declared with a kind, and every test's value has it", () => {
+    const c = valid();
+    (c.tests[0]!.inputs as Record<string, unknown>).n = "one";
+    expect(checkChallengeSchema(c, "demo").problems).toEqual([
+      "tests[0].inputs.n is not of the kind number",
+    ]);
+    const undeclared = valid();
+    (undeclared.inputs[0] as Record<string, unknown>).kind = "word";
+    expect(checkChallengeSchema(undeclared, "demo").problems).toEqual(
+      expect.arrayContaining(["inputs[0] must be { name, kind }"]),
+    );
+  });
+
   it("runs validate() on the solution and reports diagnostics", () => {
     const c = valid();
     c.solution = {
-      ...program([print(v("ghost"))], { inputs: [{ name: "n", value: 1 }] }),
+      ...program([print(v("ghost"))], { inputs: [{ name: "n", kind: "number" }] }),
       challengeId: "demo",
     };
     expect(checkChallengeSchema(c, "demo").problems).toEqual([
@@ -185,7 +198,7 @@ describe("execute (C-10 view of a run)", () => {
   it("reports final main variables as Data, stdout, and draws", () => {
     const outcome = execute(
       program([assign("x", bin("*", v("n"), num(2))), print(v("x"))], {
-        inputs: [{ name: "n", value: 4 }],
+        inputs: [{ name: "n", kind: "number" }],
       }),
       { n: 4 },
       1,

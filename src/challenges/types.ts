@@ -1,6 +1,6 @@
 // The challenge and plan schemas. A leaf module: scripts run with tsx
 // import it, so it must not import `index.ts` (which uses `import.meta.glob`).
-import type { Data, Id, Input, Program } from "@/lang/types";
+import type { Data, Id, InputDecl, Program } from "@/lang/types";
 
 export const DIFFICULTIES = ["easy", "medium", "hard"] as const;
 export type Difficulty = (typeof DIFFICULTIES)[number];
@@ -22,7 +22,7 @@ export type Topic = (typeof TOPICS)[number];
 
 export type Localized = { en: string; ja?: string };
 export type Test = {
-  /** A test is shown by these values; it has no name. */
+  /** Every input, a value of its kind; a test is shown by these values, and has no name. */
   inputs: Record<Id, Data>;
   /** A boundary case; every challenge has at least one. */
   edge?: boolean;
@@ -35,7 +35,7 @@ export type Challenge = {
   difficulty: Difficulty;
   topics: Topic[];
   description: Localized;
-  inputs: Input[];
+  inputs: InputDecl[];
   tests: Test[];
   hints: Localized[];
   /** One sentence shown as `What you used`. */

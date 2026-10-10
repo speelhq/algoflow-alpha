@@ -55,16 +55,8 @@ function checkTest(challenge: Challenge, test: Test, index: number): string[] {
     }
   }
 
-  const program = {
-    ...challenge.solution,
-    inputs: challenge.solution.inputs.map((input) => ({
-      name: input.name,
-      value: Object.hasOwn(test.inputs, input.name)
-        ? (test.inputs[input.name] ?? null)
-        : input.value,
-    })),
-  };
-  const python = runPython(emit(program).code, outcome.draws, Object.keys(outcome.vars));
+  const code = emit(challenge.solution, test.inputs).code;
+  const python = runPython(code, outcome.draws, Object.keys(outcome.vars));
   if ("error" in python) return [...problems, `${label}: python3 failed: ${python.error}`];
   if (!sameLines(outcome.stdout, python.stdout))
     problems.push(`${label}: CPython ${describeMismatch("stdout", outcome.stdout, python.stdout)}`);

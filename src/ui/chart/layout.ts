@@ -7,6 +7,7 @@
 // `next` lane and `No` lane take it to the next pass or past the loop.
 // Reads `def.chart`, `def.requires`, and the regions of a statement, never a kind.
 import { t } from "@/i18n/t";
+import { inputValue } from "@/lang/data";
 import type { Data, Id, NodeId, Place, Program, Stmt } from "@/lang/types";
 import { regionsOf } from "@/lang/walk";
 import { getNode, keyOf } from "@/nodes/registry";
@@ -78,8 +79,8 @@ export type Measure = (text: string, shape: Shape, bold?: boolean) => number;
 export type LayoutOptions = {
   /** `main` (default) or a function's id. */
   chart?: "main" | NodeId;
-  /** The values the Input nodes show; defaults to the program's own. */
-  inputs?: Record<Id, Data>;
+  /** The values the Input nodes show: the chosen case's. */
+  inputs: Readonly<Record<Id, Data>>;
   measure?: Measure;
 };
 
@@ -610,7 +611,7 @@ class Builder {
 }
 
 /** The chart of `main` or of one function, every node and edge placed. */
-export function layout(program: Program, opts: LayoutOptions = {}): ChartLayout {
+export function layout(program: Program, opts: LayoutOptions): ChartLayout {
   const builder = new Builder(program, opts.measure ?? defaultMeasure);
   const fn = program.functions.find((candidate) => candidate.id === opts.chart);
   const frag = emptyFrag();
@@ -625,9 +626,7 @@ export function layout(program: Program, opts: LayoutOptions = {}): ChartLayout 
   let half = start.w / 2;
 
   for (const input of fn ? [] : program.inputs) {
-    const value =
-      opts.inputs && Object.hasOwn(opts.inputs, input.name) ? opts.inputs[input.name] : input.value;
-    const parts = inputParts(input.name, value ?? null);
+    const parts = inputParts(input.name, inputValue(opts.inputs, input.name));
     const node = builder.node(`input:${input.name}`, null, "input", "input", parts, y);
     frag.nodes.push(node);
     frag.edges.push(edge(flow, node.id, [{ x: 0, y }]));

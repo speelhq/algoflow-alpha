@@ -15,9 +15,9 @@ const twice: FunctionDef = {
 describe("call (nodes.md)", () => {
   it("N-03: emits `<fn>(<args>)`", () => {
     expect(unparse(call("twice", num(3)))).toBe("twice(3)");
-    expect(emit(program([assign("y", call("twice", num(3)))], { functions: [twice] })).code).toBe(
-      "def twice(x):\n    return x * 2\n\n\ny = twice(3)\n",
-    );
+    expect(
+      emit(program([assign("y", call("twice", num(3)))], { functions: [twice] }), {}).code,
+    ).toBe("def twice(x):\n    return x * 2\n\n\ny = twice(3)\n");
   });
 
   it("N-10 / R-14: call and return events around the body; the value comes back", () => {

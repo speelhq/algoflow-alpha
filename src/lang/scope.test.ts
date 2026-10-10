@@ -12,7 +12,7 @@ describe("scope", () => {
     const b = assign("b", num(2));
     const again = assign("a", num(3));
     const here = print(v("a"));
-    const p = program([a, b, again, here], { inputs: [{ name: "n", value: 1 }] });
+    const p = program([a, b, again, here], { inputs: [{ name: "n", kind: "number" }] });
     expect(visibleAt(p, a.id)).toEqual(["n"]);
     expect(visibleAt(p, b.id)).toEqual(["a", "n"]);
     expect(visibleAt(p, here.id)).toEqual(["a", "b", "n"]);
@@ -23,7 +23,7 @@ describe("scope", () => {
     const inner = print(v("i"));
     const loop = for_("i", num(0), v("n"), [inner]);
     const after = print(v("i"));
-    const p = program([loop, after], { inputs: [{ name: "n", value: 3 }] });
+    const p = program([loop, after], { inputs: [{ name: "n", kind: "number" }] });
     expect(visibleAt(p, loop.id)).toEqual(["n"]);
     expect(visibleAt(p, inner.id)).toEqual(["i", "n"]);
     expect(visibleAt(p, after.id)).toEqual(["i", "n"]);

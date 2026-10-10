@@ -40,9 +40,7 @@ function Problem({ challenge }: { challenge: Challenge }) {
         title={<h1 className="truncate font-semibold">{title}</h1>}
         menu={
           <>
-            <DropdownMenuItem
-              onClick={() => openInPlayground(useProgram.getState().program, title)}
-            >
+            <DropdownMenuItem onClick={() => openInPlayground(title)}>
               {t("problem.openInPlayground")}
             </DropdownMenuItem>
           </>

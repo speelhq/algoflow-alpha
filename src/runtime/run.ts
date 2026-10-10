@@ -1,6 +1,6 @@
 // The interpreter. Blocks own their semantics; this file
 // owns frames, dispatch, counting, limits, and the Runner contract.
-import { toValue } from "@/lang/data";
+import { inputValue, toValue } from "@/lang/data";
 import type { Data, Expr, Heap, Id, NodeId, Program, Stmt, Value } from "@/lang/types";
 import { getNode, keyOf } from "@/nodes/registry";
 import type { ExprRunner, RunContext, Signal, StmtRunner } from "@/nodes/types";
@@ -12,7 +12,7 @@ import type { Done, Event, Frame, Runner, RuntimeCode } from "./types";
 export const STEP_LIMIT = 1_000_000;
 export const CALL_DEPTH_LIMIT = 200;
 
-export function run(program: Program, inputs: Record<Id, Data>, seed: number): Runner {
+export function run(program: Program, inputs: Readonly<Record<Id, Data>>, seed: number): Runner {
   const heap: Heap = new Map();
   const frames: Frame[] = [{ fn: "main", vars: new Map() }];
   const random = createRandom(seed);
@@ -87,10 +87,9 @@ export function run(program: Program, inputs: Record<Id, Data>, seed: number): R
     },
   };
 
-  // Inputs are the first main-level variables, in declaration order.
+  // Inputs are the first main-level variables, in declaration order, valued by the case.
   for (const input of program.inputs) {
-    const data = Object.hasOwn(inputs, input.name) ? (inputs[input.name] ?? null) : input.value;
-    top().vars.set(input.name, toValue(data, heap));
+    top().vars.set(input.name, toValue(inputValue(inputs, input.name), heap));
   }
 
   const main = ctx.exec(program.main);

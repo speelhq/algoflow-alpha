@@ -1,5 +1,5 @@
 // Data (JSON form) ⇄ Value/heap; expectation equality.
-import type { Data, Heap, HeapEntry, HeapId, Value } from "./types";
+import type { Data, Heap, HeapEntry, HeapId, Id, Value } from "./types";
 
 const INT_KEY = "$int:";
 
@@ -29,6 +29,15 @@ export function keyValue(key: string): Value {
   return key.startsWith("i:")
     ? { t: "int", v: Number(key.slice(2)) }
     : { t: "str", v: key.slice(2) };
+}
+
+/** The value `inputs` gives input `name`; a declared input without one is a caller's error. */
+export function inputValue(inputs: Readonly<Record<Id, Data>>, name: Id): Data {
+  const data = inputs[name];
+  if (!Object.hasOwn(inputs, name) || data === undefined) {
+    throw new Error(`no value for input ${name}`);
+  }
+  return data;
 }
 
 export function toValue(data: Data, heap: Heap): Value {

@@ -6,7 +6,7 @@
   "description": {
     "en": "Say hello to `name`.\n\nAdd a **print** block with the `+` under `Start` and give it two values: the text `\"Hello,\"`, then `name`."
   },
-  "inputs": [{ "name": "name", "value": "Claude" }],
+  "inputs": [{ "name": "name", "kind": "text" }],
   "tests": [
     {
       "inputs": { "name": "Claude" },
@@ -35,7 +35,7 @@
     "version": 1,
     "title": "Hello",
     "challengeId": "tutorial",
-    "inputs": [{ "name": "name", "value": "Claude" }],
+    "inputs": [{ "name": "name", "kind": "text" }],
     "classes": [],
     "functions": [],
     "main": [

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dataEquals, toData, toValue } from "./data";
+import { dataEquals, inputValue, toData, toValue } from "./data";
 import type { Data, Heap } from "./types";
 
 function roundTrip(data: Data): Data {
@@ -93,5 +93,14 @@ describe("C-10 dataEquals", () => {
     expect(dataEquals({ $cls: "V", $id: 1, x: 1 }, { $cls: "V", $id: 9, x: 1 })).toBe(true);
     expect(dataEquals({ $cls: "V", x: 1 }, { $cls: "W", x: 1 })).toBe(false);
     expect(dataEquals({ $cls: "V", x: 1 }, { $cls: "V", x: 1, y: 2 })).toBe(false);
+  });
+});
+
+describe("inputValue", () => {
+  it("gives an input's value, and fails for a declared input that has none", () => {
+    expect(inputValue({ n: 0, s: "" }, "n")).toBe(0);
+    expect(inputValue({ n: null }, "n")).toBeNull();
+    expect(() => inputValue({}, "n")).toThrow(/no value for input n/);
+    expect(() => inputValue({}, "toString")).toThrow(/no value for input toString/);
   });
 });

@@ -14,11 +14,23 @@ describe("migrate (L-53)", () => {
     const p = program(
       [assign("x", num(1)), for_("i", num(0), num(3), [print(bin("+", v("x"), v("i")))])],
       {
-        inputs: [{ name: "n", value: [1, 2] }],
+        inputs: [{ name: "n", kind: "list" }],
         functions: [{ id: "f0000000000f", name: "f", params: ["a"], body: [print(v("a"))] }],
       },
     );
     expect(migrate(json(p))).toEqual(p);
+  });
+
+  it("rejects an input that is not a name with a known kind", () => {
+    const valued = { ...program([]), inputs: [{ name: "n", value: [1, 2] }] };
+    expect(() => migrate(valued)).toThrow(/^inputs\[0\]: expected \{ name, kind \}/);
+    const unknown = { ...program([]), inputs: [{ name: "n", kind: "word" }] };
+    expect(() => migrate(unknown)).toThrow(
+      "inputs[0]: expected { name, kind }, a kind of number, text, truefalse, none, list, dict, object",
+    );
+    expect(() => migrate({ ...program([]), inputs: [{ kind: "list" }] })).toThrow(
+      /^inputs\[0\]: expected \{ name, kind \}/,
+    );
   });
 
   it("rejects an unsupported version with the path", () => {

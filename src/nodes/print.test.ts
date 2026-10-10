@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { emit } from "@/python/emit";
-import { ast, eventTypes, program, runAll } from "./testing";
+import { ast, eventTypes, program, runAll, withInputs } from "./testing";
 
 const { print, num, float, str, bool, none, bin, v } = ast;
 const lines = (main: Parameters<typeof program>[0]) =>
-  emit(program(main)).code.trimEnd().split("\n");
+  emit(program(main), {}).code.trimEnd().split("\n");
 
 describe("print (nodes.md)", () => {
   it("N-03: emits `print(<a>, <b>)`", () => {
@@ -25,9 +25,8 @@ describe("print (nodes.md)", () => {
   });
 
   it("N-10: a list argument prints in repr form with single-quoted strings", () => {
-    const result = runAll(
-      program([print(v("xs"))], { inputs: [{ name: "xs", value: [1, "a", { $float: 2 }] }] }),
-    );
+    const made = withInputs({ xs: [1, "a", { $float: 2 }] }, [print(v("xs"))]);
+    const result = runAll(made.program, made.inputs);
     expect(result.stdout).toEqual(["[1, 'a', 2.0]"]);
   });
 });

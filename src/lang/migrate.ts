@@ -2,7 +2,7 @@
 // check is structural (shape, known kinds, ids); semantics are validate()'s job.
 import { getNode, hasNode, keyOf } from "@/nodes/registry";
 import { isNodeId } from "./id";
-import type { Expr, Program, Stmt, Target } from "./types";
+import { KINDS, type Expr, type InputDecl, type Program, type Stmt, type Target } from "./types";
 import { isRecord } from "./record";
 import { regionsOf, targetExprs } from "./walk";
 
@@ -26,6 +26,13 @@ function expectArray(value: unknown, path: string): unknown[] {
 function expectString(value: unknown, path: string): string {
   if (typeof value !== "string") throw new MigrateError(path, "expected a string");
   return value;
+}
+
+/** Whether a JSON value declares an input: a name with a known kind. */
+export function isInputDecl(value: unknown): value is InputDecl {
+  return (
+    isRecord(value) && typeof value.name === "string" && KINDS.some((kind) => kind === value.kind)
+  );
 }
 
 function expectNodeId(value: unknown, path: string): void {
@@ -103,8 +110,11 @@ function checkStmts(value: unknown, path: string): void {
 function checkV1(json: Record<string, unknown>): Program {
   expectString(json.title, "title");
   expectArray(json.inputs, "inputs").forEach((input, i) => {
-    if (!isRecord(input) || typeof input.name !== "string" || !("value" in input)) {
-      throw new MigrateError(`inputs[${i}]`, "expected { name, value }");
+    if (!isInputDecl(input)) {
+      throw new MigrateError(
+        `inputs[${i}]`,
+        `expected { name, kind }, a kind of ${KINDS.join(", ")}`,
+      );
     }
   });
   expectArray(json.classes, "classes").forEach((cls, i) => {

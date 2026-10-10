@@ -3,8 +3,8 @@
 // them; a named node by its statement; a location by the variable that holds it.
 import { describe, expect, it } from "vitest";
 import { t } from "@/i18n/t";
-import type { Data, Input, Program } from "@/lang/types";
-import { ast, program, tid } from "@/nodes/testing";
+import type { Data, Program } from "@/lang/types";
+import { ast, program, tid, withInputs } from "@/nodes/testing";
 import { run } from "@/runtime/run";
 import type { Event } from "@/runtime/types";
 import { valueText } from "@/ui/chart/text";
@@ -28,8 +28,6 @@ function told(p: Program, type: Event["type"], nth = 1, inputs: Record<string, D
     }
   }
 }
-
-const withInputs = (main: Program["main"], inputs: Input[]) => program(main, { inputs });
 
 describe("narrate (U-63)", () => {
   it("enter: `Checking …` for a condition, the block's sentence otherwise", () => {
@@ -122,18 +120,14 @@ describe("narrate (U-63)", () => {
   });
 
   it("U-119 read and swap name the list by the variable that holds it", () => {
-    const p = withInputs(
-      [if_(bin("in", v("x"), v("nums")), [])],
-      [
-        { name: "nums", value: [4, 9, 5] },
-        { name: "x", value: 5 },
-      ],
-    );
-    expect(told(p, "read")).toBe("Read 3 items of nums");
+    const { program: p, inputs } = withInputs({ nums: [4, 9, 5], x: 5 }, [
+      if_(bin("in", v("x"), v("nums")), []),
+    ]);
+    expect(told(p, "read", 1, inputs)).toBe("Read 3 items of nums");
     // A list keeps its name: its items were narrated by the read before the comparison.
-    expect(told(p, "compare")).toBe("5 is in nums? Yes");
+    expect(told(p, "compare", 1, inputs)).toBe("5 is in nums? Yes");
 
-    const runner = run(p, {}, 1);
+    const runner = run(p, inputs, 1);
     const state = runner.state();
     const ctx = { program: p, state, frame: 0, pass: null };
     const read: Event = { type: "read", nodeId: "none", refs: [{ heap: 1, index: 2 }] };
@@ -171,11 +165,8 @@ describe("narrate (U-63)", () => {
   });
 
   it("U-117 valueText writes containers with the same words inside", () => {
-    const runner = run(
-      withInputs([], [{ name: "d", value: { a: [true, null, "x", { $float: 2 }], "$int:3": 1 } }]),
-      {},
-      1,
-    );
+    const made = withInputs({ d: { a: [true, null, "x", { $float: 2 }], "$int:3": 1 } }, []);
+    const runner = run(made.program, made.inputs, 1);
     const { frames, heap } = runner.state();
     const value = frames[0]?.vars.get("d");
     expect(value && valueText(value, heap)).toBe('{"a": [true, none, "x", 2.0], 3: 1}');

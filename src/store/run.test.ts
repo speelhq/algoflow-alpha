@@ -1,13 +1,34 @@
 // R-21: the driver. R-23 pre-run, R-25 Step, R-26 Play, R-27 Seek, R-28 Back, R-29 Stop; R-12
 // state; R-19 breakpoint and Skip; U-108, U-109 marks; C-15 verdict; R-10: Seek replays identically.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { getChallenge } from "@/challenges";
+import { getChallenge, type Challenge } from "@/challenges";
 import { ast, program, runAll, tid } from "@/nodes/testing";
 import { SPEEDS, useLayout } from "./layout";
 import { useProgram } from "./program";
 import { BATCH, canRun, useRun, type RunState } from "./run";
 
 const { assign, num, bin, v, print, for_, if_, while_, str, exprStmt, call, ret } = ast;
+
+/** A problem whose one case gives a list: only a case puts a list into a run's state. */
+const lists = vi.hoisted((): Challenge => ({
+  id: "lists",
+  title: { en: "Lists" },
+  difficulty: "easy",
+  topics: ["lists"],
+  description: { en: "" },
+  inputs: [{ name: "nums", kind: "list" }],
+  tests: [{ inputs: { nums: [4, 5] }, expect: { variables: {} } }],
+  hints: [],
+  solution: { version: 1, title: "", inputs: [], classes: [], functions: [], main: [] },
+}));
+
+vi.mock("@/challenges", async (importOriginal) => {
+  const real = await importOriginal<typeof import("@/challenges")>();
+  return {
+    ...real,
+    getChallenge: (id: string | undefined) => (id === lists.id ? lists : real.getChallenge(id)),
+  };
+});
 
 const counting = () => program([for_("i", num(0), num(3), [print(v("i"))])]);
 const long = () => program([for_("i", num(0), num(1500), [print(v("i"))])]);
@@ -342,9 +363,10 @@ describe("run store (R-21)", () => {
   it("R-12: a published state is a copy; later steps do not change it", async () => {
     const write = ast.assignTo({ kind: "index", list: v("nums"), index: num(0) }, num(9));
     useProgram.setState({
-      program: program([assign("x", num(1)), assign("x", num(2)), write], {
-        inputs: [{ name: "nums", value: [4, 5] }],
-      }),
+      program: {
+        ...program([assign("x", num(1)), assign("x", num(2)), write], { inputs: lists.inputs }),
+        challengeId: lists.id,
+      },
     });
     await paused();
     await run().seek(2); // enter, write x = 1

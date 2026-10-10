@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { emit } from "@/python/emit";
 import { forStmt } from "./for";
-import { ast, eventTypes, program, runAll, varData } from "./testing";
+import { ast, eventTypes, program, runAll, varData, withInputs } from "./testing";
 
 const { for_, assign, num, float, bin, v, brk, cont, if_ } = ast;
 const lines = (main: Parameters<typeof program>[0]) =>
-  emit(program(main)).code.trimEnd().split("\n");
+  emit(program(main), {}).code.trimEnd().split("\n");
 
 describe("for (nodes.md)", () => {
   it("N-03: `range(<stop>)` when start is num 0, else `range(<start>, <stop>)`", () => {
@@ -43,11 +43,10 @@ describe("for (nodes.md)", () => {
   });
 
   it("N-10 / L-25, L-43: bounds are evaluated once; the variable stays visible after the loop", () => {
-    const result = runAll(
-      program([for_("i", num(0), v("n"), [assign("n", bin("+", v("n"), num(1)))])], {
-        inputs: [{ name: "n", value: 3 }],
-      }),
-    );
+    const made = withInputs({ n: 3 }, [
+      for_("i", num(0), v("n"), [assign("n", bin("+", v("n"), num(1)))]),
+    ]);
+    const result = runAll(made.program, made.inputs);
     expect(result.done).toMatchObject({ loops: 3 });
     expect(varData(result, "i")).toBe(2);
   });

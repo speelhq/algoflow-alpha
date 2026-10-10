@@ -31,7 +31,7 @@ const shown = (explained: ReturnType<typeof explainLine>) =>
 const target = print(empty());
 const p = program(
   [assign("total", num(0)), for_("i", num(1), bin("+", v("n"), num(1)), [target])],
-  { inputs: [{ name: "n", value: 10 }] },
+  { inputs: [{ name: "n", kind: "number" }] },
 );
 
 describe("explanation line (U-96)", () => {
