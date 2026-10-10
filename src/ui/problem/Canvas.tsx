@@ -72,7 +72,7 @@ type Shown = Pick<
 >;
 
 /** The sentence for the run's position, or none before the first step. */
-function narration(run: Shown, program: Program): string | null {
+function narrationOf(run: Shown, program: Program): string | null {
   const { step, total, outcome, lastEvent, state, difference } = run;
   const end = outcome && step === total ? narrateEnd(outcome, total) : null;
   // An error is said wherever the run stops on it; a difference is said in place of the step.
@@ -115,7 +115,7 @@ function useRunPaint(
       verdicts: run.verdicts,
       breakpoint: run.breakpoint,
     });
-    const text = narration(run, program);
+    const text = narrationOf(run, program);
     const error = run.status === "error" && run.step === run.total;
     return { paint: painted, narration: text === null ? null : { text, error } };
   }, [chart, run, program]);
@@ -178,6 +178,7 @@ export function Canvas({ challenge }: { challenge?: Challenge }) {
     const flagged = flaggedStatements(mine);
     return {
       owners: new Set(flagged.keys()),
+      // oxlint-disable-next-line react/no-unstable-nested-components -- a render function, not a component
       card: (owner: NodeId) => (
         <div className="flex flex-col gap-2">
           {(flagged.get(owner) ?? []).map((diagnostic, i) => (

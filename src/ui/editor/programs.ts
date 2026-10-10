@@ -4,7 +4,7 @@
 import { caseInputs } from "@/challenges/cases";
 import { inputValue } from "@/lang/data";
 import { migrate } from "@/lang/migrate";
-import type { Data, Expr, Id, Program, Stmt } from "@/lang/types";
+import type { Data, Id, Program, Stmt } from "@/lang/types";
 import { getNode } from "@/nodes/registry";
 import { dataToPython } from "@/python/emit";
 import { isParseError, parse } from "@/python/parse";
@@ -17,7 +17,7 @@ function inputAssignment(name: Id, data: Data): Stmt | undefined {
   const value = parse(dataToPython(data));
   if (isParseError(value)) return undefined;
   const assign = getNode("assign").create() as Extract<Stmt, { kind: "assign" }>;
-  return { ...assign, target: { kind: "var", name }, value: value as Expr };
+  return { ...assign, target: { kind: "var", name }, value };
 }
 
 /** The Playground program `Open in Playground` makes of `program`, its inputs valued by `inputs`. */

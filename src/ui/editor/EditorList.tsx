@@ -36,6 +36,7 @@ export function EditorList(props: Props) {
   // A block body: browsers that return a promise from scrollIntoView would hand it to React
   // as the effect's cleanup.
   useEffect(() => {
+    if (highlight === null) return;
     highlighted.current?.scrollIntoView({ block: "nearest" });
   }, [highlight]);
   // Where each section's rows start in the count across sections.
@@ -47,6 +48,7 @@ export function EditorList(props: Props) {
     <div className="flex max-h-72 flex-col overflow-y-auto px-1.5 py-1.5" data-testid="editor-list">
       {rows === 0 && <p className="px-2 py-1 text-muted-foreground">{t("editor.noItems")}</p>}
       {sections.map((section, s) => (
+        // oxlint-disable-next-line react/no-array-index-key -- two sections may both have no title
         <section key={`${s}:${section.title}`} aria-label={section.title} className="flex flex-col">
           {section.title !== "" && (
             <h3 className="px-2 pt-1.5 pb-0.5 text-[0.7rem] tracking-wide text-muted-foreground uppercase">

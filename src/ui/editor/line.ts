@@ -615,7 +615,7 @@ export function setText(line: Line, id: NodeId, text: string): Line {
   const held = find(line.root, id);
   const slot = held ? getNode(keyOf(held)).slots.find((s) => s.role === "text") : undefined;
   if (!held || !slot) return line;
-  return replace(line, id, { ...held, [slot.name]: text } as Expr);
+  return replace(line, id, { ...held, [slot.name]: text });
 }
 
 /** The text field ends; the caret is after the text. */
@@ -627,5 +627,5 @@ export function endText(line: Line): Line {
 export function switchTo(line: Line, id: NodeId, entry: Entry): Line {
   const held = find(line.root, id);
   if (!held) return line;
-  return replace(line, id, { ...held, ...entry.menu.preset } as Expr);
+  return replace(line, id, { ...held, ...entry.menu.preset });
 }

@@ -22,6 +22,7 @@ const {
   for_,
   call,
   exprStmt,
+  if_,
 } = ast;
 
 describe("the semantics table of language.md", () => {
@@ -327,13 +328,13 @@ describe("R-03, R-08, R-10, R-35 event rules", () => {
 
   it("R-35 a condition ends in one compare of its whole self", () => {
     const compared = bin("<", num(1), num(2));
-    const plain = runAll(program([ast.if_(compared, [])]));
+    const plain = runAll(program([if_(compared, [])]));
     expect(plain.events.filter((e) => e.type === "compare")).toEqual([
       { type: "compare", nodeId: compared.id, result: true },
     ]);
     const negated = not(bin("<", num(1), num(2)));
     const inner = negated.kind === "unop" ? negated.operand.id : "";
-    const result = runAll(program([ast.if_(negated, [])]));
+    const result = runAll(program([if_(negated, [])]));
     expect(result.events.filter((e) => e.type === "compare")).toEqual([
       { type: "compare", nodeId: inner, result: true },
       { type: "compare", nodeId: negated.id, result: false },
@@ -343,7 +344,7 @@ describe("R-03, R-08, R-10, R-35 event rules", () => {
   it("R-35 a condition whose call reaches the same diamond still ends in its own compare", () => {
     // def g(n): if n > 0 and g(n - 1): pass
     const cond = bin("and", bin(">", v("n"), num(0)), call("g", bin("-", v("n"), num(1))));
-    const g = { id: "f0000000000f", name: "g", params: ["n"], body: [ast.if_(cond, [])] };
+    const g = { id: "f0000000000f", name: "g", params: ["n"], body: [if_(cond, [])] };
     const result = runAll(program([exprStmt(call("g", num(1)))], { functions: [g] }));
     expect(result.events.filter((e) => e.type === "compare" && e.nodeId === cond.id)).toEqual([
       { type: "compare", nodeId: cond.id, result: false },

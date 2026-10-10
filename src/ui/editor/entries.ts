@@ -40,7 +40,7 @@ export function takesValue(entry: Entry): boolean {
 
 /** The entry's expression: its block's `create()` with the entry's preset. */
 export function makeEntry(entry: Entry): Expr {
-  return { ...(entry.def.create() as Expr), ...entry.menu.preset } as Expr;
+  return { ...(entry.def.create() as Expr), ...entry.menu.preset };
 }
 
 /** The entry an expression was made from: its block's entry whose preset it holds. */

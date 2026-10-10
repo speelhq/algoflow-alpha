@@ -1,6 +1,6 @@
 // The explanation line at the foot of the editor: what the list highlights or the caret
 // is in, as a name and runs of text; undefined leaves the block's help.
-import { t, type MessageKey } from "@/i18n/t";
+import { t } from "@/i18n/t";
 import { chartOf, firstSetters, variableKinds } from "@/lang/kinds";
 import type { Expr, Id, Kind, NodeId, Program } from "@/lang/types";
 import { isEmptyExpr } from "@/lang/walk";
@@ -33,7 +33,7 @@ export function helpParts(text: string): Part[] {
     .filter((part) => part.text !== "");
 }
 
-const kindName = (kind: Kind) => t(`editor.kind.${kind}` as MessageKey);
+const kindName = (kind: Kind) => t(`editor.kind.${kind}`);
 
 /** A variable of the chart that holds statement `at`: its kind and where it is first set. */
 export function explainVariable(program: Program, at: NodeId, name: Id): string {

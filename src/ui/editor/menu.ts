@@ -2,7 +2,7 @@
 // grouped by category in menu order, each in registration order, those whose `requires`
 // the place does not meet disabled with the reason, then the program's own functions as
 // calls. Reads `shape`, `hidden`, `category`, and `requires`, never a kind.
-import { fillPlaceholders, nodeText, t, type MessageKey } from "@/i18n/t";
+import { fillPlaceholders, nodeText, t } from "@/i18n/t";
 import { newId } from "@/lang/id";
 import { placeContext } from "@/lang/scope";
 import type { Expr, Place, Program, Stmt } from "@/lang/types";
@@ -54,7 +54,7 @@ export function menuGroups(program: Program, place: Place): MenuGroup[] {
         return entry;
       });
     if (entries.length > 0) {
-      groups.push({ id: category, title: t(`menu.category.${category}` as MessageKey), entries });
+      groups.push({ id: category, title: t(`menu.category.${category}`), entries });
     }
   }
   const calls = program.functions.map((fn): MenuEntry => {

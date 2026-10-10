@@ -53,10 +53,10 @@ export function visibleAt(program: Program, id: NodeId): Id[] | undefined {
     return undefined;
   };
   for (const fn of program.functions) {
-    const found = walk(fn.body, [...fn.params].reverse());
+    const found = walk(fn.body, fn.params.toReversed());
     if (found) return found;
   }
-  return walk(program.main, program.inputs.map((input) => input.name).reverse());
+  return walk(program.main, program.inputs.map((input) => input.name).toReversed());
 }
 
 /** The statement whose region holds each statement; a top-level statement maps to its chart. */

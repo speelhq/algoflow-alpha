@@ -6,7 +6,7 @@ import { Copy, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 import { getChallenge } from "@/challenges";
-import { errorText, nodeText, t, type MessageKey } from "@/i18n/t";
+import { errorText, nodeText, t } from "@/i18n/t";
 import {
   duplicateStmt,
   hoistAssign,
@@ -178,23 +178,23 @@ function toFill(stmt: Stmt, field: Field): boolean {
 /** The node's name field: one line in the learner's words, stored trimmed. */
 function NameOfNode({ stmt }: { stmt: Stmt }) {
   const stored = stmt.name ?? "";
-  const [text, setText] = useState(stored);
+  const [draft, setDraft] = useState(stored);
   // An undo changes the stored name under the field.
-  if (stmtName(text) !== stored) setText(stored);
+  if (stmtName(draft) !== stored) setDraft(stored);
   return (
     <label className="flex h-9 flex-1 items-center gap-2 rounded-md border px-2.5 focus-within:border-selection">
       <span className="text-[0.7rem] tracking-wide text-muted-foreground uppercase">
         {t("editor.name")}
       </span>
       <input
-        value={text}
+        value={draft}
         placeholder={t("editor.nameHint")}
         aria-label={t("editor.name")}
         data-testid="node-name"
         className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
         onChange={(event) => {
           const next = event.target.value.replace(/[\r\n]+/g, " ");
-          setText(next);
+          setDraft(next);
           apply((p) => setStmtName(p, stmt.id, next), `${stmt.id}:name`);
         }}
       />
@@ -268,7 +268,7 @@ function Body({ stmt, program, initial }: { stmt: Stmt; program: Program; initia
   );
   const kindName = (name: Id) => {
     const kind = kinds.get(name);
-    return kind ? t(`editor.kind.${kind}` as MessageKey) : undefined;
+    return kind ? t(`editor.kind.${kind}`) : undefined;
   };
 
   // The diagnostic Run led to is shown while the program still has it, once.
@@ -329,7 +329,7 @@ function Body({ stmt, program, initial }: { stmt: Stmt; program: Program; initia
         entry.menu.group === current.menu.group,
     );
     const rows = others.map((entry): Row => ({ kind: "entry", entry }));
-    const title = current ? t(`editor.lists.${current.menu.group}` as MessageKey) : "";
+    const title = current ? t(`editor.lists.${current.menu.group}`) : "";
     return { rows, sections: rows.length > 0 ? [{ title, items: rows.map(rowItem) }] : [] };
   };
 
@@ -361,7 +361,7 @@ function Body({ stmt, program, initial }: { stmt: Stmt; program: Program; initia
     const listed = listSections(line, ctx, all);
     let index = 0;
     const sections = listed.map((section) => ({
-      title: t(`editor.lists.${section.group}` as MessageKey),
+      title: t(`editor.lists.${section.group}`),
       items: section.rows.map((row) => rowItem(row, (index += 1))),
     }));
     return { rows: listRows(listed), sections };

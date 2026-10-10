@@ -45,6 +45,7 @@ async function settle(action: Promise<void>): Promise<void> {
     settled = true;
   });
   await vi.advanceTimersByTimeAsync(0);
+  // oxlint-disable-next-line no-unmodified-loop-condition -- the action's promise sets `settled`
   while (!settled) await vi.advanceTimersByTimeAsync(1);
 }
 
