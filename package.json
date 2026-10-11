@@ -11,7 +11,8 @@
     "screenshots": "playwright test e2e/screenshots.spec.ts --update-snapshots",
     "lint": "oxlint --type-aware --type-check --deny-warnings",
     "format": "oxfmt",
-    "check": "tsx scripts/check.ts"
+    "check": "tsx scripts/check.ts",
+    "commits": "tsx scripts/commits.ts"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",
