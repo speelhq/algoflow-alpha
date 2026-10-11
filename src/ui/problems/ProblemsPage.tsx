@@ -4,7 +4,7 @@ import { CHALLENGES, getChallenge, planOf, PLANS, type Challenge, type Plan } fr
 import { planAction, type Status } from "@/challenges/next";
 import { localized, t } from "@/i18n/t";
 import { cn } from "@/lib/utils";
-import { statusOf, useProgress } from "@/store/progress";
+import { solvedCount, statusOf, useProgress, type Progress } from "@/store/progress";
 import { Header } from "@/ui/app/Header";
 import { routeHash } from "@/ui/app/route";
 import { useTitle } from "@/ui/hooks/useTitle";
@@ -13,24 +13,24 @@ import { buttonVariants } from "@/ui/primitives/button";
 export function ProblemsPage() {
   useTitle(t("problems.title"));
   const entries = useProgress((s) => s.entries);
-  const status: Status = (id) => statusOf(entries, id);
   return (
     <div className="flex h-full flex-col">
       <Header current="problems" />
       <main className="flex-1 overflow-y-auto px-6 py-4" data-testid="problems">
         {PLANS.map((plan) => (
-          <PlanSection key={plan.id} plan={plan} status={status} />
+          <PlanSection key={plan.id} plan={plan} entries={entries} />
         ))}
       </main>
     </div>
   );
 }
 
-function PlanSection({ plan, status }: { plan: Plan; status: Status }) {
+function PlanSection({ plan, entries }: { plan: Plan; entries: Progress }) {
   const { problems } = plan;
+  const status: Status = (id) => statusOf(entries, id);
   const challenges = CHALLENGES.filter((challenge) => planOf(challenge.id) === plan);
   const action = planAction(problems, status);
-  const solved = problems.filter((id) => status(id) === "solved").length;
+  const solved = solvedCount(entries, problems);
   const next = action && getChallenge(action.id);
   return (
     <section className="mb-6" data-testid={`plan-${plan.id}`}>

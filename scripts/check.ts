@@ -4,7 +4,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { judge, sameLines } from "@/challenges/judge";
-import type { Challenge, Test } from "@/challenges/types";
+import { seedOf, type Challenge, type Test } from "@/challenges/types";
 import { dataEquals } from "@/lang/data";
 import type { Data } from "@/lang/types";
 import { emit } from "@/python/emit";
@@ -38,7 +38,7 @@ function describeMismatch(kind: string, expected: unknown, actual: unknown): str
 function checkTest(challenge: Challenge, test: Test, index: number): string[] {
   const label = `test[${index}] ${JSON.stringify(test.inputs)}`;
   const problems: string[] = [];
-  const seed = test.seed ?? 1;
+  const seed = seedOf(test);
   const outcome = execute(challenge.solution, test.inputs, seed);
   const verdict = judge(test, outcome);
   if (verdict.status === "error") {

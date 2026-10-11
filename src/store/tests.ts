@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { getChallenge } from "@/challenges";
 import { judge, type TestResult } from "@/challenges/judge";
-import type { Test } from "@/challenges/types";
+import { seedOf, type Test } from "@/challenges/types";
 import type { Program } from "@/lang/types";
 import { canRun } from "@/lang/validate";
 import { outcomeOf, type Outcome } from "@/runtime/outcome";
@@ -32,7 +32,7 @@ let generation = 0;
 
 /** One test on its own runner, in batches; undefined once a later action took over. */
 async function evaluate(program: Program, test: Test, mine: number): Promise<Outcome | undefined> {
-  const runner = run(program, test.inputs, test.seed ?? 1);
+  const runner = run(program, test.inputs, seedOf(test));
   let done: Done | undefined;
   const step = (): boolean => {
     const next = runner.next();

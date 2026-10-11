@@ -7,6 +7,7 @@ import { run } from "@/runtime/run";
 import { CHALLENGES } from "./index";
 import { judge } from "./judge";
 import { firstDifference, resultRows, watchStep } from "./rows";
+import { seedOf } from "./types";
 
 const { print, str } = ast;
 
@@ -77,7 +78,7 @@ describe("firstDifference and watchStep (U-23, U-81)", () => {
       const broken = { ...challenge.solution, main: [print(str("nope"))] };
       for (const test of challenge.tests) {
         for (const candidate of [challenge.solution, broken]) {
-          const out = outcome(candidate, test.inputs, test.seed);
+          const out = outcome(candidate, test.inputs, seedOf(test));
           const passed = judge(test, out).status === "pass";
           expect(firstDifference(resultRows(test.expect, out)) === null).toBe(passed);
         }

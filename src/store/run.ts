@@ -7,7 +7,7 @@ import { create } from "zustand";
 import { caseInputs, caseOf } from "@/challenges/cases";
 import { judge, type TestResult } from "@/challenges/judge";
 import { firstDifference, resultRows, watchStep, type WatchStep } from "@/challenges/rows";
-import type { Test } from "@/challenges/types";
+import { seedOf, type Test } from "@/challenges/types";
 import type { Data, HeapEntry, Id, NodeId, Program } from "@/lang/types";
 import { canRun } from "@/lang/validate";
 import { bodyStmts, diamondConditions, nodesById, ownerStmts } from "@/lang/walk";
@@ -264,7 +264,7 @@ function originFor(caseIndex: number): Origin | null {
   const program = useProgram.getState().program;
   if (!canRun(program)) return null;
   const test = caseOf(program, caseIndex);
-  return { program, inputs: caseInputs(program, caseIndex), seed: test?.seed ?? 1, test };
+  return { program, inputs: caseInputs(program, caseIndex), seed: seedOf(test), test };
 }
 
 function reset(from: Origin): void {
