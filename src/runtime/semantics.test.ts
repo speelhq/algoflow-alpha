@@ -86,6 +86,17 @@ describe("the semantics table of language.md", () => {
     });
   });
 
+  it("L-73 random_int(1.0, 2) → E_TYPE, naming the types of both bounds", () => {
+    expect(evalExpr(call("random_int", float(1), num(2))).done).toMatchObject({
+      type: "error",
+      error: { code: "E_TYPE", params: { left: "float", right: "int" } },
+    });
+    expect(evalExpr(call("random_int", num(1), str("2"))).done).toMatchObject({
+      type: "error",
+      error: { code: "E_TYPE", params: { left: "int", right: "str" } },
+    });
+  });
+
   it("L-11 any float operand → float", () => {
     expect(evalExpr(bin("+", num(1), float(2))).value).toEqual({ t: "float", v: 3 });
   });
