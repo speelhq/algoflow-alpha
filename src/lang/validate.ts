@@ -17,7 +17,7 @@ import {
 } from "./types";
 import { isFloatData } from "./data";
 import { declaredBy } from "./scope";
-import { childSlots, programIds, regionsOf, stmtExprs } from "./walk";
+import { childSlots, isEmptyExpr, programIds, regionsOf, stmtExprs, variableOf } from "./walk";
 
 type Bag = Record<string, unknown>;
 
@@ -159,10 +159,11 @@ class Collector {
 
   private reads(stmt: Stmt, visible: Set<Id>, inner: Map<Id, NodeId>): void {
     for (const expr of stmtExprs(stmt)) {
-      if (expr.kind !== "var" || expr.name === "" || visible.has(expr.name)) continue;
-      const frame = inner.get(expr.name);
-      if (frame === undefined) this.report(stmt.id, "E_UNDEFINED", { name: expr.name });
-      else this.report(stmt.id, "E_DECLARE_FIRST", { name: expr.name, frame }, "hoistAssign");
+      const name = variableOf(expr);
+      if (name === undefined || name === "" || visible.has(name)) continue;
+      const frame = inner.get(name);
+      if (frame === undefined) this.report(stmt.id, "E_UNDEFINED", { name });
+      else this.report(stmt.id, "E_DECLARE_FIRST", { name, frame }, "hoistAssign");
     }
   }
 
@@ -177,7 +178,7 @@ class Collector {
     this.requiredSlots(stmt, def, stmt.id);
     const visit = (node: Stmt | Expr) => {
       for (const { slot, expr } of childSlots(node)) {
-        if (expr.kind === "empty") {
+        if (isEmptyExpr(expr)) {
           this.report(stmt.id, "E_EMPTY_SLOT", { slot });
           continue;
         }

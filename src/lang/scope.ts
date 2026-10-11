@@ -2,7 +2,7 @@
 // whether a place lies inside a loop or a function, and where an expression sits.
 // Registry-driven: slots, `loop`, and regions, never a kind.
 import { getNode, keyOf } from "@/nodes/registry";
-import type { Id, Node, NodeId, Place, Program, Stmt, Target } from "./types";
+import type { Expr, Id, Node, NodeId, Place, Program, Stmt, Target } from "./types";
 import { childSlots, regionsOf } from "./walk";
 
 type Bag = Record<string, unknown>;
@@ -26,6 +26,14 @@ export function declaredBy(stmt: Stmt): Declared[] {
     }
   }
   return names;
+}
+
+/** The expression a statement with a target assigns: its expression slot (`x = <value>`). */
+export function assignedValue(stmt: Stmt): Expr | undefined {
+  const { slots } = getNode(keyOf(stmt));
+  if (!slots.some((slot) => slot.role === "target")) return undefined;
+  const slot = slots.find((candidate) => candidate.role === "expr");
+  return childSlots(stmt).find((child) => child.slot === slot?.name)?.expr;
 }
 
 /** `names` with `latest` moved to the front, in their order. */

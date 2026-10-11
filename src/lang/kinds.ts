@@ -2,9 +2,9 @@
 // expression's kind from its block's `kind`, and a variable's from its input's declared kind,
 // else the value of its first assignment, else the kind its loop block declares. Registry-driven.
 import { getNode, keyOf } from "@/nodes/registry";
-import { declaredBy } from "./scope";
+import { assignedValue, declaredBy } from "./scope";
 import type { Data, Expr, Id, Kind, NodeId, Program, Stmt } from "./types";
-import { allStmts, childSlots, variableOf } from "./walk";
+import { allStmts, variableOf } from "./walk";
 
 /** The kind of a value written as Data. */
 export function dataKind(data: Data): Kind {
@@ -67,8 +67,7 @@ function scope(program: Program, chart: "main" | NodeId): Scope {
       }
       if (assigned.has(name)) continue;
       assigned.add(name);
-      const slot = def.slots.find((candidate) => candidate.role === "expr")?.name;
-      const value = childSlots(stmt).find((child) => child.slot === slot)?.expr;
+      const value = assignedValue(stmt);
       const kind = value ? exprKind(value, kinds) : undefined;
       if (kind) kinds.set(name, kind);
     }

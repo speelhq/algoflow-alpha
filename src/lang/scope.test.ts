@@ -1,12 +1,23 @@
 // L-40, L-41, L-43: what is visible where; N-01 `loop` and `requires` places; U-52 Variables.
 import { describe, expect, it } from "vitest";
 import { ast, program } from "@/nodes/testing";
-import { placeContext, siteOf, visibleAt } from "./scope";
+import { assignedValue, placeContext, siteOf, visibleAt } from "./scope";
 import type { Stmt } from "./types";
 
 const { assign, num, v, bin, print, for_, if_, while_, ret } = ast;
 
 describe("scope", () => {
+  it("L-61, L-66: the value a statement with a target assigns is its expression slot; others none", () => {
+    const value = bin("+", v("a"), num(1));
+    expect(assignedValue(assign("a", value))).toBe(value);
+    const nine = num(9);
+    expect(assignedValue(ast.assignTo({ kind: "index", list: v("xs"), index: num(0) }, nine))).toBe(
+      nine,
+    );
+    expect(assignedValue(print(v("a")))).toBeUndefined();
+    expect(assignedValue(for_("i", num(0), num(3), []))).toBeUndefined();
+  });
+
   it("L-40, U-52: names assigned before a statement are visible, the latest first", () => {
     const a = assign("a", num(1));
     const b = assign("b", num(2));

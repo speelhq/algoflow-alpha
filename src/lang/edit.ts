@@ -2,6 +2,7 @@
 // every NodeId unique. Statements are addressed by id or by Place.
 import { getNode, keyOf } from "@/nodes/registry";
 import { newId } from "./id";
+import { assignedValue, declaredBy } from "./scope";
 import type {
   ClassDef,
   Expr,
@@ -323,21 +324,14 @@ export function setFields(program: Program, id: NodeId, fields: Field[]): Progra
 
 /** The zero-like literal of the first value assigned to `name` inside `stmts`, else None. */
 function defaultFor(stmts: Stmt[], name: Id): Expr {
+  const none = (): Expr => ({ id: newId(), kind: "none" });
   for (const stmt of allStmts(stmts)) {
-    const def = getNode(keyOf(stmt));
-    const bag = stmt as unknown as Bag;
-    const assignsName = def.slots.some((slot) => {
-      if (slot.role !== "target") return false;
-      const target = bag[slot.name] as Target | undefined;
-      return target?.kind === "var" && target.name === name;
-    });
-    if (!assignsName) continue;
-    const valueSlot = def.slots.find((slot) => slot.role === "expr");
-    const value = valueSlot ? (bag[valueSlot.name] as Expr | undefined) : undefined;
-    const zero = value ? getNode(keyOf(value)).zeroLike?.(value) : undefined;
-    return zero ?? { id: newId(), kind: "none" };
+    if (!declaredBy(stmt).some((declared) => declared.role === "target" && declared.name === name))
+      continue;
+    const value = assignedValue(stmt);
+    return (value && getNode(keyOf(value)).zeroLike?.(value)) ?? none();
   }
-  return { id: newId(), kind: "none" };
+  return none();
 }
 
 /** Inserts `name = <default>` immediately before the frame `frameId`. */
