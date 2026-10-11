@@ -4,6 +4,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { isRecord } from "@/lang/record";
+import { clamp } from "@/lib/utils";
 import { persistStorage } from "./storage";
 
 export const LAYOUT_STORAGE_KEY = "algoflow:layout";
@@ -23,10 +24,6 @@ function speedOf(value: unknown, fallback: number): number {
   return speeds.reduce((best, speed) =>
     Math.abs(speed - value) < Math.abs(best - value) ? speed : best,
   );
-}
-
-export function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
 }
 
 /**

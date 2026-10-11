@@ -1,12 +1,7 @@
-// The Problem page: the top bar, then two regions, the panel and the canvas.
-// Opening a problem loads its program and discards any runner; it opens on
-// the first tab.
-import { useEffect } from "react";
+// The Problem page: the top bar, then two regions, the panel and the canvas. Its route has
+// opened the problem's program before it draws (`route.ts`).
 import { getChallenge, type Challenge } from "@/challenges";
 import { localized, t } from "@/i18n/t";
-import { useEditor } from "@/store/editor";
-import { useProgram } from "@/store/program";
-import { useRun } from "@/store/run";
 import { openInPlayground } from "@/ui/editor/programs";
 import { useEditKeys } from "@/ui/editor/useEditKeys";
 import { useTitle } from "@/ui/hooks/useTitle";
@@ -26,12 +21,6 @@ function Problem({ challenge }: { challenge: Challenge }) {
   useTitle(title);
   useRunKeys();
   useEditKeys();
-  useEffect(() => {
-    useProgram.getState().load(challenge.id);
-    // Opening a problem selects the first test's inputs, also when it was open before.
-    useRun.getState().selectCase(0);
-    useEditor.getState().open("problem");
-  }, [challenge.id]);
 
   return (
     <div className="flex h-full flex-col" data-testid="problem-page">

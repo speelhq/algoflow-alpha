@@ -2,11 +2,13 @@
 // state; R-19 breakpoint and Skip; U-108, U-109 marks; C-15 verdict; R-10: Seek replays identically.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getChallenge, type Challenge } from "@/challenges";
+import { canRun } from "@/lang/validate";
 import { ast, program, runAll, tid } from "@/nodes/testing";
 import { SPEEDS, useLayout } from "./layout";
 import { BATCH } from "./batches";
 import { useProgram } from "./program";
-import { canRun, useRun, type RunState } from "./run";
+import { useRun, type RunState } from "./run";
+import { settle } from "./testing";
 
 const { assign, num, bin, v, print, for_, if_, while_, str, exprStmt, call, ret } = ast;
 
@@ -35,20 +37,6 @@ const counting = () => program([for_("i", num(0), num(3), [print(v("i"))])]);
 const long = () => program([for_("i", num(0), num(1500), [print(v("i"))])]);
 
 const run = () => useRun.getState();
-
-/**
- * Fires the `setTimeout(0)` between batches until the action resolves. Fake timers give a
- * timeout created while they tick a delay of 1 ms, so each batch costs 1 ms of fake time.
- */
-async function settle(action: Promise<void>): Promise<void> {
-  let settled = false;
-  void action.then(() => {
-    settled = true;
-  });
-  await vi.advanceTimersByTimeAsync(0);
-  // oxlint-disable-next-line no-unmodified-loop-condition -- the action's promise sets `settled`
-  while (!settled) await vi.advanceTimersByTimeAsync(1);
-}
 
 /** Run, then Pause at step 0: where most cases start. */
 async function paused(): Promise<void> {
@@ -352,14 +340,12 @@ describe("run store (R-21)", () => {
     expect(run().step).toBe(4401);
   });
 
-  it("C-13: a new program stops the run; the case resets only with another problem", async () => {
+  it("C-13: a new program stops the run and keeps the chosen case", async () => {
     useProgram.setState({ program: fizzbuzz().solution });
     run().selectCase(1);
     await settle(run().run());
     useProgram.setState({ program: { ...fizzbuzz().solution } });
     expect(run()).toMatchObject({ status: "idle", caseIndex: 1 });
-    useProgram.setState({ program: program([print(str("x"))]) });
-    expect(run()).toMatchObject({ status: "idle", caseIndex: 0 });
   });
 
   it("R-12: a published state is a copy; later steps do not change it", async () => {

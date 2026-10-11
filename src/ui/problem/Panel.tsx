@@ -3,7 +3,7 @@
 // from 280 px to half the viewport, collapsible to a 40 px rail; width and state persist.
 import type { Challenge } from "@/challenges";
 import { t } from "@/i18n/t";
-import { useEditor, type PanelTab } from "@/store/editor";
+import { tabsOf, useEditor, type PanelTab } from "@/store/editor";
 import { panelWidth, useLayout } from "@/store/layout";
 import { ResizeHandle } from "@/ui/app/ResizeHandle";
 import { useViewportWidth } from "@/ui/hooks/useViewportWidth";
@@ -13,14 +13,9 @@ import { ProblemTab } from "./ProblemTab";
 import { PythonTab } from "./PythonTab";
 import { ResultTab } from "./ResultTab";
 
-const TABS: readonly PanelTab[] = ["problem", "result", "python"];
-
-function isPanelTab(value: unknown): value is PanelTab {
-  return TABS.some((tab) => tab === value);
-}
-
 export function Panel({ challenge }: { challenge?: Challenge }) {
-  const tabs = challenge ? TABS : TABS.filter((name) => name !== "problem");
+  const tabs = tabsOf(challenge !== undefined);
+  const isPanelTab = (value: unknown): value is PanelTab => tabs.some((tab) => tab === value);
   const tab = useEditor((s) => s.tab);
   const setTab = useEditor((s) => s.setTab);
   const panel = useLayout((s) => s.panel);

@@ -5,13 +5,13 @@ import { getChallenge } from "@/challenges";
 import { judge, type TestResult } from "@/challenges/judge";
 import type { Test } from "@/challenges/types";
 import type { Program } from "@/lang/types";
+import { canRun } from "@/lang/validate";
 import { outcomeOf, type Outcome } from "@/runtime/outcome";
 import { run } from "@/runtime/run";
 import type { Done } from "@/runtime/types";
 import { inBatches } from "./batches";
 import { useProgress } from "./progress";
 import { useProgram } from "./program";
-import { canRun } from "./run";
 
 export type TestsState = {
   /** One entry per challenge test; null until judged. */

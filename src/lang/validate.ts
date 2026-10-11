@@ -284,6 +284,11 @@ export function validate(program: Program): Diagnostic[] {
   return analyze(program).diagnostics;
 }
 
+/** A program runs only when it has no diagnostic. */
+export function canRun(program: Program): boolean {
+  return validate(program).length === 0;
+}
+
 /**
  * Ids of the `assign` statements that create their variable (first assignment in the
  * region): the canvas renders them with `templateCreate`. Inputs, parameters,

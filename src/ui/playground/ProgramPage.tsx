@@ -1,11 +1,9 @@
 // A Playground program: the Problem page without the `Problem` tab, the Input nodes, and
-// Submit; its top bar has `← Playground`, an editable title, and `Export` before undo.
-import { useEffect } from "react";
+// Submit; its top bar has `← Playground`, an editable title, and `Export` before undo. Its
+// route has opened the program before it draws (`route.ts`).
 import { t } from "@/i18n/t";
-import { useEditor } from "@/store/editor";
 import { editable, useMode } from "@/store/mode";
 import { useProgram } from "@/store/program";
-import { useRun } from "@/store/run";
 import { download } from "@/ui/app/download";
 import { apply } from "@/ui/editor/edits";
 import { exportName } from "@/ui/editor/programs";
@@ -44,16 +42,11 @@ function exportProgram(): void {
   download(name, `${JSON.stringify(program, null, 2)}\n`, "application/json");
 }
 
-export function ProgramPage({ id }: { id: string }) {
-  const title = useProgram((s) => (s.id === id ? s.program.title : ""));
+export function ProgramPage() {
+  const title = useProgram((s) => s.program.title);
   useTitle(title || t("playground.untitled"));
   useRunKeys();
   useEditKeys();
-  useEffect(() => {
-    useProgram.getState().load(id);
-    useRun.getState().selectCase(0);
-    useEditor.getState().open("result");
-  }, [id]);
 
   return (
     <div className="flex h-full flex-col" data-testid="program-page">

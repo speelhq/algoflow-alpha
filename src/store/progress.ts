@@ -6,8 +6,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { isRecord } from "@/lang/record";
+import { clamp } from "@/lib/utils";
 import { persistStorage, readStored } from "./storage";
-import { clamp } from "./layout";
 
 export const PROGRESS_STORAGE_KEY = "algoflow:progress";
 

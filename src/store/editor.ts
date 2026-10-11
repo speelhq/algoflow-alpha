@@ -6,6 +6,11 @@ import type { Diagnostic, NodeId } from "@/lang/types";
 
 export type PanelTab = "problem" | "result" | "python";
 
+/** The panel's tabs, in order: `Problem` only on a page with a challenge. */
+export function tabsOf(challenge: boolean): readonly [PanelTab, ...PanelTab[]] {
+  return challenge ? ["problem", "result", "python"] : ["result", "python"];
+}
+
 export type EditorState = {
   tab: PanelTab;
   selectedId: NodeId | null;

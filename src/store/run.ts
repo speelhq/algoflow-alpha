@@ -9,14 +9,15 @@ import { judge, type TestResult } from "@/challenges/judge";
 import { firstDifference, resultRows, watchStep, type WatchStep } from "@/challenges/rows";
 import type { Test } from "@/challenges/types";
 import type { Data, HeapEntry, Id, NodeId, Program } from "@/lang/types";
-import { validate } from "@/lang/validate";
+import { canRun } from "@/lang/validate";
 import { bodyStmts, diamondConditions, nodesById, ownerStmts } from "@/lang/walk";
+import { clamp } from "@/lib/utils";
 import { getNode, keyOf } from "@/nodes/registry";
 import { outcomeOf, type Outcome } from "@/runtime/outcome";
 import { run as startRunner } from "@/runtime/run";
 import type { Done, Event, Runner, State } from "@/runtime/types";
 import { inBatches } from "./batches";
-import { clamp, useLayout } from "./layout";
+import { useLayout } from "./layout";
 import { useProgram } from "./program";
 
 export type Status = "idle" | "paused" | "playing" | "done" | "error";
@@ -66,11 +67,6 @@ export type RunState = {
 };
 
 export type Difference = WatchStep;
-
-/** A run starts only when validation is clean. */
-export function canRun(program: Program): boolean {
-  return validate(program).length === 0;
-}
 
 // ---------------------------------------------------------------- module state
 
@@ -497,11 +493,8 @@ useLayout.subscribe((current, previous) => {
   if (current.speed !== previous.speed && timer !== null) armTimer();
 });
 
-// A new program discards the runner; another problem also resets the chosen case.
+// A new program discards the runner, as an edit made during the pre-run does; opening a program
+// chooses its case (`open.ts`).
 useProgram.subscribe((current, previous) => {
-  if (current.program === previous.program) return;
-  useRun.getState().stop();
-  if (current.program.challengeId !== previous.program.challengeId) {
-    useRun.setState({ caseIndex: 0 });
-  }
+  if (current.program !== previous.program) useRun.getState().stop();
 });

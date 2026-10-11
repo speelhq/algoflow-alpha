@@ -38,7 +38,7 @@ function Page({ route }: { route: Route }) {
     case "playground":
       return <PlaygroundPage />;
     case "program":
-      return <ProgramPage key={route.id} id={route.id} />;
+      return <ProgramPage key={route.id} />;
     case "modules":
     case "module":
       return <StubPage />;

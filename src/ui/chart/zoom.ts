@@ -1,6 +1,6 @@
 // The chart fits its width on open, never above 100 %; `−` and `+` step by 1.25
 // between 25 % and 200 %.
-import { clamp } from "@/store/layout";
+import { clamp } from "@/lib/utils";
 
 export const ZOOM = { min: 0.25, max: 2, step: 1.25 } as const;
 

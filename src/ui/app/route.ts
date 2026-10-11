@@ -1,7 +1,10 @@
 // The six pages and their hash routes; a hash that names nothing, a problem id with no
-// challenge, or a Playground id the Playground does not list, shows the Problems page.
-import { useMemo, useSyncExternalStore } from "react";
+// challenge, or a Playground id the Playground does not list, shows the Problems page. A route
+// that names a program opens it before React draws its page, so no page ever draws with the
+// program of the page before.
+import { useSyncExternalStore } from "react";
 import { getChallenge } from "@/challenges";
+import { openProgram } from "@/store/open";
 import { isListed } from "@/store/playground";
 
 export type Route =
@@ -64,14 +67,29 @@ export function routeHash(route: Route): string {
   }
 }
 
+let current: Route = PROBLEMS;
+const listeners = new Set<() => void>();
+
+/** Takes the route the hash names: its program opened first, then the pages told. */
+function follow(): void {
+  current = resolveRoute(window.location.hash);
+  if (current.page === "problem" || current.page === "program") openProgram(current.id);
+  for (const listener of listeners) listener();
+}
+
+/** Follows the hash from now on; called once, before the first render. */
+export function startRouting(): void {
+  follow();
+  window.addEventListener("hashchange", follow);
+}
+
 function subscribe(onChange: () => void): () => void {
-  window.addEventListener("hashchange", onChange);
-  return () => window.removeEventListener("hashchange", onChange);
+  listeners.add(onChange);
+  return () => listeners.delete(onChange);
 }
 
 export function useRoute(): Route {
-  const hash = useSyncExternalStore(subscribe, () => window.location.hash);
-  return useMemo(() => resolveRoute(hash), [hash]);
+  return useSyncExternalStore(subscribe, () => current);
 }
 
 export function navigate(route: Route): void {

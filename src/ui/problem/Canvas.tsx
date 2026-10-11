@@ -160,15 +160,11 @@ export function Canvas({ challenge }: { challenge?: Challenge }) {
   const fonts = useFontLoads();
   const shown = solution && challenge !== undefined;
   const program: Program = shown ? challenge.solution : mine;
-  // Until the page's effect loads the problem's program, the store holds the previous page's.
-  const loaded = challenge === undefined || mine.challengeId === challenge.id;
   // The chosen case is the open program's; a challenge's solution declares the same inputs.
   const chart = useMemo(
     () =>
-      fonts && loaded
-        ? layout(program, { inputs: caseInputs(mine, caseIndex), measure: measureText })
-        : null,
-    [program, mine, caseIndex, fonts, loaded],
+      fonts ? layout(program, { inputs: caseInputs(mine, caseIndex), measure: measureText }) : null,
+    [program, mine, caseIndex, fonts],
   );
   const cases = useMemo(
     () =>
