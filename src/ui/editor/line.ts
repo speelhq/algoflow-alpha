@@ -2,17 +2,17 @@
 // an input still to fill or after a value, the brackets opened and not yet closed, the word
 // being typed, and the first key of a two-key operator. Every change is a new `Line`.
 // Blocks are made by the parser (a variable, a number, a sign, a call) or by an entry's
-// block (`create()` with its preset), and read through their slots and `precedence`, so this
-// file names no block kind.
+// block (`create()` with its preset), and read through their slots, their template (the caret
+// moves in reading order), and `precedence`, so this file names no block kind.
 import { errorText } from "@/i18n/t";
 import type { Kinds } from "@/lang/kinds";
 import { exprKind } from "@/lang/kinds";
 import type { Expr, Id, NodeId } from "@/lang/types";
-import { allExprs, childSlots, isEmptyExpr, variableOf } from "@/lang/walk";
+import { allExprs, isEmptyExpr, variableOf } from "@/lang/walk";
 import { emptyExpr, getNode, keyOf } from "@/nodes/registry";
 import { isParseError, parse, type ParseScope } from "@/python/parse";
 import { levelAssociativity } from "@/python/precedence";
-import { exprTemplate, exprText, templatePieces } from "@/ui/chart/text";
+import { exprTemplate, exprText, placeholderValue, templatePieces } from "@/ui/chart/text";
 import { allEntries, makeEntry, takesValue, type Entry } from "./entries";
 
 type Bag = Record<string, unknown>;
@@ -59,9 +59,17 @@ export type Outcome = { line: Line; taken: boolean; move?: "next" | "previous" |
 
 // ---------------------------------------------------------------- the tree
 
-/** The inputs of an expression, in slot order. */
+/**
+ * The inputs of an expression in reading order, as its template places them: the order the
+ * caret moves in. Which input an entry's value goes into is the slot order's (`withFirst`).
+ */
 export function inputs(expr: Expr): Expr[] {
-  return childSlots(expr).map((child) => child.expr);
+  return templatePieces(exprTemplate(expr)).flatMap((piece) => {
+    if ("words" in piece) return [];
+    const held = placeholderValue(expr, piece.name);
+    if (held?.role === "expr") return held.expr ? [held.expr] : [];
+    return held?.role === "exprs" ? held.items : [];
+  });
 }
 
 export function find(root: Expr, id: NodeId): Expr | undefined {
@@ -266,16 +274,17 @@ const refused = (line: Line): Outcome => ({ line, taken: false });
 
 // ---------------------------------------------------------------- entries
 
-/** The first input of `made` still to fill after its first, else after it. */
-function caretIn(made: Expr, from = 0): Caret {
-  for (const input of inputs(made).slice(from)) {
+/** The first input of `made` still to fill, in reading order, other than `placed`; else after it. */
+function caretIn(made: Expr, placed: Expr | null): Caret {
+  for (const input of inputs(made)) {
+    if (input === placed) continue;
     const empty = [...allExprs(input)].find(isEmptyExpr);
     if (empty) return { at: empty.id };
   }
   return endOf(made);
 }
 
-/** `made` with `value` as its first input. */
+/** `made` with `value` as its first input, in slot order. */
 function withFirst(made: Expr, value: Expr): Expr {
   return mapInputs(made, (input, index) => (index === 0 ? value : input));
 }
@@ -297,14 +306,14 @@ function takeValue(line: Line, entry: Entry): Outcome {
   }
   const placed = withFirst(made, target);
   const next = replace(line, target.id, placed);
-  return done({ ...next, caret: caretIn(placed, 1), selected: false, word: "" });
+  return done({ ...next, caret: caretIn(placed, target), selected: false, word: "" });
 }
 
 /** A block made where a value is expected, filling the input at the caret. */
 function fill(line: Line, made: Expr, text = false): Outcome {
   if (!("at" in line.caret)) return refused(line);
   const next = replace(line, line.caret.at, made);
-  const caret = caretIn(made);
+  const caret = caretIn(made, null);
   return done({ ...next, caret, word: "", ...(text ? { text: made.id } : {}) });
 }
 
