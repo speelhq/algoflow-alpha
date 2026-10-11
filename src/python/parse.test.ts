@@ -5,16 +5,16 @@ import { NODES } from "@/nodes/registry";
 import { BINOPS } from "@/nodes/binop";
 import { mulberry32 } from "@/runtime/random";
 import { unparse } from "./emit";
-import { isParseError, parse, type ParseError } from "./parse";
+import { isParseError, NO_DEFINITIONS, parse, type ParseError, type ParseScope } from "./parse";
 
-function ok(text: string, scope?: Parameters<typeof parse>[1]): Expr {
+function ok(text: string, scope: ParseScope = NO_DEFINITIONS): Expr {
   const result = parse(text, scope);
   if (isParseError(result))
     throw new Error(`unexpected error ${JSON.stringify(result)} for ${text}`);
   return result;
 }
 
-function err(text: string, scope?: Parameters<typeof parse>[1]): ParseError {
+function err(text: string, scope: ParseScope = NO_DEFINITIONS): ParseError {
   const result = parse(text, scope);
   if (!isParseError(result))
     throw new Error(`expected an error for ${text}, got ${unparse(result)}`);
@@ -222,7 +222,7 @@ describe("G-06, G-08: parse(unparse(e)) is e apart from ids", () => {
     for (let i = 0; i < 1000; i += 1) {
       const expr = next();
       const text = unparse(expr);
-      const parsed = parse(text);
+      const parsed = parse(text, NO_DEFINITIONS);
       if (isParseError(parsed)) throw new Error(`case ${i}: ${text} → ${JSON.stringify(parsed)}`);
       expect(withoutIds(parsed), `case ${i}: ${text}`).toEqual(withoutIds(expr));
       expect(unparse(parsed), `case ${i}`).toBe(text);

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { ast, program, withInputs } from "@/nodes/testing";
 import { dataToPython, emit, unparse } from "./emit";
 import { EXPRESSION_FIXTURE } from "./fixtures/expressions";
-import { isParseError, parse } from "./parse";
+import { isParseError, NO_DEFINITIONS, parse } from "./parse";
 import { pyString } from "./strings";
 
 const { assign, print, if_, for_, while_, num, str, bin, v, call } = ast;
@@ -127,7 +127,7 @@ describe("emit (emitter.md)", () => {
     expect(pyString('a"b\\c\nd\te')).toBe('"a\\"b\\\\c\\nd\\te"');
     expect(pyString(`a${CR}b${SOH}c${DEL}`)).toBe('"a\\rb\\x01c\\x7f"');
     expect(unparse(str("plain"))).toBe('"plain"');
-    const roundTrip = parse(unparse(str(`a${CR}b${SOH}`)));
+    const roundTrip = parse(unparse(str(`a${CR}b${SOH}`)), NO_DEFINITIONS);
     expect(!isParseError(roundTrip) && unparse(roundTrip)).toBe('"a\\rb\\x01"');
   });
 
@@ -146,7 +146,7 @@ describe("E-10: 200-expression fixture (E-05)", () => {
   for (const entry of EXPRESSION_FIXTURE) {
     const [input, expected] = typeof entry === "string" ? [entry, entry] : entry;
     it(`${JSON.stringify(input)} → ${JSON.stringify(expected)}`, () => {
-      const expr = parse(input);
+      const expr = parse(input, NO_DEFINITIONS);
       if (isParseError(expr)) throw new Error(`parse failed: ${JSON.stringify(expr)}`);
       expect(unparse(expr)).toBe(expected);
     });

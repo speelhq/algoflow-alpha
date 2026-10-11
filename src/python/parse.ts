@@ -8,6 +8,9 @@ import { BINOPS, PRECEDENCE, binopsAt, isBinOp, isComparison } from "./precedenc
 
 export type ParseScope = { classes: Id[]; functions: Id[] };
 
+/** The scope of a text that names no class or function of a program: a number, a value, a sign. */
+export const NO_DEFINITIONS: ParseScope = { classes: [], functions: [] };
+
 /** The names a call in `program` may take: its classes and its functions. */
 export function parseScope(program: Program): ParseScope {
   return {
@@ -376,10 +379,7 @@ class Parser {
   }
 }
 
-export function parse(
-  text: string,
-  scope: ParseScope = { classes: [], functions: [] },
-): Expr | ParseError {
+export function parse(text: string, scope: ParseScope): Expr | ParseError {
   try {
     return new Parser(tokenize(text), scope).parseAll();
   } catch (error) {
@@ -390,7 +390,7 @@ export function parse(
 
 /** A value as the blocks write it: its Python text parsed, or the error where no block writes it. */
 export function parseData(data: Data): Expr | ParseError {
-  return parse(dataToPython(data));
+  return parse(dataToPython(data), NO_DEFINITIONS);
 }
 
 export { isComparison };

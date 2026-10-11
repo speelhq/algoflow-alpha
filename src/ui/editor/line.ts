@@ -11,7 +11,7 @@ import type { Expr, Id, NodeId, Program } from "@/lang/types";
 import { refusedDefinitions } from "@/lang/validate";
 import { allExprs, isEmptyExpr, variableOf } from "@/lang/walk";
 import { emptyExpr, getNode, keyOf } from "@/nodes/registry";
-import { isParseError, parse, type ParseScope } from "@/python/parse";
+import { isParseError, NO_DEFINITIONS, parse, type ParseScope } from "@/python/parse";
 import { levelAssociativity } from "@/python/precedence";
 import { exprTemplate, exprText, placeholderValue, templatePieces } from "@/ui/chart/text";
 import { allEntries, makeEntry, takesValue, type Entry } from "./entries";
@@ -216,7 +216,7 @@ export function kindBefore(line: Line, ctx: LineContext) {
 
 // ---------------------------------------------------------------- made by the parser
 
-function parsed(text: string, scope?: ParseScope): Expr | undefined {
+function parsed(text: string, scope: ParseScope): Expr | undefined {
   const result = parse(text, scope);
   return isParseError(result) ? undefined : result;
 }
@@ -224,7 +224,7 @@ function parsed(text: string, scope?: ParseScope): Expr | undefined {
 /** A number literal for `raw`, or undefined when Python would reject it or it is no number. */
 function numberOf(raw: string): Expr | undefined {
   if (!/^[0-9.]+$/.test(raw)) return undefined;
-  const made = parsed(raw);
+  const made = parsed(raw, NO_DEFINITIONS);
   return made && inputs(made).length === 0 && exprText(made) === raw ? made : undefined;
 }
 
@@ -237,13 +237,13 @@ function isNumber(expr: Expr): boolean {
 
 /** `name` as a variable. */
 function variableExpr(name: Id): Expr | undefined {
-  const made = parsed(name);
+  const made = parsed(name, NO_DEFINITIONS);
   return made && variableOf(made) === name ? made : undefined;
 }
 
 /** A sign before the input it leaves to fill (`−…`). */
 function signExpr(): Expr | undefined {
-  const made = parsed("-a");
+  const made = parsed("-a", NO_DEFINITIONS);
   return made && mapInputs(made, () => emptyExpr());
 }
 
