@@ -13,12 +13,14 @@ export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
-  retries: process.env.CI ? 2 : 0,
+  // No retry: a test that passes on its second attempt has a fault to find, and a retry would
+  // turn it green. The trace of the failing attempt is kept instead.
+  retries: 0,
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   use: {
     baseURL: url,
     viewport: desktop,
-    trace: "on-first-retry",
+    trace: "retain-on-failure",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"], viewport: desktop } }],
   webServer: {
