@@ -133,13 +133,18 @@ export const KINDS: readonly Kind[] = [
 
 export const NAME_PATTERN = /^[a-z_][a-z0-9_]*$/;
 export const CLASS_NAME_PATTERN = /^[A-Z][A-Za-z0-9]*$/;
-export const RESERVED: ReadonlySet<string> = new Set(
+/** Python's keywords. */
+export const PYTHON_KEYWORDS: ReadonlySet<string> = new Set(
   `False None True and as assert async await break class continue def del elif
 else except finally for from global if import in is lambda nonlocal not or
-pass raise return try while with yield
-list dict set len print range min max sum abs input str int float bool
-tuple id type self math random round sorted`.split(/\s+/),
+pass raise return try while with yield`.split(/\s+/),
 );
+/** Python's keywords, and the builtin and module names a name may not take. */
+export const RESERVED: ReadonlySet<string> = new Set([
+  ...PYTHON_KEYWORDS,
+  ...`list dict set len print range min max sum abs input str int float bool
+tuple id type self math random round sorted`.split(/\s+/),
+]);
 
 // ---------------------------------------------------------------- Validation
 
