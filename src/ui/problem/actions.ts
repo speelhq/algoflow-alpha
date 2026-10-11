@@ -1,7 +1,7 @@
 // The page's Run. With diagnostics present it does not start: it selects the
 // first diagnostic's statement and shows its message. Run acts on the learner's
-// program, so a shown solution gives way to the learner's chart first. And what a click on a
-// node does in each mode.
+// program, so a shown solution gives way to the learner's chart first. The play button's action,
+// and what a click on a node does in each mode.
 import { validate } from "@/lang/validate";
 import type { NodeId } from "@/lang/types";
 import { ownerStmts } from "@/lang/walk";
@@ -30,11 +30,35 @@ export function startRun(opts?: { watch?: boolean }): void {
 }
 
 /** `Replay` at the run's last step: back to step 0, playing. */
-export function replay(): void {
+function replay(): void {
   void useRun
     .getState()
     .seek(0)
     .then(() => useRun.getState().play());
+}
+
+/**
+ * The play button, also Ctrl/Cmd+Enter: `Run`, `Pause`, `Play`, or `Replay` at the run's last
+ * step. During the pre-run, where the button is disabled, it pauses: the run opens paused.
+ */
+export function togglePlay(): void {
+  const run = useRun.getState();
+  switch (run.status) {
+    case "idle":
+      if (run.busy) run.pause();
+      else startRun();
+      return;
+    case "playing":
+      run.pause();
+      return;
+    case "paused":
+      run.play();
+      return;
+    case "done":
+    case "error":
+      replay();
+      return;
+  }
 }
 
 /** Submit judges every test on its own runner and selects `Result`. */

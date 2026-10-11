@@ -3,13 +3,12 @@
 import { getChallenge, type Challenge } from "@/challenges";
 import { localized, t } from "@/i18n/t";
 import { openInPlayground } from "@/ui/editor/programs";
-import { useEditKeys } from "@/ui/editor/useEditKeys";
 import { useTitle } from "@/ui/hooks/useTitle";
 import { DropdownMenuItem } from "@/ui/primitives/dropdown-menu";
 import { Canvas } from "./Canvas";
 import { Panel } from "./Panel";
 import { TopBar } from "./TopBar";
-import { useRunKeys } from "./useRunKeys";
+import { usePageKeys } from "./keys";
 
 export function ProblemPage({ id }: { id: string }) {
   const challenge = getChallenge(id);
@@ -19,8 +18,7 @@ export function ProblemPage({ id }: { id: string }) {
 function Problem({ challenge }: { challenge: Challenge }) {
   const title = localized(challenge.title);
   useTitle(title);
-  useRunKeys();
-  useEditKeys();
+  usePageKeys();
 
   return (
     <div className="flex h-full flex-col" data-testid="problem-page">

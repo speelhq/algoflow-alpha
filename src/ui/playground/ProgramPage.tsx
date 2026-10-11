@@ -7,14 +7,13 @@ import { useProgram } from "@/store/program";
 import { download } from "@/ui/app/download";
 import { apply } from "@/ui/editor/edits";
 import { exportName } from "@/ui/editor/programs";
-import { useEditKeys } from "@/ui/editor/useEditKeys";
 import { useTitle } from "@/ui/hooks/useTitle";
 import { Button } from "@/ui/primitives/button";
 import { Input } from "@/ui/primitives/input";
 import { Canvas } from "@/ui/problem/Canvas";
 import { Panel } from "@/ui/problem/Panel";
 import { TopBar } from "@/ui/problem/TopBar";
-import { useRunKeys } from "@/ui/problem/useRunKeys";
+import { usePageKeys } from "@/ui/problem/keys";
 
 function TitleField() {
   const title = useProgram((s) => s.program.title);
@@ -45,8 +44,7 @@ function exportProgram(): void {
 export function ProgramPage() {
   const title = useProgram((s) => s.program.title);
   useTitle(title || t("playground.untitled"));
-  useRunKeys();
-  useEditKeys();
+  usePageKeys();
 
   return (
     <div className="flex h-full flex-col" data-testid="program-page">

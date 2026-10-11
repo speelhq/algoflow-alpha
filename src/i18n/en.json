@@ -29,7 +29,7 @@
         },
         "undo": { "keys": "Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z", "action": "Undo, redo" },
         "duplicate": { "keys": "Ctrl/Cmd+D", "action": "Duplicate the selected block" },
-        "run": { "keys": "Ctrl/Cmd+Enter", "action": "Run / Pause" },
+        "run": { "keys": "Ctrl/Cmd+Enter", "action": "Run, Pause, Play, Replay" },
         "step": { "keys": "→, ←", "action": "Step, Back (while running)" },
         "skip": { "keys": "Ctrl/Cmd+→", "action": "Skip (while running)" },
         "escape": {

@@ -10,45 +10,31 @@ import { useRun } from "@/store/run";
 import { cn } from "@/lib/utils";
 import { Button } from "@/ui/primitives/button";
 import { Slider } from "@/ui/primitives/slider";
-import { replay, startRun } from "./actions";
+import { togglePlay } from "./actions";
 
 function first(value: number | readonly number[]): number {
   return typeof value === "number" ? value : (value[0] ?? 0);
 }
 
+const PLAY_LABEL = {
+  idle: "run.run",
+  playing: "run.pause",
+  paused: "run.play",
+  done: "run.replay",
+  error: "run.replay",
+} as const;
+
 /** `Run`, or while running the button that makes the run go on or stop. */
 function PlayButton() {
   const status = useRun((s) => s.status);
   const busy = useRun((s) => s.busy);
-  const play = useRun((s) => s.play);
-  const pause = useRun((s) => s.pause);
-  const className = "w-28";
-  switch (status) {
-    case "idle":
-      return (
-        <Button className={className} disabled={busy} onClick={() => startRun()}>
-          {t("run.run")}
-        </Button>
-      );
-    case "playing":
-      return (
-        <Button className={className} onClick={pause}>
-          {t("run.pause")}
-        </Button>
-      );
-    case "paused":
-      return (
-        <Button className={className} disabled={busy} onClick={play}>
-          {t("run.play")}
-        </Button>
-      );
-    default:
-      return (
-        <Button className={className} onClick={replay}>
-          {t("run.replay")}
-        </Button>
-      );
-  }
+  // While the pre-run or a Seek works, the run cannot start or go on yet.
+  const waiting = busy && (status === "idle" || status === "paused");
+  return (
+    <Button className="w-28" disabled={waiting} onClick={togglePlay}>
+      {t(PLAY_LABEL[status])}
+    </Button>
+  );
 }
 
 function Speed() {
