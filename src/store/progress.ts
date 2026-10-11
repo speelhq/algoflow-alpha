@@ -74,7 +74,7 @@ function joinEntry(a: ProgressEntry, b: ProgressEntry): ProgressEntry {
  * Two records as one: every entry of either, `solved` over `attempted`, the larger `hints`,
  * and `solution` once either holds it. Every field only grows, so the join loses nothing.
  */
-export function joinProgress(a: Progress, b: Progress): Progress {
+function joinProgress(a: Progress, b: Progress): Progress {
   const joined: Progress = { ...a };
   for (const [id, entry] of Object.entries(b)) {
     const held = Object.hasOwn(joined, id) ? joined[id] : undefined;

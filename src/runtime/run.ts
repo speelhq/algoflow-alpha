@@ -10,7 +10,7 @@ import { typeName } from "./values";
 import type { Done, Event, Frame, Runner, RuntimeCode } from "./types";
 
 export const STEP_LIMIT = 1_000_000;
-export const CALL_DEPTH_LIMIT = 200;
+const CALL_DEPTH_LIMIT = 200;
 
 export function run(program: Program, inputs: Readonly<Record<Id, Data>>, seed: number): Runner {
   const heap: Heap = new Map();

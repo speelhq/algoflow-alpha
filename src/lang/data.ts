@@ -30,7 +30,7 @@ function isObjectData(data: Data): data is { $cls: string; [field: string]: Data
   return typeof data === "object" && data !== null && !Array.isArray(data) && "$cls" in data;
 }
 
-export function alloc(heap: Heap, entry: HeapEntry): HeapId {
+function alloc(heap: Heap, entry: HeapEntry): HeapId {
   const id = heap.size + 1;
   heap.set(id, entry);
   return id;

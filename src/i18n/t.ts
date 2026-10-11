@@ -13,8 +13,6 @@ export type MessageKey = Leaves<Messages>;
 export type Locale = "en" | "ja";
 export type Params = Record<string, string | number>;
 
-export const LOCALES = ["en", "ja"] as const satisfies readonly Locale[];
-
 // `import.meta.env` exists under Vite and Vitest only; scripts run with tsx.
 // oxlint-disable-next-line typescript/no-unnecessary-type-conversion -- undefined under tsx
 const DEV = Boolean(import.meta.env?.DEV);

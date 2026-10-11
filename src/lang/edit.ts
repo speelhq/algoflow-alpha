@@ -101,7 +101,7 @@ function regionAt(program: Program, place: Place): Stmt[] {
 }
 
 /** Finds a statement or expression node by id. */
-export function locateNode(program: Program, id: NodeId): Stmt | Expr | undefined {
+function locateNode(program: Program, id: NodeId): Stmt | Expr | undefined {
   for (const { stmt } of programStmts(program)) {
     if (stmt.id === id) return stmt;
     for (const { expr } of childSlots(stmt)) {

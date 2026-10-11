@@ -105,7 +105,7 @@ export function isWordOperation(expr: Expr): boolean {
 }
 
 /** An operation written with a symbol, which has a precedence (`+`, `=`, `−`). */
-export function isOperator(expr: Expr): boolean {
+function isOperator(expr: Expr): boolean {
   return getNode(keyOf(expr)).precedence?.(expr) !== undefined && !isWordOperation(expr);
 }
 

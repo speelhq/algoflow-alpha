@@ -30,11 +30,11 @@ export function isValidClassName(name: string): boolean {
 }
 
 /** A builtin call key (`abs`, `random_int`, …) may not be redefined. */
-export function isBuiltinName(name: string): boolean {
+function isBuiltinName(name: string): boolean {
   return hasNode(`call:${name}`);
 }
 
-export function isValidDefault(data: Data): boolean {
+function isValidDefault(data: Data): boolean {
   if (data === null || typeof data !== "object" || isFloatData(data)) return true;
   if (Array.isArray(data)) return data.length === 0;
   return Object.keys(data).length === 0;

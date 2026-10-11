@@ -5,7 +5,7 @@ import type { Measure } from "./layout";
 
 export const CHART_FONT = '13px "Geist Variable", sans-serif';
 /** A variable's name is drawn bold. */
-export const CHART_FONT_BOLD = `600 ${CHART_FONT}`;
+const CHART_FONT_BOLD = `600 ${CHART_FONT}`;
 
 let context: CanvasRenderingContext2D | null | undefined;
 const widths = new Map<string, number>();

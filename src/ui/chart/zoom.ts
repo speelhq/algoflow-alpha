@@ -2,7 +2,7 @@
 // between 25 % and 200 %.
 import { clamp } from "@/lib/utils";
 
-export const ZOOM = { min: 0.25, max: 2, step: 1.25 } as const;
+const ZOOM = { min: 0.25, max: 2, step: 1.25 } as const;
 
 /** The scale at which `width` fits `region`; 1 when it already fits. */
 export function fitScale(region: number, width: number): number {

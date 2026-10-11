@@ -80,7 +80,7 @@ export function flaggedStatements(program: Program): Map<NodeId, Diagnostic[]> {
 }
 
 /** The diagnostics node `id` shows. */
-export function nodeDiagnostics(program: Program, id: NodeId): Diagnostic[] {
+function nodeDiagnostics(program: Program, id: NodeId): Diagnostic[] {
   return flaggedStatements(program).get(id) ?? [];
 }
 
@@ -94,7 +94,7 @@ function sameDiagnostic(a: Diagnostic, b: Diagnostic): boolean {
 }
 
 /** Applies a diagnostic's fix; only the fixes validation names exist. */
-export function applyFix(diagnostic: Diagnostic): void {
+function applyFix(diagnostic: Diagnostic): void {
   if (diagnostic.fix !== "hoistAssign") return;
   const { frame, name } = diagnostic.params;
   if (typeof frame === "string" && typeof name === "string") {

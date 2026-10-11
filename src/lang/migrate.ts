@@ -16,7 +16,7 @@ export class MigrateError extends Error {
   }
 }
 
-export const CURRENT_VERSION = 1;
+const CURRENT_VERSION = 1;
 
 function expectArray(value: unknown, path: string): unknown[] {
   if (!Array.isArray(value)) throw new MigrateError(path, "expected an array");

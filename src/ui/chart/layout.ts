@@ -84,9 +84,9 @@ export type LayoutOptions = {
   measure?: Measure;
 };
 
-export const GAP_Y = 36;
-export const GAP_X = 32;
-export const LANE = 24;
+const GAP_Y = 36;
+const GAP_X = 32;
+const LANE = 24;
 const JOIN = 20; // a junction to the diamond below it
 const HEIGHT: Record<Shape, number> = {
   terminal: 36,
@@ -100,7 +100,7 @@ const defaultMeasure: Measure = (text) => text.length * 7.2;
 /** Room on each side of an empty slot's text for its dashed outline. */
 export const PILL = 8;
 /** A diamond's text wider than this is drawn on two lines, as the boards draw it. */
-export const WRAP = 150;
+const WRAP = 150;
 /** The distance between the two lines of a diamond's text. */
 export const LINE = 16;
 

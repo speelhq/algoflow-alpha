@@ -18,10 +18,6 @@ import type { Done, Event, State } from "@/runtime/types";
 
 let counter = 0;
 
-export function resetIds(): void {
-  counter = 0;
-}
-
 export function tid(): NodeId {
   counter += 1;
   return `t${String(counter).padStart(11, "0")}`;
@@ -150,7 +146,7 @@ export function varData(result: RunResult, name: string): Data {
   return toData(value, result.state.heap);
 }
 
-export function varValue(result: RunResult, name: string): Value {
+function varValue(result: RunResult, name: string): Value {
   const value = result.state.frames[0]?.vars.get(name);
   if (!value) throw new Error(`no variable ${name}`);
   return value;

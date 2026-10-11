@@ -23,7 +23,7 @@ export const TARGET_PARTS: {
   field: { names: ["field"], exprs: ["obj"] },
 };
 
-export function targetExprs(target: Target): Expr[] {
+function targetExprs(target: Target): Expr[] {
   const bag = target as unknown as Bag;
   const parts: TargetParts = TARGET_PARTS[target.kind];
   return parts.exprs.map((name) => bag[name] as Expr);
@@ -72,7 +72,7 @@ export function childSlots(node: Node): SlotExpr[] {
 }
 
 /** Direct expression children of a statement or expression, in slot order. */
-export function childExprs(node: Node): Expr[] {
+function childExprs(node: Node): Expr[] {
   return childSlots(node).map((entry) => entry.expr);
 }
 

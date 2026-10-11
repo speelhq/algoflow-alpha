@@ -7,12 +7,12 @@ import { allEntries, GROUPS, takesValue } from "./entries";
 import { atInput, kindBefore, matches, type Line, type LineContext, type Row } from "./line";
 
 export type ListGroup = "variables" | MenuGroup | "functions";
-export const LIST_GROUPS: readonly ListGroup[] = ["variables", ...GROUPS, "functions"];
+const LIST_GROUPS: readonly ListGroup[] = ["variables", ...GROUPS, "functions"];
 
 export type Section = { group: ListGroup; rows: Row[] };
 
 /** The group a row is listed under. */
-export function groupOf(row: Row): ListGroup {
+function groupOf(row: Row): ListGroup {
   switch (row.kind) {
     case "variable":
       return "variables";

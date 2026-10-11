@@ -59,7 +59,7 @@ export function explainVariable(program: Program, at: NodeId, name: Id): string 
 }
 
 /** The row's explanation. */
-export function explainRow(row: Row, program: Program, at: NodeId): Explanation {
+function explainRow(row: Row, program: Program, at: NodeId): Explanation {
   switch (row.kind) {
     case "variable":
       return {
@@ -98,7 +98,7 @@ function distance(a: string, b: string): number {
 }
 
 /** The closest name to a word that matches nothing: one letter in three may differ, one at least. */
-export function closestName(line: Line, ctx: LineContext): string | undefined {
+function closestName(line: Line, ctx: LineContext): string | undefined {
   const allowed = Math.max(1, Math.floor(line.word.length / 3));
   let best: { name: string; d: number } | undefined;
   for (const row of wordRows(line, ctx)) {

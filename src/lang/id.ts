@@ -2,7 +2,7 @@
 // nanoid package because src/lang imports no third-party code.
 
 const ALPHABET = "useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict";
-export const NODE_ID_LENGTH = 12;
+const NODE_ID_LENGTH = 12;
 const NODE_ID = /^[A-Za-z0-9_-]{12}$/;
 
 export function newId(): string {

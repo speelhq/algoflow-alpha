@@ -6,7 +6,7 @@ import { NAME_PATTERN, RESERVED, type Id, type Program } from "@/lang/types";
 import { programStmts } from "@/lang/walk";
 
 /** Every variable name the program has: inputs, parameters, and assigned names, in program order. */
-export function programNames(program: Program): Id[] {
+function programNames(program: Program): Id[] {
   const names = new Set<Id>(program.inputs.map((input) => input.name));
   for (const fn of program.functions) for (const param of fn.params) names.add(param);
   for (const { stmt } of programStmts(program)) {

@@ -8,7 +8,7 @@ import { join } from "node:path";
 import type { Data, Id } from "@/lang/types";
 import { NODES } from "@/nodes/registry";
 
-export const PYTHON = process.env.PYTHON ?? "python3";
+const PYTHON = process.env.PYTHON ?? "python3";
 
 /** Python functions of the random module that replay `draws()`: derived from the registry. */
 export function randomShims(): string[] {

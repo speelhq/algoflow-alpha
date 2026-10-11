@@ -6,7 +6,7 @@ import type { Program } from "@/lang/types";
 import { readStored, removeStored, writeStored } from "./storage";
 
 export const PLAYGROUND_KEY = "algoflow:playground";
-export const PLAYGROUND_PREFIX = "play-";
+const PLAYGROUND_PREFIX = "play-";
 
 export type PlaygroundIndex = Record<string, { edited: number }>;
 export type PlaygroundRow = { id: string; title: string; edited: number };

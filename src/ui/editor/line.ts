@@ -189,7 +189,7 @@ function bindAt(line: Line, value: Expr, level: number): Expr | "chain" {
 }
 
 /** The value the list after a value is about: what an operator would take there. */
-export function valueBefore(line: Line): Expr | undefined {
+function valueBefore(line: Line): Expr | undefined {
   const last = lastValue(line);
   if (!last || line.selected) return last;
   let target = last;
@@ -230,7 +230,7 @@ function isNumber(expr: Expr): boolean {
 }
 
 /** `name` as a variable. */
-export function variableExpr(name: Id): Expr | undefined {
+function variableExpr(name: Id): Expr | undefined {
   const made = parsed(name);
   return made && variableOf(made) === name ? made : undefined;
 }
@@ -369,7 +369,7 @@ function rowName(row: Row): string {
 }
 
 /** Whether the row is named exactly by the word: its name, or the entry's keys. */
-export function namesExactly(row: Row, word: string): boolean {
+function namesExactly(row: Row, word: string): boolean {
   if (row.kind === "entry" && row.entry.menu.keys === word) return true;
   return rowName(row).toLowerCase() === word.toLowerCase();
 }
