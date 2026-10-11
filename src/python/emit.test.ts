@@ -1,9 +1,10 @@
 // E-01, E-02, E-03, E-04, E-05, E-06 and E-10.
 import { describe, expect, it } from "vitest";
 import { ast, program, withInputs } from "@/nodes/testing";
-import { dataToPython, emit, pyString, unparse } from "./emit";
+import { dataToPython, emit, unparse } from "./emit";
 import { EXPRESSION_FIXTURE } from "./fixtures/expressions";
 import { isParseError, parse } from "./parse";
+import { pyString } from "./strings";
 
 const { assign, print, if_, for_, while_, num, str, bin, v, call } = ast;
 

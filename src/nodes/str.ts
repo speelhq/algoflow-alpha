@@ -1,6 +1,6 @@
 // The `str` block: emitted double-quoted, with escapes.
 import { newId } from "@/lang/id";
-import { pyString } from "@/python/emit";
+import { pyString } from "@/python/strings";
 import { defineExpr } from "./types";
 
 export const str = defineExpr<"str">({

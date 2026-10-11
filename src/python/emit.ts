@@ -16,27 +16,12 @@ import { getNode, keyOf } from "@/nodes/registry";
 import type { EmitContext, PyLine, Side } from "@/nodes/types";
 import { floatRepr } from "@/runtime/values";
 import { PRECEDENCE, needsParens } from "./precedence";
+import { pyString } from "./strings";
 
 export type LineMap = Record<NodeId, { start: number; end: number }>;
 export type Emitted = { code: string; map: LineMap };
 
 const INDENT = "    ";
-
-/** Double quotes; `\\ \" \n \t \r` escaped, other control characters as `\xNN`. */
-export function pyString(text: string): string {
-  let out = '"';
-  for (const ch of text) {
-    const code = ch.codePointAt(0) ?? 0;
-    if (ch === "\\") out += "\\\\";
-    else if (ch === '"') out += '\\"';
-    else if (ch === "\n") out += "\\n";
-    else if (ch === "\t") out += "\\t";
-    else if (ch === "\r") out += "\\r";
-    else if (code < 0x20 || code === 0x7f) out += `\\x${code.toString(16).padStart(2, "0")}`;
-    else out += ch;
-  }
-  return `${out}"`;
-}
 
 /** A Data value as a Python literal. */
 export function dataToPython(data: Data): string {
