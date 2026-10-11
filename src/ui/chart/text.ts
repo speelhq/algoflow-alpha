@@ -174,7 +174,9 @@ export function exprParts(expr: Expr, writing: Writing = {}): Part[] {
 }
 
 function listParts(items: Expr[], write: (item: Expr) => Part[]): Part[] {
-  return items.flatMap((item, i) => (i === 0 ? write(item) : [{ text: ", " }, ...write(item)]));
+  return items.flatMap((item, i) =>
+    i === 0 ? write(item) : [{ text: t("chart.listSeparator") }, ...write(item)],
+  );
 }
 
 function textOf(node: Node, def: NodeDef, slot: string): string {

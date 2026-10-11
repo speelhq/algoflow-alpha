@@ -617,7 +617,7 @@ function Body({ stmt, program, initial }: { stmt: Stmt; program: Program; initia
               // An item keeps its field while the value in it changes.
               // oxlint-disable-next-line react/no-array-index-key -- the field is the position
               <span key={index} className="inline-flex items-center gap-0.5">
-                {index > 0 && <span>{t("editor.listSeparator")}</span>}
+                {index > 0 && <span>{t("chart.listSeparator")}</span>}
                 {lineWidget({ slot: name, role: "expr", index }, item)}
                 <button
                   type="button"

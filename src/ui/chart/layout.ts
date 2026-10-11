@@ -617,7 +617,7 @@ export function layout(program: Program, opts: LayoutOptions): ChartLayout {
   const frag = emptyFrag();
 
   const startText = fn
-    ? t("chart.startFn", { name: fn.name, params: fn.params.join(", ") })
+    ? t("chart.startFn", { name: fn.name, params: fn.params.join(t("chart.listSeparator")) })
     : t("chart.start");
   const start = builder.node("start", null, "start", "terminal", startText, 0);
   frag.nodes.push(start);

@@ -142,7 +142,7 @@ function operationParts(operation: Expr, current: Expr): Part[] {
     if (slot?.role === "text") return [{ text: textSlot(operation, name) }];
     if (slot?.role === "exprs" && Array.isArray(value)) {
       return (value as Expr[]).flatMap((item, i) =>
-        i === 0 ? [written(item)] : [{ text: ", " }, written(item)],
+        i === 0 ? [written(item)] : [{ text: t("chart.listSeparator") }, written(item)],
       );
     }
     const index = def.params?.indexOf(name) ?? -1;

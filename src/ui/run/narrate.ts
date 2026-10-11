@@ -139,7 +139,10 @@ export function narrate(event: Event, ctx: NarrateContext): Narration {
     case "call":
       return {
         key: "run.narrate.call",
-        params: { fn: event.fn, args: event.args.map((arg) => valueText(arg, heap)).join(", ") },
+        params: {
+          fn: event.fn,
+          args: event.args.map((arg) => valueText(arg, heap)).join(t("chart.listSeparator")),
+        },
       };
     case "return":
       return {

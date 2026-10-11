@@ -156,7 +156,7 @@ export const ValueLine = forwardRef<HTMLDivElement, Props>(function ValueLine(pr
         pieces.push(draw(value as Expr, expr, slot === first ? "left" : "right"));
       } else if (slot?.role === "exprs" && Array.isArray(value)) {
         (value as Expr[]).forEach((item, i) => {
-          if (i > 0) pieces.push(<span key={`c${item.id}`}>, </span>);
+          if (i > 0) pieces.push(<span key={`c${item.id}`}>{t("chart.listSeparator")}</span>);
           pieces.push(draw(item));
         });
       } else if (slot?.role === "text") {

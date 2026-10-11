@@ -83,7 +83,7 @@ export function ProblemTab({ challenge }: { challenge: Challenge }) {
       <section>
         <Heading>{t("problem.cases")}</Heading>
         <p className="font-mono text-xs" data-testid="cases">
-          {challenge.tests.map((test) => caseText(test.inputs)).join(" · ")}
+          {challenge.tests.map((test) => caseText(test.inputs)).join(t("problem.caseSeparator"))}
         </p>
       </section>
       <section className="space-y-2 border-t pt-3" data-testid="hints">

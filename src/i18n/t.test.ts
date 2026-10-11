@@ -1,6 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { flatten } from "./flatten";
-import { errorText, getLocale, interpolate, setLocale, t, type MessageKey } from "./t";
+import {
+  errorText,
+  formatNumber,
+  getLocale,
+  interpolate,
+  setLocale,
+  t,
+  type MessageKey,
+} from "./t";
 
 describe("t (U-71, U-73)", () => {
   afterEach(() => {
@@ -11,6 +19,13 @@ describe("t (U-71, U-73)", () => {
   it("returns the en text for a nested key", () => {
     expect(t("app.name")).toBe("AlgoFlow");
     expect(t("node.for.label")).toBe("For loop");
+  });
+
+  it("U-125: writes a number as the locale does, as the step limit's message shows it", () => {
+    expect(formatNumber(1_000_000)).toBe("1,000,000");
+    expect(t("run.endless", { limit: formatNumber(1_000_000) })).toContain(
+      "stopped after 1,000,000 steps",
+    );
   });
 
   it("interpolates {name} params and leaves unknown placeholders alone", () => {

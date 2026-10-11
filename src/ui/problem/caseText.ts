@@ -7,5 +7,5 @@ import { dataText } from "@/ui/chart/text";
 export function caseText(inputs: Record<Id, Data>): string {
   return Object.entries(inputs)
     .map(([name, value]) => t("problem.assignment", { name, value: dataText(value) }))
-    .join(", ");
+    .join(t("chart.listSeparator"));
 }

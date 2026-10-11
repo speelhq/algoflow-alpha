@@ -93,6 +93,7 @@
     "undoGlyph": "↶",
     "redoGlyph": "↷",
     "assignment": "{name} = {value}",
+    "caseSeparator": " · ",
     "tabs": {
       "problem": "Problem",
       "result": "Result",
@@ -381,6 +382,7 @@
   "chart": {
     "start": "Start",
     "startFn": "Start {name}({params})",
+    "listSeparator": ", ",
     "end": "End",
     "input": "Input {name} = {value}",
     "condition": "{cond}?",
@@ -431,7 +433,6 @@
     "label": "Edit block",
     "noItems": "Nothing matches",
     "textField": "Text",
-    "listSeparator": ",",
     "addValue": "+ value",
     "removeValue": "Remove this value",
     "removeGlyph": "×",
@@ -500,7 +501,7 @@
     "positionLabel": "Position",
     "speed": "Speed",
     "breakpoint": "breakpoint",
-    "endless": "This run never reached its end: it stopped after 1,000,000 steps. A loop does not seem to end; check its condition.",
+    "endless": "This run never reached its end: it stopped after {limit} steps. A loop does not seem to end; check its condition.",
     "narrate": {
       "enter": "{sentence}",
       "check": "Checking {condition}",

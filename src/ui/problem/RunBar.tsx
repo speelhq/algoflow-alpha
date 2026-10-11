@@ -2,7 +2,8 @@
 // button in its place (`Pause`, `Play`, or `Replay` at the last step), Back, Step, Skip,
 // the position bar `step k of N`, which seeks to any step, the three speeds, and Stop. A
 // pre-run that hit the step limit is reported above it.
-import { t } from "@/i18n/t";
+import { formatNumber, t } from "@/i18n/t";
+import { STEP_LIMIT } from "@/runtime/run";
 import { SPEED_NAMES, SPEEDS, useLayout } from "@/store/layout";
 import { inRun, useMode } from "@/store/mode";
 import { useRun } from "@/store/run";
@@ -100,7 +101,7 @@ export function RunBar() {
           className="border-b bg-destructive/10 px-4 py-2 text-sm text-destructive"
           data-testid="endless"
         >
-          {t("run.endless")}
+          {t("run.endless", { limit: formatNumber(STEP_LIMIT) })}
         </p>
       )}
       <div className="flex h-14 items-center gap-2 px-4">

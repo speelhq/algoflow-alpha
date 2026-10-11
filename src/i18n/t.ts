@@ -51,6 +51,11 @@ export function t(key: MessageKey, params?: Params): string {
   return interpolate(text, params);
 }
 
+/** A number as the current locale writes it (`1,000,000`). */
+export function formatNumber(value: number): string {
+  return new Intl.NumberFormat(current).format(value);
+}
+
 /** The one place a registry key becomes an i18n key (the key check does not scan dynamic keys). */
 export function nodeText(key: string, part: string, params?: Record<string, string>): string {
   return t(`node.${key}.${part}` as MessageKey, params);
