@@ -10,7 +10,7 @@ import type {
   Stmt,
   Target,
 } from "@/lang/types";
-import { floatOf, inputValue, isFloatData } from "@/lang/data";
+import { floatOf, inputValue, isEmptyContainer, isFloatData } from "@/lang/data";
 import { programExprs } from "@/lang/walk";
 import { getNode, keyOf } from "@/nodes/registry";
 import type { EmitContext, PyLine, Side } from "@/nodes/types";
@@ -158,11 +158,6 @@ class Writer {
     this.line(`def ${fn.name}(${fn.params.join(", ")}):`, 0);
     this.block(fn.body, 1);
   }
-}
-
-function isEmptyContainer(data: Data): boolean {
-  if (Array.isArray(data)) return data.length === 0;
-  return typeof data === "object" && data !== null && Object.keys(data).length === 0;
 }
 
 /** Modules required by the blocks a program uses. */

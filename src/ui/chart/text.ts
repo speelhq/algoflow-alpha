@@ -200,8 +200,8 @@ function targetParts(target: Target): Part[] {
   return [{ text: writeTarget(target, (expr) => exprText(expr)) }];
 }
 
-/** Whether a slot holds nothing yet: an empty expression, an empty name, or no item. */
-function isEmptySlot(node: Node, def: NodeDef, name: string): boolean {
+/** Whether a slot is drawn as the placeholder: an empty expression, an empty name, or no item. */
+function drawsPlaceholder(node: Node, def: NodeDef, name: string): boolean {
   const slot = def.slots.find((s) => s.name === name);
   const value = (node as unknown as Bag)[name];
   switch (slot?.role) {
@@ -227,7 +227,7 @@ function stmtSlotParts(node: Node, def: NodeDef, name: string): Part[] {
   if (!slot) return [];
   const value = (node as unknown as Bag)[name];
   const parts = (): Part[] => {
-    if (isEmptySlot(node, def, name)) return [{ text: placeholder(), empty: true }];
+    if (drawsPlaceholder(node, def, name)) return [{ text: placeholder(), empty: true }];
     switch (slot.role) {
       case "expr":
         return isExpr(value) ? exprParts(value) : [];

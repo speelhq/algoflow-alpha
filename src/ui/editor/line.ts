@@ -5,12 +5,11 @@
 // block (`create()` with its preset), and read through their slots and `precedence`, so this
 // file names no block kind.
 import { errorText } from "@/i18n/t";
-import { newId } from "@/lang/id";
 import type { Kinds } from "@/lang/kinds";
 import { exprKind } from "@/lang/kinds";
 import type { Expr, Id, NodeId } from "@/lang/types";
 import { allExprs, childSlots, isEmptyExpr, variableOf } from "@/lang/walk";
-import { getNode, keyOf } from "@/nodes/registry";
+import { emptyExpr, getNode, keyOf } from "@/nodes/registry";
 import { isParseError, parse, type ParseScope } from "@/python/parse";
 import { levelAssociativity } from "@/python/precedence";
 import { exprTemplate, exprText } from "@/ui/chart/text";
@@ -57,8 +56,6 @@ export type Row =
 
 /** What a key or a choice did: `move` leaves the line for the next or previous slot or item. */
 export type Outcome = { line: Line; taken: boolean; move?: "next" | "previous" | "item" };
-
-const hole = (): Expr => ({ id: newId(), kind: "empty" });
 
 // ---------------------------------------------------------------- the tree
 
@@ -225,7 +222,7 @@ function numberOf(raw: string): Expr | undefined {
 let numberKey: string | undefined;
 
 function isNumber(expr: Expr): boolean {
-  numberKey ??= keyOf(numberOf("0") ?? hole());
+  numberKey ??= keyOf(numberOf("0") ?? emptyExpr());
   return keyOf(expr) === numberKey;
 }
 
@@ -238,13 +235,13 @@ function variableExpr(name: Id): Expr | undefined {
 /** A sign before the input it leaves to fill (`−…`). */
 function signExpr(): Expr | undefined {
   const made = parsed("-a");
-  return made && mapInputs(made, () => hole());
+  return made && mapInputs(made, () => emptyExpr());
 }
 
 /** A call of one of the program's functions, its arguments to fill. */
 export function callExpr(fn: LineFunction, scope: ParseScope): Expr | undefined {
   const made = parsed(`${fn.name}(${fn.params.map(() => "a").join(", ")})`, scope);
-  return made && mapInputs(made, () => hole());
+  return made && mapInputs(made, () => emptyExpr());
 }
 
 // ---------------------------------------------------------------- starting
@@ -260,7 +257,7 @@ export function openLine(root: Expr, at?: NodeId): Line {
 
 /** The value removed: one input to fill, the caret at it. */
 function cleared(line: Line): Line {
-  const fresh = hole();
+  const fresh = emptyExpr();
   return { ...line, root: fresh, caret: { at: fresh.id }, selected: false, open: [], word: "" };
 }
 
@@ -561,7 +558,7 @@ export function backspace(line: Line): Outcome {
       const next = replace(current, last.id, first);
       return done({ ...next, caret: endOf(first) });
     }
-    const fresh = hole();
+    const fresh = emptyExpr();
     return done({ ...replace(current, last.id, fresh), caret: { at: fresh.id } });
   }
   if (current.open.at(-1) === caret.at)

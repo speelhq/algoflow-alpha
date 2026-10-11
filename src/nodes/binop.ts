@@ -17,6 +17,7 @@ import {
   truthy,
 } from "@/runtime/values";
 import { defineExpr, type RunContext } from "./types";
+import { emptyExpr } from "./empty";
 
 type Binop = Extract<Expr, { kind: "binop" }>;
 
@@ -226,9 +227,5 @@ const CANVAS_OPS: Partial<Record<Binop["op"], string>> = {
   "<=": "≤",
   ">=": "≥",
 };
-
-function emptyExpr(): Expr {
-  return { id: newId(), kind: "empty" };
-}
 
 export { BINOPS } from "@/python/precedence";

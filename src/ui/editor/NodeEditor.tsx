@@ -17,14 +17,13 @@ import {
   setStmtName,
   stmtName,
 } from "@/lang/edit";
-import { newId } from "@/lang/id";
 import { chartOf, variableKinds } from "@/lang/kinds";
 import { visibleAt } from "@/lang/scope";
 import type { Diagnostic, Expr, Id, NodeId, Program, Stmt, Target } from "@/lang/types";
 import { validate } from "@/lang/validate";
 import { allExprs, isEmptyExpr, isExpr, nodesById, ownerStmts } from "@/lang/walk";
 import { cn } from "@/lib/utils";
-import { getNode, keyOf } from "@/nodes/registry";
+import { emptyExpr, getNode, keyOf } from "@/nodes/registry";
 import { parseScope } from "@/python/parse";
 import { useEditor } from "@/store/editor";
 import { useProgram } from "@/store/program";
@@ -380,7 +379,7 @@ function Body({ stmt, program, initial }: { stmt: Stmt; program: Program; initia
 
   /** Adds a value to a slot: an optional value, or an item at `at` of a list (the end by default). */
   const addItem = (slot: string, at?: number) => {
-    const empty: Expr = { id: newId(), kind: "empty" };
+    const empty = emptyExpr();
     const added = (p: Program): Program => {
       const items = (nodesById(p).get(stmt.id) as unknown as Bag | undefined)?.[slot];
       if (at === undefined || !Array.isArray(items) || at >= items.length) {

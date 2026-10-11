@@ -3,6 +3,7 @@ import { newId } from "@/lang/id";
 import type { Expr } from "@/lang/types";
 import { typeName } from "@/runtime/values";
 import { defineStmt } from "./types";
+import { emptyExpr } from "./empty";
 
 const isZero = (expr: Expr) => expr.kind === "num" && !expr.float && expr.value === 0;
 
@@ -23,7 +24,7 @@ export const forStmt = defineStmt<"for">({
     kind: "for",
     var: "",
     start: { id: newId(), kind: "num", value: 0, float: false, raw: "0" },
-    stop: { id: newId(), kind: "empty" },
+    stop: emptyExpr(),
     body: [],
   }),
   *run(node, ctx) {

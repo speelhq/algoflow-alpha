@@ -4,6 +4,7 @@ import { newId } from "@/lang/id";
 import type { Expr, Kind, Value } from "@/lang/types";
 import { defineExpr, expectedArgs, type MenuEntry, type NodeDef, type RunContext } from "./types";
 import type { Category } from "./categories";
+import { emptyExpr } from "./empty";
 
 export type BuiltinDef = {
   name: string;
@@ -39,7 +40,7 @@ export function defineBuiltin(def: BuiltinDef): NodeDef {
       id: newId(),
       kind: "call",
       fn: def.name,
-      args: def.params.map(() => ({ id: newId(), kind: "empty" })),
+      args: def.params.map(() => emptyExpr()),
     }),
     *run(node, ctx) {
       const expected = expectedArgs(def.params, node.args.length);

@@ -4,6 +4,7 @@ import type { Expr } from "@/lang/types";
 import { PRECEDENCE } from "@/python/precedence";
 import { isNumber, makeNumber, truthy } from "@/runtime/values";
 import { defineExpr } from "./types";
+import { emptyExpr } from "./empty";
 
 type Unop = Extract<Expr, { kind: "unop" }>;
 
@@ -17,7 +18,7 @@ export const unop = defineExpr<"unop">({
     { name: "operand", role: "expr", required: true },
   ],
   precedence: (node) => precedenceOf(node as Unop),
-  create: () => ({ id: newId(), kind: "unop", op: "neg", operand: { id: newId(), kind: "empty" } }),
+  create: () => ({ id: newId(), kind: "unop", op: "neg", operand: emptyExpr() }),
   *run(node, ctx) {
     const value = yield* ctx.eval(node.operand);
     if (node.op === "not") return { t: "bool", v: !truthy(value, ctx.heap) };

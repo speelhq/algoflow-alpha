@@ -3,6 +3,7 @@
 import { newId } from "@/lang/id";
 import { asDict, asList, asObject, dictKeyOf, listIndex } from "@/runtime/access";
 import { defineStmt } from "./types";
+import { emptyExpr } from "./empty";
 
 export const assign = defineStmt<"assign">({
   key: "assign",
@@ -15,7 +16,7 @@ export const assign = defineStmt<"assign">({
     id: newId(),
     kind: "assign",
     target: { kind: "var", name: "" },
-    value: { id: newId(), kind: "empty" },
+    value: emptyExpr(),
   }),
   *run(node, ctx) {
     const value = yield* ctx.eval(node.value);

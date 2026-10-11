@@ -83,4 +83,5 @@ export function paletteNodes(category: Category): NodeDef[] {
   return ALL.filter((def) => def.category === category && !def.hidden);
 }
 
+export { emptyExpr } from "./empty";
 export type { EmitContext, NodeDef, PyLine, RunContext, Signal, Slot } from "./types";

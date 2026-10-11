@@ -15,7 +15,7 @@ import {
   type Program,
   type Stmt,
 } from "./types";
-import { isFloatData } from "./data";
+import { isEmptyContainer, isFloatData } from "./data";
 import { declaredBy } from "./scope";
 import { childSlots, isEmptyExpr, programIds, regionsOf, stmtExprs, variableOf } from "./walk";
 
@@ -34,10 +34,9 @@ function isBuiltinName(name: string): boolean {
   return hasNode(`call:${name}`);
 }
 
+/** A field default is a number, a text, a boolean, none, or an empty list or dict. */
 function isValidDefault(data: Data): boolean {
-  if (data === null || typeof data !== "object" || isFloatData(data)) return true;
-  if (Array.isArray(data)) return data.length === 0;
-  return Object.keys(data).length === 0;
+  return data === null || typeof data !== "object" || isFloatData(data) || isEmptyContainer(data);
 }
 
 type Scope = { loop: number; inFunction: boolean };

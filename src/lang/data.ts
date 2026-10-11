@@ -26,6 +26,12 @@ export function isFloatData(data: Data): data is number | { $float: number } {
   );
 }
 
+/** An empty list or dict: a field default the emitter makes fresh for every object. */
+export function isEmptyContainer(data: Data): boolean {
+  if (Array.isArray(data)) return data.length === 0;
+  return typeof data === "object" && data !== null && Object.keys(data).length === 0;
+}
+
 function isObjectData(data: Data): data is { $cls: string; [field: string]: Data } {
   return typeof data === "object" && data !== null && !Array.isArray(data) && "$cls" in data;
 }

@@ -2,6 +2,7 @@
 import { newId } from "@/lang/id";
 import { decide } from "@/runtime/condition";
 import { defineStmt } from "./types";
+import { emptyExpr } from "./empty";
 
 export const whileStmt = defineStmt<"while">({
   key: "while",
@@ -12,7 +13,7 @@ export const whileStmt = defineStmt<"while">({
     { name: "cond", role: "expr", required: true },
     { name: "body", role: "body" },
   ],
-  create: () => ({ id: newId(), kind: "while", cond: { id: newId(), kind: "empty" }, body: [] }),
+  create: () => ({ id: newId(), kind: "while", cond: emptyExpr(), body: [] }),
   *run(node, ctx) {
     for (;;) {
       if (!(yield* decide(node.cond, ctx))) break;
