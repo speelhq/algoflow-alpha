@@ -7,6 +7,7 @@ import { t } from "@/i18n/t";
 import { cn } from "@/lib/utils";
 import { emit } from "@/python/emit";
 import { useEditor } from "@/store/editor";
+import { inRun, useMode } from "@/store/mode";
 import { useProgram } from "@/store/program";
 import { useRun } from "@/store/run";
 import { download } from "@/ui/app/download";
@@ -33,7 +34,7 @@ function copy(code: string): void {
 export function PythonTab() {
   const program = useProgram((s) => s.program);
   const caseIndex = useRun((s) => s.caseIndex);
-  const running = useRun((s) => s.status !== "idle");
+  const runMode = inRun(useMode());
   const activeId = useRun((s) => s.activeId);
   const selectedId = useEditor((s) => s.selectedId);
   const setHovered = useEditor((s) => s.setHovered);
@@ -46,7 +47,7 @@ export function PythonTab() {
   const lines = useMemo(() => code.replace(/\n$/, "").split("\n").map(highlight), [code]);
   const owners = useMemo(() => lineOwners(map), [map]);
   const selected = useMemo(() => linesOf(map, selectedId), [map, selectedId]);
-  const active = useMemo(() => linesOf(map, running ? activeId : null), [map, running, activeId]);
+  const active = useMemo(() => linesOf(map, runMode ? activeId : null), [map, runMode, activeId]);
 
   // One delegated listener pair on the list, so the lines stay plain markup.
   const list = useRef<HTMLOListElement>(null);

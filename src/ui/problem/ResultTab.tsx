@@ -9,6 +9,7 @@ import { firstDifference, resultRows } from "@/challenges/rows";
 import { t } from "@/i18n/t";
 import { cn } from "@/lib/utils";
 import { mainVars } from "@/runtime/outcome";
+import { inRun, useMode } from "@/store/mode";
 import { useRun } from "@/store/run";
 import { useTests } from "@/store/tests";
 import { valueText } from "@/ui/chart/text";
@@ -28,8 +29,8 @@ import { SubmissionView } from "./SubmissionView";
 function CaseSelect({ challenge }: { challenge: Challenge }) {
   const caseIndex = useRun((s) => s.caseIndex);
   const selectCase = useRun((s) => s.selectCase);
-  // The case stays the run's while running.
-  const running = useRun((s) => s.status !== "idle");
+  // The case stays the run's in run mode.
+  const runMode = inRun(useMode());
   const items = challenge.tests.map((test, index) => ({
     value: index,
     label: caseText(test.inputs),
@@ -42,7 +43,7 @@ function CaseSelect({ challenge }: { challenge: Challenge }) {
       <Select
         items={items}
         value={caseIndex}
-        disabled={running}
+        disabled={runMode}
         onValueChange={(value) => typeof value === "number" && value >= 0 && selectCase(value)}
       >
         <SelectTrigger className="font-mono text-xs" data-testid="case-select">
@@ -62,7 +63,7 @@ function CaseSelect({ challenge }: { challenge: Challenge }) {
 
 /** The case selector and `Submit`, which judges every case it lists. */
 function CaseBar({ challenge }: { challenge: Challenge }) {
-  const running = useRun((s) => s.status !== "idle");
+  const runMode = inRun(useMode());
   const submitting = useTests((s) => s.running);
   return (
     <div className="flex items-center justify-between gap-2">
@@ -70,7 +71,7 @@ function CaseBar({ challenge }: { challenge: Challenge }) {
       <Button
         variant="outline"
         className="border-selection/60 bg-selection/10"
-        disabled={running || submitting}
+        disabled={runMode || submitting}
         onClick={startSubmit}
       >
         {t("problem.submit")}
@@ -117,13 +118,12 @@ export function ResultTab({ challenge }: { challenge?: Challenge }) {
 
 /** A Playground program has no case selector and no `Expected`. */
 function RunResult({ challenge }: { challenge: Challenge | undefined }) {
-  const status = useRun((s) => s.status);
+  const idle = !inRun(useMode());
   const caseIndex = useRun((s) => s.caseIndex);
   const stdout = useRun((s) => s.stdout);
   const state = useRun((s) => s.state);
   const verdict = useRun((s) => s.verdict);
   const test = challenge?.tests[caseIndex];
-  const idle = status === "idle";
   const rows = useMemo(
     () =>
       resultRows(test?.expect, {

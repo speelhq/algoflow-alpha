@@ -4,6 +4,7 @@
 // pre-run that hit the step limit is reported above it.
 import { t } from "@/i18n/t";
 import { SPEED_NAMES, SPEEDS, useLayout } from "@/store/layout";
+import { inRun, useMode } from "@/store/mode";
 import { useRun } from "@/store/run";
 import { cn } from "@/lib/utils";
 import { Button } from "@/ui/primitives/button";
@@ -78,7 +79,6 @@ function Speed() {
 }
 
 export function RunBar() {
-  const status = useRun((s) => s.status);
   const step = useRun((s) => s.step);
   const total = useRun((s) => s.total);
   const outcome = useRun((s) => s.outcome);
@@ -87,13 +87,14 @@ export function RunBar() {
   const skip = useRun((s) => s.skip);
   const seek = useRun((s) => s.seek);
   const stop = useRun((s) => s.stop);
-  const running = status !== "idle";
-  const ended = status === "done" || status === "error";
+  const mode = useMode();
+  const runMode = inRun(mode);
+  const ended = mode === "ended";
   const endless = outcome?.type === "error" && outcome.error.code === "E_STEP_LIMIT";
 
   return (
     <div className="shrink-0 border-t bg-background" data-testid="run-bar">
-      {running && endless && (
+      {runMode && endless && (
         <p
           role="alert"
           className="border-b bg-destructive/10 px-4 py-2 text-sm text-destructive"
@@ -104,7 +105,7 @@ export function RunBar() {
       )}
       <div className="flex h-14 items-center gap-2 px-4">
         <PlayButton />
-        {running && (
+        {runMode && (
           <>
             <Button variant="outline" disabled={step === 0} onClick={() => void back()}>
               {t("run.back")}

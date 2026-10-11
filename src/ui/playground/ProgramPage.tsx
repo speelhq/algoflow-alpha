@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { t } from "@/i18n/t";
 import { useEditor } from "@/store/editor";
+import { editable, useMode } from "@/store/mode";
 import { useProgram } from "@/store/program";
 import { useRun } from "@/store/run";
 import { download } from "@/ui/app/download";
@@ -19,13 +20,14 @@ import { useRunKeys } from "@/ui/problem/useRunKeys";
 
 function TitleField() {
   const title = useProgram((s) => s.program.title);
-  const running = useRun((s) => s.status !== "idle");
+  // The title is part of the program: it changes only in build mode.
+  const locked = !editable(useMode());
   return (
     <Input
       value={title}
       aria-label={t("playground.titleLabel")}
       placeholder={t("playground.untitled")}
-      disabled={running}
+      disabled={locked}
       className="h-8 w-64 font-semibold"
       data-testid="program-title"
       onChange={(event) => {

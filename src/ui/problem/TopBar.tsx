@@ -2,9 +2,8 @@
 // nothing that runs the program.
 import { useState, type ReactNode } from "react";
 import { t } from "@/i18n/t";
-import { useEditor } from "@/store/editor";
+import { editable, useMode } from "@/store/mode";
 import { useProgram } from "@/store/program";
-import { useRun } from "@/store/run";
 import { HelpDialog } from "@/ui/app/HelpDialog";
 import { routeHash } from "@/ui/app/route";
 import { Button, buttonVariants } from "@/ui/primitives/button";
@@ -31,10 +30,8 @@ function UndoRedo() {
   const canRedo = useProgram((s) => s.future.length > 0);
   const undo = useProgram((s) => s.undo);
   const redo = useProgram((s) => s.redo);
-  // Undo is an edit: not while running, nor while the solution is shown.
-  const running = useRun((s) => s.status !== "idle");
-  const solution = useEditor((s) => s.solution);
-  const locked = running || solution;
+  // Undo is an edit: only in build mode.
+  const locked = !editable(useMode());
   return (
     <>
       <Button

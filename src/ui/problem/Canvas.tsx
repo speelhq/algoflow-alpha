@@ -7,6 +7,7 @@ import { caseInputs } from "@/challenges/cases";
 import { t } from "@/i18n/t";
 import type { NodeId, Place, Program } from "@/lang/types";
 import { useEditor } from "@/store/editor";
+import { editable, inRun, useMode, type Mode } from "@/store/mode";
 import { useProgram } from "@/store/program";
 import { useShallow } from "zustand/react/shallow";
 import { useRun, type RunState } from "@/store/run";
@@ -24,14 +25,17 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/ui/primitives/button";
 import { narrate, narrateDifference, narrateEnd, type Narration } from "@/ui/run/narrate";
 import { caseText } from "./caseText";
+import { clickNode } from "./actions";
 import { RunBar } from "./RunBar";
 
-/** Replaces the learner's program with the solution, as one undoable edit. */
+/** Leaves the solution and replaces the learner's program with it, as one undoable edit. */
 function loadSolution(challenge: Challenge): void {
-  const program = useProgram.getState().program;
-  const solution = structuredClone(challenge.solution);
-  useProgram.getState().edit({ ...solution, challengeId: challenge.id, inputs: program.inputs });
   useEditor.getState().showSolution(false);
+  apply((program) => ({
+    ...structuredClone(challenge.solution),
+    challengeId: challenge.id,
+    inputs: program.inputs,
+  }));
 }
 
 function SolutionBand({ challenge }: { challenge: Challenge }) {
@@ -83,10 +87,11 @@ function narrationOf(run: Shown, program: Program): string | null {
   return say(narrate(lastEvent, { program, state, frame: run.frame, pass: run.pass }));
 }
 
-/** What the chart draws and says while running; in build mode the editor shows a diagnostic. */
+/** What the chart draws and says in run mode; in build mode the editor shows a diagnostic. */
 function useRunPaint(
   chart: ChartLayout | null,
   program: Program,
+  mode: Mode,
 ): { paint?: Paint; narration: Narrated | null } {
   const run: Shown = useRun(
     useShallow((s) => ({
@@ -106,7 +111,7 @@ function useRunPaint(
     })),
   );
   return useMemo(() => {
-    if (!chart || run.status === "idle") return { narration: null };
+    if (!chart || !inRun(mode)) return { narration: null };
     const painted = paint(chart, {
       ended: run.status === "done",
       activeId: run.activeId,
@@ -118,7 +123,7 @@ function useRunPaint(
     const text = narrationOf(run, program);
     const error = run.status === "error" && run.step === run.total;
     return { paint: painted, narration: text === null ? null : { text, error } };
-  }, [chart, run, program]);
+  }, [chart, run, program, mode]);
 }
 
 /** The sentence of the run's position, and whether it is an error's message. */
@@ -143,14 +148,15 @@ function NarrationLine({ narration }: { narration: Narrated | null }) {
 
 export function Canvas({ challenge }: { challenge?: Challenge }) {
   const mine = useProgram((s) => s.program);
-  const solution = useEditor((s) => s.solution);
   const selectedId = useEditor((s) => s.selectedId);
   const editing = useEditor((s) => s.editing);
   const hoveredId = useEditor((s) => s.hoveredId);
-  const select = useEditor((s) => s.select);
   const caseIndex = useRun((s) => s.caseIndex);
   const selectCase = useRun((s) => s.selectCase);
-  const running = useRun((s) => s.status !== "idle");
+  const mode = useMode();
+  const solution = mode === "solution";
+  // The chart can be changed only in build mode; elsewhere it is drawn read-only.
+  const readOnly = !editable(mode);
   const fonts = useFontLoads();
   const shown = solution && challenge !== undefined;
   const program: Program = shown ? challenge.solution : mine;
@@ -172,7 +178,7 @@ export function Canvas({ challenge }: { challenge?: Challenge }) {
       },
     [challenge, selectCase],
   );
-  const { paint: painted, narration: narrated } = useRunPaint(solution ? null : chart, mine);
+  const { paint: painted, narration: narrated } = useRunPaint(chart, mine, mode);
   const empty = mine.main.length === 0;
   const flags = useMemo(() => {
     const flagged = flaggedStatements(mine);
@@ -208,22 +214,6 @@ export function Canvas({ challenge }: { challenge?: Challenge }) {
     [empty],
   );
 
-  // While playing or paused a click sets or clears the breakpoint, pausing first; otherwise it
-  // selects the node and the slot clicked, first returning to build mode once the run has ended.
-  const onSelect = useCallback(
-    (owner: NodeId, slot?: string, hole?: NodeId) => {
-      const run = useRun.getState();
-      if (run.status === "playing" || run.status === "paused") {
-        if (run.status === "playing") run.pause();
-        run.setBreakpoint(run.breakpoint === owner ? null : owner);
-        return;
-      }
-      if (run.status !== "idle") run.stop();
-      select(owner, slot, true, hole);
-    },
-    [select],
-  );
-
   return (
     <section className="flex min-w-0 flex-1 flex-col" data-testid="canvas" data-canvas>
       {shown && <SolutionBand challenge={challenge} />}
@@ -232,23 +222,19 @@ export function Canvas({ challenge }: { challenge?: Challenge }) {
         <Chart
           key={solution ? "solution" : "mine"}
           chart={chart}
-          selectedId={solution || running ? null : selectedId}
+          selectedId={readOnly ? null : selectedId}
           hoveredId={solution ? null : hoveredId}
-          onSelect={solution ? undefined : onSelect}
-          cases={solution || running ? undefined : cases}
+          onSelect={clickNode}
+          cases={readOnly ? undefined : cases}
           paint={painted}
           failed={narrated?.error ?? false}
-          connector={solution || running ? undefined : connector}
-          moves={solution || running ? undefined : moves}
-          flags={solution || running ? undefined : flags}
-          editor={
-            solution || running || !selectedId || !editing ? undefined : (
-              <NodeEditor id={selectedId} />
-            )
-          }
+          connector={readOnly ? undefined : connector}
+          moves={readOnly ? undefined : moves}
+          flags={readOnly ? undefined : flags}
+          editor={readOnly || !selectedId || !editing ? undefined : <NodeEditor id={selectedId} />}
         />
       )}
-      {running && !solution && <NarrationLine narration={narrated} />}
+      {inRun(mode) && <NarrationLine narration={narrated} />}
       <RunBar />
     </section>
   );

@@ -5,9 +5,10 @@
 import { useEffect } from "react";
 import { duplicateStmt, removeStmt } from "@/lang/edit";
 import { useEditor } from "@/store/editor";
+import { currentMode, editable } from "@/store/mode";
 import { useProgram } from "@/store/program";
 import { ownsKeys } from "@/ui/problem/useRunKeys";
-import { apply, canEdit } from "./edits";
+import { apply } from "./edits";
 
 /** Inside an open editor or menu, Delete and Backspace do not remove the node. */
 function inPopup(target: EventTarget | null): boolean {
@@ -23,7 +24,7 @@ export function useEditKeys(): void {
       const selected = useEditor.getState().selectedId;
       let handled = true;
       if (mod && key === "z") {
-        if (canEdit()) {
+        if (editable(currentMode())) {
           if (event.shiftKey) useProgram.getState().redo();
           else useProgram.getState().undo();
         }

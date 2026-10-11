@@ -9,6 +9,7 @@ import { firstDifference, resultRows } from "@/challenges/rows";
 import { errorText, localized, t } from "@/i18n/t";
 import { cn } from "@/lib/utils";
 import { useEditor } from "@/store/editor";
+import { inRun, useMode } from "@/store/mode";
 import { statusOf, useProgress } from "@/store/progress";
 import { useRun } from "@/store/run";
 import { useTests } from "@/store/tests";
@@ -115,8 +116,8 @@ function Accepted({ challenge }: { challenge: Challenge }) {
   const setTab = useEditor((s) => s.setTab);
   const showSolution = useEditor((s) => s.showSolution);
   const solutionShown = useProgress((s) => s.solutionShown);
-  // The chart stays the run's while running.
-  const running = useRun((s) => s.status !== "idle");
+  // The chart stays the run's in run mode.
+  const runMode = inRun(useMode());
   return (
     <>
       {first?.done.type === "done" && (
@@ -138,7 +139,7 @@ function Accepted({ challenge }: { challenge: Challenge }) {
         </Button>
         <Button
           variant="outline"
-          disabled={running}
+          disabled={runMode}
           onClick={() => {
             showSolution(true);
             solutionShown(challenge.id);
@@ -156,12 +157,12 @@ function Accepted({ challenge }: { challenge: Challenge }) {
 }
 
 export function SubmissionView({ challenge }: { challenge: Challenge }) {
-  const running = useTests((s) => s.running);
+  const submitting = useTests((s) => s.running);
   const results = useTests((s) => s.results);
   const cleared = useTests((s) => s.cleared);
   const selected = useTests((s) => s.selected);
   const selectCase = useRun((s) => s.selectCase);
-  if (running) {
+  if (submitting) {
     return <p className="text-muted-foreground">{t("result.submitting")}</p>;
   }
   const passed = results.filter((result) => result?.status === "pass").length;

@@ -5,8 +5,8 @@ import type { Challenge } from "@/challenges";
 import { localized, t } from "@/i18n/t";
 import { cn } from "@/lib/utils";
 import { useEditor } from "@/store/editor";
+import { inRun, useMode } from "@/store/mode";
 import { HINTS, useProgress } from "@/store/progress";
-import { useRun } from "@/store/run";
 import { dataText } from "@/ui/chart/text";
 import { Button } from "@/ui/primitives/button";
 import { foldLines } from "@/ui/text/fold";
@@ -64,10 +64,9 @@ export function ProblemTab({ challenge }: { challenge: Challenge }) {
   const entry = useProgress((s) => (Object.hasOwn(s.entries, id) ? s.entries[id] : undefined));
   const hintShown = useProgress((s) => s.hintShown);
   const solutionShown = useProgress((s) => s.solutionShown);
-  const solution = useEditor((s) => s.solution);
   const showSolution = useEditor((s) => s.showSolution);
-  // The chart stays the run's while running.
-  const running = useRun((s) => s.status !== "idle");
+  const mode = useMode();
+  const solution = mode === "solution";
   const revealed = Math.min(entry?.hints ?? 0, challenge.hints.length);
 
   return (
@@ -118,7 +117,8 @@ export function ProblemTab({ challenge }: { challenge: Challenge }) {
           variant="outline"
           className={cn("ml-auto", solution && "border-ring bg-accent")}
           aria-pressed={solution}
-          disabled={running}
+          // The chart stays the run's in run mode.
+          disabled={inRun(mode)}
           onClick={() => {
             showSolution(true);
             solutionShown(id);
