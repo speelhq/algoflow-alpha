@@ -7,7 +7,7 @@ import type { Stmt } from "./types";
 const { assign, num, v, bin, print, for_, if_, while_, ret } = ast;
 
 describe("scope", () => {
-  it("L-61, L-66: the value a statement with a target assigns is its expression slot; others none", () => {
+  it("the value a statement with a target assigns is its expression slot; others none", () => {
     const value = bin("+", v("a"), num(1));
     expect(assignedValue(assign("a", value))).toBe(value);
     const nine = num(9);

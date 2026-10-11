@@ -64,7 +64,9 @@ describe("L-06 toValue / toData", () => {
     ]);
     expect(aRef).toBe(2);
   });
+});
 
+describe("toValue as it stands", () => {
   it("drops $id when reading an object expectation", () => {
     const heap: Heap = new Map();
     const value = toValue({ $cls: "P", $id: 7, x: 1 }, heap);

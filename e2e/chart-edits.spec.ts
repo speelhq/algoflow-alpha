@@ -1,4 +1,4 @@
-// U-03, U-04, U-35, U-36, L-52: selecting, removing, duplicating, dragging, undo and redo.
+// U-03, U-35, U-36, L-52: selecting, removing, duplicating, dragging, undo and redo.
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { programWith, seedProgram, seedProgress, solutionOf } from "./seed";

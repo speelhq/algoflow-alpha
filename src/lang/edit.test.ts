@@ -236,7 +236,7 @@ describe("edit (L-50)", () => {
     expect(() => removeFunction(p, "nope00000000")).toThrow(/no function/);
   });
 
-  it("hoistAssign inserts `name = <default of the same type>` before the frame (L-41)", () => {
+  it("hoistAssign inserts `name = <default of the same type>` before the frame (L-41, L-44, L-61)", () => {
     const frame = if_(v("c"), [assign("x", num(1))], [assign("s", str("a"))]);
     const { program: p, inputs } = withInputs({ c: 1 }, [frame, print(v("x"))]);
     expect(validate(p).map((d) => d.code)).toEqual(["E_DECLARE_FIRST"]);

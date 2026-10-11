@@ -26,7 +26,7 @@ describe("builtin random_int (nodes.md)", () => {
     expect(runAll(prog, {}, 8).draws).not.toEqual(a.draws);
   });
 
-  it("N-10: float bounds → E_TYPE", () => {
+  it("N-10: a bound that is no int → E_TYPE", () => {
     expect(evalExpr(call("random_int", float(1), num(2))).done).toMatchObject({
       type: "error",
       error: { code: "E_TYPE" },

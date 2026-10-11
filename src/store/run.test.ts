@@ -340,7 +340,7 @@ describe("run store (R-21)", () => {
     expect(run().step).toBe(4401);
   });
 
-  it("C-13: a new program stops the run and keeps the chosen case", async () => {
+  it("a new program stops the run and keeps the chosen case", async () => {
     useProgram.setState({ program: fizzbuzz().solution });
     run().selectCase(1);
     await settle(run().run());
