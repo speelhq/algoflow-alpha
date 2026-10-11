@@ -103,6 +103,12 @@ describe("tests store (U-80, C-10, C-11, C-12)", () => {
     expect(useProgress.getState().entries).toEqual({});
   });
 
+  it("U-60: a program with a diagnostic is not judged, as Run does not start", async () => {
+    useProgram.setState({ program: { ...fizzbuzz().solution, main: [print(ast.empty())] } });
+    await useTests.getState().submit();
+    expect(useTests.getState()).toMatchObject({ results: [], running: false });
+  });
+
   it("U-86: a program of no challenge is not judged; a change of the program clears the results", async () => {
     useProgram.setState({ program: program([print(str("x"))]) });
     await useTests.getState().submit();
