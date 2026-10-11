@@ -5,7 +5,7 @@ import { CHALLENGES, getChallenge, PLANS, planOf } from "./index";
 
 describe("challenge bundle (C-14, C-16, C-25)", () => {
   it("loads every challenges/*.json with id, tests, and solution; plans.json is not one", () => {
-    expect(CHALLENGES.length).toBeGreaterThanOrEqual(5);
+    expect(CHALLENGES).not.toHaveLength(0);
     for (const challenge of CHALLENGES) {
       expect(challenge.tests.length).toBeGreaterThanOrEqual(3);
       expect(challenge.solution.challengeId).toBe(challenge.id);

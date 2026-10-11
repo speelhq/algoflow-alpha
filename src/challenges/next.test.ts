@@ -1,9 +1,13 @@
 // U-99: `Start` / `Continue` / no button; U-83: `Next problem →` and `Plan complete`.
-import { describe, expect, it } from "vitest";
-import { planOf } from "./index";
+import { describe, expect, it, vi } from "vitest";
 import { nextProblem, planAction, type Status } from "./next";
 
+// A plan of the tests' own, so that no case depends on what the bundled plans hold.
 const course = ["tutorial", "sum-to-n", "fizzbuzz", "max-of-three", "countdown"];
+
+vi.mock("./plans", () => ({
+  planOf: () => ({ id: "course", title: { en: "" }, description: { en: "" }, problems: course }),
+}));
 
 function statuses(entries: Record<string, "attempted" | "solved">): Status {
   return (id) => entries[id];
@@ -31,10 +35,6 @@ describe("planAction (U-99)", () => {
 });
 
 describe("nextProblem (U-83)", () => {
-  it("walks the course plan, as these cases assume", () => {
-    expect(planOf("tutorial").problems).toEqual(course);
-  });
-
   it("leads to the next unsolved problem of the plan", () => {
     const status = statuses({ tutorial: "solved", "sum-to-n": "solved", fizzbuzz: "solved" });
     expect(nextProblem("sum-to-n", status)).toEqual({ kind: "next", id: "max-of-three" });

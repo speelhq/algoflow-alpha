@@ -2,6 +2,7 @@
 // position bar to the end, submit, see Accepted, open the Python tab, and reach the next
 // problem. U-80, U-81, U-82, U-83, U-84, U-85, U-86: Wrong Answer and `▶ Watch this case`.
 import { expect, test, type Page } from "@playwright/test";
+import { planOf } from "../src/challenges/plans";
 import { seedProgram, seedProgress, solutionOf } from "./seed";
 
 /** Drags the position bar's thumb past its right end. */
@@ -119,15 +120,13 @@ test("a submission is recorded as attempted, and solved only when accepted (C-17
 });
 
 test("after a plan's last problem, Accepted says Plan complete (U-83)", async ({ page }) => {
+  const { problems } = planOf("tutorial");
+  const last = problems.at(-1);
+  if (last === undefined) throw new Error("the plan is empty");
   const solved = { status: "solved", hints: 0, solution: false };
-  await seedProgress(page, {
-    tutorial: solved,
-    "sum-to-n": solved,
-    fizzbuzz: solved,
-    "max-of-three": solved,
-  });
-  await seedProgram(page, "countdown", solutionOf("countdown"));
-  await page.goto("/#/p/countdown");
+  await seedProgress(page, Object.fromEntries(problems.slice(0, -1).map((id) => [id, solved])));
+  await seedProgram(page, last, solutionOf(last));
+  await page.goto(`/#/p/${last}`);
   await page.getByTestId("tab-result").click();
   await page.getByRole("button", { name: "✓ Submit" }).click();
   await expect(page.getByTestId("verdict")).toHaveText("Accepted");

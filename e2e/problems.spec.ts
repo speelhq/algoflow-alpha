@@ -1,6 +1,7 @@
 // U-01, U-02, U-04, U-06, U-07, U-10, U-12, U-13, U-14, U-99, U-90: routes, the Problems page, Help,
 // first launch.
 import { expect, test } from "@playwright/test";
+import { planOf } from "../src/challenges/plans";
 import { seedProgress } from "./seed";
 
 /** Stores `entries` under `algoflow:progress` (C-17) before the app loads. */
@@ -39,7 +40,7 @@ test.describe("Problems page (U-10, U-12, U-13, U-14, U-99)", () => {
     await page.goto("/#/");
     const plan = page.getByTestId("plan-course");
     await expect(plan.getByRole("heading", { name: "3-Day Course" })).toBeVisible();
-    await expect(plan).toContainText("2 of 5 solved");
+    await expect(plan).toContainText(`2 of ${planOf("tutorial").problems.length} solved`);
     await expect(
       plan.getByRole("link", { name: "Continue: FizzBuzz ▶", exact: true }),
     ).toHaveAttribute("href", "#/p/fizzbuzz");

@@ -1,6 +1,7 @@
 // The study plans, bundled at build time by a static import so that
-// `index.ts` can leave `plans.json` out of its challenge glob.
-import plans from "../../challenges/plans.json";
+// `index.ts` can leave `plans.json` out of its challenge glob. The import attribute lets Node
+// load this module too: the end-to-end tests read the plans through it.
+import plans from "../../challenges/plans.json" with { type: "json" };
 import type { Plan } from "./types";
 
 export const PLANS: readonly Plan[] = plans;
