@@ -30,7 +30,9 @@ export type Data =
   | boolean
   | null
   | Data[]
-  | { $cls: string; [field: string]: Data } // object (challenge expectations only)
+  // An object: an expectation, a module case, an argument; `$id`, a number, is the same on
+  // every reference to one object.
+  | { $cls: string; [field: string]: Data }
   | { [key: string]: Data }; // dict; int keys are written "$int:3"
 
 // ---------------------------------------------------------------- Run-time values
