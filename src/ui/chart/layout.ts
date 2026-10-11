@@ -81,7 +81,7 @@ export type LayoutOptions = {
   chart?: "main" | NodeId;
   /** The values the Input nodes show: the chosen case's. */
   inputs: Readonly<Record<Id, Data>>;
-  measure?: Measure;
+  measure: Measure;
 };
 
 const GAP_Y = 36;
@@ -96,7 +96,8 @@ const HEIGHT: Record<Shape, number> = {
   junction: 0,
 };
 
-const defaultMeasure: Measure = (text) => text.length * 7.2;
+/** A width estimated from the length of the text, where no font can measure it. */
+export const estimatedWidth: Measure = (text) => text.length * 7.2;
 /** Room on each side of an empty slot's text for its dashed outline. */
 export const PILL = 8;
 /** A diamond's text wider than this is drawn on two lines, as the boards draw it. */
@@ -612,7 +613,7 @@ class Builder {
 
 /** The chart of `main` or of one function, every node and edge placed. */
 export function layout(program: Program, opts: LayoutOptions): ChartLayout {
-  const builder = new Builder(program, opts.measure ?? defaultMeasure);
+  const builder = new Builder(program, opts.measure);
   const fn = program.functions.find((candidate) => candidate.id === opts.chart);
   const frag = emptyFrag();
 

@@ -1,7 +1,7 @@
 // Text widths for `layout()`, measured with the font the chart draws in. Widths depend
 // on the loaded font, so the cache is cleared each time fonts finish loading.
 import { useSyncExternalStore } from "react";
-import type { Measure } from "./layout";
+import { estimatedWidth, type Measure } from "./layout";
 
 export const CHART_FONT = '13px "Geist Variable", sans-serif';
 /** A variable's name is drawn bold. */
@@ -24,12 +24,12 @@ if (typeof document !== "undefined") {
   void document.fonts.ready.then(fontsLoaded);
 }
 
-export const measureText: Measure = (text, _shape, bold = false) => {
+export const measureText: Measure = (text, shape, bold = false) => {
   const key = bold ? `b:${text}` : text;
   const known = widths.get(key);
   if (known !== undefined) return known;
   context ??= document.createElement("canvas").getContext("2d");
-  if (!context) return text.length * 7.2;
+  if (!context) return estimatedWidth(text, shape, bold);
   context.font = bold ? CHART_FONT_BOLD : CHART_FONT;
   const width = context.measureText(text).width;
   widths.set(key, width);
