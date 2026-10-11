@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { emit, unparse } from "@/python/emit";
 import { ast, evalExpr, program, runAll, varData } from "./testing";
 
-const { call, num, float, assign, for_, v } = ast;
+const { call, num, float, assign, for_ } = ast;
 
 describe("builtin random_int (nodes.md)", () => {
   it("N-03 / N-05: emits `random.randint(<a>, <b>)` and adds `import random`", () => {
@@ -31,6 +31,5 @@ describe("builtin random_int (nodes.md)", () => {
       type: "error",
       error: { code: "E_TYPE" },
     });
-    expect(evalExpr(v("x"), { x: 1 }).data).toBe(1);
   });
 });

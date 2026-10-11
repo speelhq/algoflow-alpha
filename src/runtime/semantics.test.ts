@@ -105,6 +105,16 @@ describe("the semantics table of language.md", () => {
     });
   });
 
+  it("L-72 zero to a negative power → E_DIV_ZERO", () => {
+    for (const zero of [num(0), float(0)]) {
+      expect(evalExpr(bin("**", zero, neg(num(1)))).done).toMatchObject({
+        type: "error",
+        error: { code: "E_DIV_ZERO" },
+      });
+    }
+    expect(evalExpr(bin("**", num(0), num(0))).value).toEqual({ t: "int", v: 1 });
+  });
+
   it("L-14 + on two str concatenates; str with a number → E_TYPE", () => {
     expect(evalExpr(bin("+", str("a"), str("b"))).data).toBe("ab");
     expect(evalExpr(bin("+", num(1), str("b"))).done).toMatchObject({
