@@ -1,7 +1,10 @@
-// C-01, C-03: the schema checker; C-25, C-18: the plans checker; R-20: the CPython
-// script shape (no python run here).
+// C-01, C-03: the schema checker; C-25, C-18: the plans checker; C-10, R-20: a test checked
+// against its expectation and against CPython, and the CPython script shape (no python run here).
 import { describe, expect, it } from "vitest";
 import { ast, program } from "@/nodes/testing";
+import type { Challenge } from "@/challenges/types";
+import type { Stmt } from "@/lang/types";
+import { checkTest, type PythonRunner } from "./lib/agreement";
 import { checkChallengeSchema } from "./lib/challenge";
 import { buildScript, randomShims } from "./lib/cpython";
 import { execute } from "./lib/interp";
@@ -216,6 +219,67 @@ describe("execute (C-10 view of a run)", () => {
       vars: { n: 4, x: 8 },
       draws: [],
     });
+  });
+});
+
+describe("checkTest (C-10, R-20)", () => {
+  const addOne = () => assign("total", bin("+", v("n"), num(1)));
+  /** The demo challenge with `main` as its solution's. */
+  const challenge = (main: Stmt[]): Challenge => {
+    const json = valid();
+    const inputs = [{ name: "n", kind: "number" as const }];
+    json.solution = { ...program(main, { inputs }), challengeId: "demo" };
+    const checked = checkChallengeSchema(json, "demo").challenge;
+    if (!checked) throw new Error("the demo challenge does not check");
+    return checked;
+  };
+  /** A CPython that answers `result` and records what it was given. */
+  const fake = (result: ReturnType<PythonRunner>) => {
+    const calls: Parameters<PythonRunner>[] = [];
+    const python: PythonRunner = (...args) => {
+      calls.push(args);
+      return result;
+    };
+    return { python, calls };
+  };
+
+  it("passes when the interpreter meets expect and CPython agrees, given the code, draws, and names", () => {
+    const demo = challenge([addOne()]);
+    const { python, calls } = fake({ stdout: [], vars: { n: 1, total: 2 } });
+    expect(checkTest(demo, demo.tests[0]!, 0, python)).toEqual([]);
+    expect(calls).toEqual([["n = 1\ntotal = n + 1\n", [], ["n", "total"]]]);
+  });
+
+  it("reports each row that differs from expect", () => {
+    const demo = challenge([addOne()]);
+    const test = { ...demo.tests[0]!, expect: { variables: { total: 99 } } };
+    const { python } = fake({ stdout: [], vars: { n: 1, total: 2 } });
+    expect(checkTest(demo, test, 0, python)).toEqual([
+      'test[0] {"n":1}: total: expected 99, got 2',
+    ]);
+  });
+
+  it("reports an interpreter error alone, without running CPython", () => {
+    const div = bin("/", num(1), num(0));
+    const demo = challenge([assign("total", div)]);
+    const { python, calls } = fake({ stdout: [], vars: {} });
+    expect(checkTest(demo, demo.tests[0]!, 0, python)).toEqual([
+      `test[0] {"n":1}: interpreter E_DIV_ZERO at ${div.id} {}`,
+    ]);
+    expect(calls).toEqual([]);
+  });
+
+  it("reports CPython failing, and each line and variable where it differs from the interpreter", () => {
+    const demo = challenge([addOne()]);
+    expect(checkTest(demo, demo.tests[0]!, 0, fake({ error: "boom" }).python)).toEqual([
+      'test[0] {"n":1}: python3 failed: boom',
+    ]);
+    expect(
+      checkTest(demo, demo.tests[0]!, 0, fake({ stdout: ["x"], vars: { n: 1 } }).python),
+    ).toEqual([
+      'test[0] {"n":1}: CPython line 1: expected nothing, got "x"',
+      'test[0] {"n":1}: CPython variable total was never assigned',
+    ]);
   });
 });
 
