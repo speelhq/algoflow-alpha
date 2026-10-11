@@ -2,11 +2,11 @@
 // grouped by category in menu order, each in registration order, those whose `requires`
 // the place does not meet disabled with the reason, then the program's own functions as
 // calls. Reads `shape`, `hidden`, `category`, and `requires`, never a kind.
-import { fillPlaceholders, nodeText, t } from "@/i18n/t";
+import { nodeText, t } from "@/i18n/t";
 import { newId } from "@/lang/id";
 import { placeContext } from "@/lang/scope";
 import type { Expr, Place, Program, Stmt } from "@/lang/types";
-import { getNode, paletteNodes, type NodeDef } from "@/nodes/registry";
+import { getNode, paletteNodes } from "@/nodes/registry";
 import { CATEGORIES, type Category } from "@/nodes/categories";
 import { blankTemplate } from "@/ui/chart/text";
 
@@ -23,16 +23,6 @@ export type MenuEntry = {
 };
 export type MenuGroup = { id: Category | "program"; title: string; entries: MenuEntry[] };
 
-/** An entry's text: the template with its `text` slots as the block's label, the rest blank. */
-function entryText(def: NodeDef): string {
-  const label = nodeText(def.key, "label");
-  return fillPlaceholders(nodeText(def.key, "template"), (name) =>
-    def.slots.find((slot) => slot.name === name)?.role === "text"
-      ? label.charAt(0).toLowerCase() + label.slice(1)
-      : t("chart.blank"),
-  );
-}
-
 /** The groups of the block menu at `place`; empty groups are left out. */
 export function menuGroups(program: Program, place: Place): MenuGroup[] {
   const here = placeContext(program, place);
@@ -45,7 +35,7 @@ export function menuGroups(program: Program, place: Place): MenuGroup[] {
           (def.requires === "loop" && !here.loop) || (def.requires === "function" && !here.fn);
         const entry: MenuEntry = {
           id: def.key,
-          text: entryText(def),
+          text: blankTemplate(nodeText(def.key, "template")),
           label: nodeText(def.key, "label"),
           help: nodeText(def.key, "help"),
           create: () => def.create() as Stmt,

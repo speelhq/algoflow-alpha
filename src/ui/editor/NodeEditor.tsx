@@ -29,7 +29,6 @@ import { useEditor } from "@/store/editor";
 import { useProgram } from "@/store/program";
 import { templateOf } from "@/ui/chart/text";
 import { Button } from "@/ui/primitives/button";
-import { Input } from "@/ui/primitives/input";
 import { Popover } from "@/ui/primitives/popover";
 import { apply } from "./edits";
 import { EditorList, type ListItem, type ListSection } from "./EditorList";
@@ -122,7 +121,7 @@ export function DiagnosticMessage({ diagnostic }: { diagnostic: Diagnostic }) {
 // ---------------------------------------------------------------- slots
 
 /** One editable slot of the sentence: a name, a value, or an item of a list of values. */
-type Field = { slot: string; role: "id" | "target" | "expr" | "text"; index?: number };
+type Field = { slot: string; role: "id" | "target" | "expr"; index?: number };
 
 const fieldKey = (field: Field) => `${field.slot}:${field.index ?? ""}`;
 const sameField = (a: Field | null, b: Field | null) =>
@@ -155,7 +154,7 @@ function fieldsOf(stmt: Stmt, program: Program): Field[] {
     } else if (slot.role === "expr" && isExpr(value)) out.push({ slot: slot.name, role: "expr" });
     else if (slot.role === "exprs" && Array.isArray(value)) {
       value.forEach((_, index) => out.push({ slot: slot.name, role: "expr", index }));
-    } else if (slot.role === "text") out.push({ slot: slot.name, role: "text" });
+    }
   }
   return out;
 }
@@ -584,18 +583,6 @@ function Body({ stmt, program, initial }: { stmt: Stmt; program: Program; initia
           />
         );
       }
-      case "text":
-        return (
-          <Input
-            key={name}
-            value={typeof value === "string" ? value : ""}
-            aria-label={name}
-            className="h-8 w-48"
-            onChange={(event) =>
-              apply((p) => setSlot(p, stmt.id, name, event.target.value), `${stmt.id}:${name}`)
-            }
-          />
-        );
       case "expr":
         return isExpr(value) ? (
           lineWidget({ slot: name, role: "expr" }, value)

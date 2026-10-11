@@ -29,7 +29,7 @@ export function getLocale(): Locale {
 }
 
 /** Replaces each `{name}` with `fill(name)`; a placeholder `fill` has no text for stays as written. */
-export function fillPlaceholders(text: string, fill: (name: string) => string | undefined): string {
+function fillPlaceholders(text: string, fill: (name: string) => string | undefined): string {
   return text.replace(/\{(\w+)\}/g, (match, name: string) => fill(name) ?? match);
 }
 

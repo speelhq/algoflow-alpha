@@ -1,4 +1,4 @@
-// N-02, N-09, N-16: what every registered block owes the catalog and the chart.
+// N-01, N-02, N-09, N-16: what every registered block owes the catalog and the chart.
 import { describe, expect, it } from "vitest";
 import en from "@/i18n/en.json";
 import { flatten } from "@/i18n/flatten";
@@ -20,9 +20,21 @@ function conditionIn(chart: ChartShape): string | undefined {
   return "check" in chart ? chart.check.cond : undefined;
 }
 
-describe("registry (N-02, N-09, N-16)", () => {
+describe("registry (N-01, N-02, N-09, N-16)", () => {
   it("N-01: the categories are in menu order", () => {
     expect(CATEGORIES).toEqual(["basic", "control", "list", "function", "dict", "class"]);
+  });
+
+  it("N-01: only an expression has a text slot", () => {
+    const statements = [...NODES.values()].filter((def) => def.shape === "stmt");
+    expect(statements.length).toBeGreaterThan(0);
+    for (const def of statements) {
+      expect(
+        def.slots.filter((slot) => slot.role === "text"),
+        def.key,
+      ).toEqual([]);
+    }
+    expect([...NODES.values()].some((def) => def.slots.some((s) => s.role === "text"))).toBe(true);
   });
 
   it("N-09: break jumps out of the innermost loop and continue into its next pass", () => {
