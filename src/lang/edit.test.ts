@@ -44,6 +44,34 @@ function sample(): { p: Program; a: Stmt; loop: Stmt; inner: Stmt; b: Stmt } {
 }
 
 describe("edit (L-50)", () => {
+  it("L-51: every edit keeps the ids unique, also when what it adds reuses ids of the program", () => {
+    const { p: base, a, loop, inner, b } = sample();
+    const start = addClass(addFunction(base, "f", ["a"]), "Point");
+    const fn = start.functions[0]!;
+    const cls = start.classes[0]!;
+    const value = (inner as Extract<Stmt, { kind: "assign" }>).value;
+    const edits: Record<string, (p: Program) => Program> = {
+      insertStmt: (p) => insertStmt(p, loop, { parent: "main", slot: "main", index: 0 }),
+      moveStmt: (p) => moveStmt(p, b.id, { parent: loop.id, slot: "body", index: 0 }),
+      removeStmt: (p) => removeStmt(p, a.id),
+      duplicateStmt: (p) => duplicateStmt(p, loop.id),
+      setSlot: (p) => setSlot(p, a.id, "target", { kind: "index", list: value, index: value }),
+      setExpr: (p) => setExpr(p, b.id, "args", value, 0),
+      removeItem: (p) => removeItem(p, b.id, "args", 0),
+      renameName: (p) => renameName(p, "x", "total"),
+      setStmtName: (p) => setStmtName(p, loop.id, "Count"),
+      addFunction: (p) => addFunction(p, "g"),
+      removeFunction: (p) => removeFunction(p, fn.id),
+      addClass: (p) => addClass(p, "Pair"),
+      removeClass: (p) => removeClass(p, cls.id),
+      setFields: (p) => setFields(p, cls.id, [{ name: "x", default: 0 }]),
+      setParams: (p) => setParams(p, fn.id, ["a", "b"]),
+      hoistAssign: (p) => hoistAssign(p, loop.id, "x"),
+    };
+    for (const [name, edit] of Object.entries(edits))
+      expect(idsUnique(edit(start)), name).toBe(true);
+  });
+
   it("every edit returns a new Program and leaves the input unchanged", () => {
     const { p, a } = sample();
     const before = structuredClone(p);

@@ -24,6 +24,8 @@ import {
   programIds,
   programStmts,
   regionsOf,
+  TARGET_PARTS,
+  targetExprs,
 } from "./walk";
 
 type Bag = Record<string, unknown>;
@@ -48,21 +50,53 @@ function reIdExpr(expr: Expr): void {
   for (const { expr: child } of childSlots(expr)) reIdExpr(child);
 }
 
+/** The program's ids, less those of `replaced`, which what takes their place may keep. */
+function takenIds(program: Program, replaced: readonly Expr[]): Set<NodeId> {
+  const taken = new Set(programIds(program));
+  for (const root of replaced) for (const e of allExprs(root)) taken.delete(e.id);
+  return taken;
+}
+
+/** Whether a node entering the program, holding `ids`, reuses one of the `taken` ids. */
+function reuses(ids: Iterable<NodeId>, taken: ReadonlySet<NodeId>): boolean {
+  for (const id of ids) if (taken.has(id)) return true;
+  return false;
+}
+
 /** A statement entering the program must not reuse an existing id. */
 function fresh(stmt: Stmt, program: Program): Stmt {
   const copy = clone(stmt);
-  const existing = new Set(programIds(program));
-  if ([...idsUnder([copy])].some((id) => existing.has(id))) reIdStmt(copy);
+  if (reuses(idsUnder([copy]), takenIds(program, []))) reIdStmt(copy);
   return copy;
+}
+
+/** Gives `expr` fresh ids (in place) when one of its ids is taken; its ids are then taken. */
+function claim(expr: Expr, taken: Set<NodeId>): void {
+  const ids = () => [...allExprs(expr)].map((e) => e.id);
+  if (reuses(ids(), taken)) reIdExpr(expr);
+  for (const id of ids()) taken.add(id);
 }
 
 /** An expression entering the program; ids of `replaced`, which it takes the place of, may stay. */
 function freshExpr(expr: Expr, program: Program, replaced?: Expr): Expr {
   const copy = clone(expr);
-  const existing = new Set(programIds(program));
-  if (replaced) for (const e of allExprs(replaced)) existing.delete(e.id);
-  if ([...allExprs(copy)].some((e) => existing.has(e.id))) reIdExpr(copy);
+  claim(copy, takenIds(program, replaced ? [replaced] : []));
   return copy;
+}
+
+/**
+ * A target entering the program, each expression copied on its own and made fresh as
+ * `freshExpr` makes one; ids of `replaced`, the target it takes the place of, may stay.
+ */
+function freshTarget(target: Target, program: Program, replaced: Target | undefined): Target {
+  const taken = takenIds(program, replaced ? targetExprs(replaced) : []);
+  const copy: Bag = { ...target };
+  for (const name of TARGET_PARTS[target.kind].exprs) {
+    const expr = clone(copy[name] as Expr);
+    claim(expr, taken);
+    copy[name] = expr;
+  }
+  return copy as Target;
 }
 
 // ---------------------------------------------------------------- locating
@@ -169,7 +203,11 @@ export function setSlot(
   if (!spec || spec.role === "expr" || spec.role === "exprs" || spec.role === "body") {
     throw new EditError(`node ${id} has no settable slot ${slot}`);
   }
-  (node as unknown as Bag)[slot] = typeof value === "string" ? value : clone(value);
+  const bag = node as unknown as Bag;
+  bag[slot] =
+    typeof value === "string"
+      ? value
+      : freshTarget(value, next, spec.role === "target" ? (bag[slot] as Target) : undefined);
   return next;
 }
 

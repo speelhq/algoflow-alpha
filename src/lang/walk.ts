@@ -23,7 +23,8 @@ export const TARGET_PARTS: {
   field: { names: ["field"], exprs: ["obj"] },
 };
 
-function targetExprs(target: Target): Expr[] {
+/** A target's expressions, in order, as the target holds them. */
+export function targetExprs(target: Target): Expr[] {
   const bag = target as unknown as Bag;
   const parts: TargetParts = TARGET_PARTS[target.kind];
   return parts.exprs.map((name) => bag[name] as Expr);
