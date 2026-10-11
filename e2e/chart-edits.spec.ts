@@ -20,8 +20,6 @@ async function drag(page: Page, id: string, place: string): Promise<void> {
   await page.mouse.move(from.x + from.width / 2 + 10, from.y + from.height / 2 + 10, { steps: 4 });
   await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 12 });
   await page.mouse.up();
-  // dnd-kit stops every click for 50 ms after a drop; a person never clicks that soon.
-  await page.waitForTimeout(100);
 }
 
 test.beforeEach(async ({ page }) => {
@@ -88,10 +86,11 @@ test("Ctrl+D duplicates the selected node, and Esc clears the selection (U-35)",
 test("a node dragged onto another connector moves there (U-36)", async ({ page }) => {
   await seedProgram(page, "fizzbuzz", solutionOf("fizzbuzz"));
   await page.goto("/#/p/fizzbuzz");
+  // The tab is chosen first: dnd-kit stops every click for 50 ms after a drop.
+  await page.getByTestId("tab-python").click();
   await drag(page, "fzb-prnt-001", "main/main/0");
   // A drop opens no editor.
   await expect(page.getByTestId("node-editor")).toHaveCount(0);
-  await page.getByTestId("tab-python").click();
   await expect(page.getByTestId("python-line").nth(1)).toHaveText("2print(i)");
 });
 
@@ -106,10 +105,10 @@ test("a drop that takes break out of its loop is refused with a tooltip (U-36)",
   };
   await seedProgram(page, "fizzbuzz", programWith([loop]));
   await page.goto("/#/p/fizzbuzz");
+  await page.getByTestId("tab-python").click();
   await drag(page, "drg-stop-001", "main/main/0");
   await expect(page.getByTestId("drop-refused")).toHaveText("This block only works inside a loop");
   await expect(node(page, "drg-stop-001")).toHaveCount(1);
-  await page.getByTestId("tab-python").click();
   await expect(page.getByTestId("python-line")).toHaveText([
     "1n = 15",
     "2while True:",

@@ -97,7 +97,9 @@ test("an edit on a problem is saved and restored on reload (L-53)", async ({ pag
   await page.getByRole("button", { name: "Add your first block" }).click();
   await page.getByTestId("block-menu").locator('[data-entry="print"]').click();
   await expect(page.getByTestId("chart")).toContainText("Print choose a value");
-  await page.waitForTimeout(700);
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem("algoflow:program:fizzbuzz")))
+    .toContain('"kind":"print"');
   await page.reload();
   await expect(page.getByTestId("chart")).toContainText("Print choose a value");
 });
