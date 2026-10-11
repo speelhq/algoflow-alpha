@@ -1,4 +1,5 @@
-// PreToolUse (Bash|PowerShell): run `pnpm lint` before any `git commit`; deny the commit on failure.
+// PreToolUse (Bash|PowerShell): run `pnpm lint` before any `git commit`, `git -C <dir> commit`
+// included and `git commit-tree` not; deny the commit on failure.
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -13,7 +14,7 @@ try {
 }
 
 const command = input.tool_input?.command ?? "";
-if (!/\bgit\s+commit\b/.test(command)) process.exit(0);
+if (!/\bgit(?:\s+-[Cc]\s+\S+)*\s+commit(?![\w-])/.test(command)) process.exit(0);
 
 if (!existsSync(join(root, "package.json"))) {
   console.error("lint-before-commit: no package.json yet, skipping pnpm lint");
