@@ -2,7 +2,7 @@
 // done a batch of calls at a time, with `setTimeout(0)` between batches so the tab stays live.
 
 /** Calls of a step per batch. */
-export const BATCH = 2000;
+export const BATCH = 20_000;
 
 function sleep(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0));

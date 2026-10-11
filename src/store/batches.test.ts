@@ -1,10 +1,14 @@
-// R-24: work goes in batches of 2,000 calls with setTimeout(0) between them.
+// R-24: work goes in batches of `BATCH` calls with setTimeout(0) between them.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { BATCH, inBatches } from "./batches";
 
 describe("inBatches (R-24)", () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
+
+  it("a batch is 20,000 calls", () => {
+    expect(BATCH).toBe(20_000);
+  });
 
   it("calls the step BATCH times per batch, with a timer and `between` after each unfinished one", async () => {
     let calls = 0;

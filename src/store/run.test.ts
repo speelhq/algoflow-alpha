@@ -34,7 +34,9 @@ vi.mock("@/challenges", async (importOriginal) => {
 });
 
 const counting = () => program([for_("i", num(0), num(3), [print(v("i"))])]);
-const long = () => program([for_("i", num(0), num(1500), [print(v("i"))])]);
+/** A loop of `BATCH` passes: `3 × BATCH + 1` visible steps, more than one batch. */
+const long = () => program([for_("i", num(0), num(BATCH), [print(v("i"))])]);
+const LONG_TOTAL = 3 * BATCH + 1;
 
 const run = () => useRun.getState();
 
@@ -129,7 +131,7 @@ describe("run store (R-21)", () => {
     expect(run().state?.frames).toHaveLength(1);
   });
 
-  it("R-23, R-24, R-30 pre-run: batches of 2000 with setTimeout(0) between them; idle and busy meanwhile", async () => {
+  it("R-23, R-24, R-30 pre-run: batches of BATCH with setTimeout(0) between them; idle and busy meanwhile", async () => {
     useProgram.setState({ program: long() });
     const action = run().run();
     expect(run()).toMatchObject({ status: "idle", busy: true, total: 0 });
@@ -137,9 +139,9 @@ describe("run store (R-21)", () => {
     expect(run()).toMatchObject({ status: "idle", busy: true, total: 0 });
     expect(vi.getTimerCount()).toBe(1);
     await settle(action);
-    expect(run()).toMatchObject({ status: "playing", busy: false, step: 0, total: 4501 });
-    expect(run().prints).toHaveLength(1500);
-    expect(run().prints[1499]).toBe(4501);
+    expect(run()).toMatchObject({ status: "playing", busy: false, step: 0, total: LONG_TOTAL });
+    expect(run().prints).toHaveLength(BATCH);
+    expect(run().prints[BATCH - 1]).toBe(LONG_TOTAL);
   });
 
   it("R-23, R-32 error run: the failing step is step total, with no event and the error's statement", async () => {
@@ -280,12 +282,12 @@ describe("run store (R-21)", () => {
   it("R-27, R-28, R-30: Seek works in batches and is busy meanwhile; Back held during it stacks on its target", async () => {
     useProgram.setState({ program: long() });
     await paused();
-    const seeking = run().seek(4400);
+    const seeking = run().seek(LONG_TOTAL - 100);
     expect(run()).toMatchObject({ status: "paused", busy: true, step: BATCH });
     const first = run().back();
     const second = run().back();
     await settle(Promise.all([seeking, first, second]).then(() => {}));
-    expect(run()).toMatchObject({ status: "paused", busy: false, step: 4398 });
+    expect(run()).toMatchObject({ status: "paused", busy: false, step: LONG_TOTAL - 102 });
   });
 
   it("R-29: Stop discards the runner, the pre-run's findings, and the timer", async () => {
@@ -317,7 +319,7 @@ describe("run store (R-21)", () => {
     const first = run().run();
     const second = run().run();
     await settle(Promise.all([first, second]).then(() => {}));
-    expect(run()).toMatchObject({ status: "playing", busy: false, total: 4501 });
+    expect(run()).toMatchObject({ status: "playing", busy: false, total: LONG_TOTAL });
     vi.advanceTimersByTime(250);
     expect(run().step).toBe(1);
   });
@@ -328,16 +330,16 @@ describe("run store (R-21)", () => {
     run().pause();
     run().stepOnce();
     await settle(starting);
-    expect(run()).toMatchObject({ status: "paused", busy: false, step: 0, total: 4501 });
+    expect(run()).toMatchObject({ status: "paused", busy: false, step: 0, total: LONG_TOTAL });
     expect(vi.getTimerCount()).toBe(0);
 
-    const seeking = run().seek(4400);
+    const seeking = run().seek(LONG_TOTAL - 100);
     run().play();
     run().stepOnce();
     await settle(seeking);
-    expect(run()).toMatchObject({ status: "paused", busy: false, step: 4400 });
+    expect(run()).toMatchObject({ status: "paused", busy: false, step: LONG_TOTAL - 100 });
     run().stepOnce();
-    expect(run().step).toBe(4401);
+    expect(run().step).toBe(LONG_TOTAL - 99);
   });
 
   it("a new program stops the run and keeps the chosen case", async () => {
