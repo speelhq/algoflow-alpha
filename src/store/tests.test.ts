@@ -43,7 +43,10 @@ describe("tests store (U-80, C-10, C-11, C-12)", () => {
     expect(s.outcomes[1]).toMatchObject({ stdout: ["nope"], vars: { n: 1 } });
     expect(s.results[1]).toEqual({
       status: "fail",
-      mismatches: [{ kind: "stdout", expected: ["1"], actual: ["nope"] }],
+      rows: {
+        output: [{ line: 1, actual: "nope", expected: "1", differs: true }],
+        variables: [],
+      },
     });
   });
 

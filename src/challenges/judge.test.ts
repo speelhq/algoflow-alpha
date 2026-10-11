@@ -31,15 +31,15 @@ describe("judge (C-10)", () => {
     expect(judge(test({ variables: { x: 14.003 } }), out).status).toBe("pass");
     expect(judge(test({ variables: { n: 4 } }), out)).toEqual({
       status: "fail",
-      mismatches: [{ kind: "variable", name: "n", expected: 4, actual: 3 }],
+      rows: { output: [], variables: [{ name: "n", expected: 4, actual: 3, differs: true }] },
     });
   });
 
-  it("reports a variable that was never assigned with actual undefined", () => {
+  it("reports a variable that was never assigned with no actual value", () => {
     const out = outcome(program([assign("a", num(1))]));
     expect(judge(test({ variables: { b: 1 } }), out)).toEqual({
       status: "fail",
-      mismatches: [{ kind: "variable", name: "b", expected: 1, actual: undefined }],
+      rows: { output: [], variables: [{ name: "b", expected: 1, differs: true }] },
     });
   });
 
@@ -48,7 +48,13 @@ describe("judge (C-10)", () => {
     expect(judge(test({ stdout: ["1", "2"] }), out).status).toBe("pass");
     expect(judge(test({ stdout: ["1"] }), out)).toEqual({
       status: "fail",
-      mismatches: [{ kind: "stdout", expected: ["1"], actual: ["1", "2"] }],
+      rows: {
+        output: [
+          { line: 1, actual: "1", expected: "1", differs: false },
+          { line: 2, actual: "2", differs: true },
+        ],
+        variables: [],
+      },
     });
   });
 

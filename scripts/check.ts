@@ -3,10 +3,9 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { judge, sameLines } from "@/challenges/judge";
+import { judge } from "@/challenges/judge";
+import { resultRows, type Rows } from "@/challenges/rows";
 import { seedOf, type Challenge, type Test } from "@/challenges/types";
-import { dataEquals } from "@/lang/data";
-import type { Data } from "@/lang/types";
 import { emit } from "@/python/emit";
 import { checkChallengeSchema } from "./lib/challenge";
 import { runPython } from "./lib/cpython";
@@ -30,43 +29,41 @@ const files =
     ? args.map((a) => resolve(a)).filter((f) => basename(f) !== PLANS_FILE)
     : allFiles;
 
-function describeMismatch(kind: string, expected: unknown, actual: unknown): string {
-  return `${kind}: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`;
+/** What each differing row says: its line or variable, what was expected, and what came. */
+function differences(rows: Rows): string[] {
+  const shown = (value: unknown) => (value === undefined ? "nothing" : JSON.stringify(value));
+  return [
+    ...rows.output
+      .filter((row) => row.differs)
+      .map((row) => `line ${row.line}: expected ${shown(row.expected)}, got ${shown(row.actual)}`),
+    ...rows.variables
+      .filter((row) => row.differs)
+      .map((row) =>
+        row.actual === undefined
+          ? `variable ${row.name} was never assigned`
+          : `${row.name}: expected ${shown(row.expected)}, got ${shown(row.actual)}`,
+      ),
+  ];
 }
 
 /** One test: interpreter result against `expect`, then CPython against the interpreter. */
 function checkTest(challenge: Challenge, test: Test, index: number): string[] {
   const label = `test[${index}] ${JSON.stringify(test.inputs)}`;
-  const problems: string[] = [];
-  const seed = seedOf(test);
-  const outcome = execute(challenge.solution, test.inputs, seed);
+  const outcome = execute(challenge.solution, test.inputs, seedOf(test));
   const verdict = judge(test, outcome);
   if (verdict.status === "error") {
     const { code, nodeId, params } = verdict.error;
     return [`${label}: interpreter ${code} at ${nodeId} ${JSON.stringify(params)}`];
   }
-  if (verdict.status === "fail") {
-    for (const m of verdict.mismatches) {
-      if (m.kind === "stdout")
-        problems.push(`${label}: ${describeMismatch("stdout", m.expected, m.actual)}`);
-      else if (m.actual === undefined)
-        problems.push(`${label}: variable ${m.name} was never assigned`);
-      else problems.push(`${label}: ${describeMismatch(m.name, m.expected, m.actual)}`);
-    }
-  }
+  const problems =
+    verdict.status === "fail" ? differences(verdict.rows).map((d) => `${label}: ${d}`) : [];
 
   const code = emit(challenge.solution, test.inputs).code;
   const python = runPython(code, outcome.draws, Object.keys(outcome.vars));
   if ("error" in python) return [...problems, `${label}: python3 failed: ${python.error}`];
-  if (!sameLines(outcome.stdout, python.stdout))
-    problems.push(`${label}: CPython ${describeMismatch("stdout", outcome.stdout, python.stdout)}`);
-  for (const [name, value] of Object.entries(outcome.vars)) {
-    const theirs: Data | undefined = python.vars[name];
-    if (theirs === undefined) problems.push(`${label}: CPython has no variable ${name}`);
-    else if (!dataEquals(value, theirs))
-      problems.push(`${label}: CPython ${describeMismatch(name, value, theirs)}`);
-  }
-  return problems;
+  // CPython is held to what the interpreter produced: every line and every variable of `main`.
+  const agreement = resultRows({ stdout: outcome.stdout, variables: outcome.vars }, python);
+  return [...problems, ...differences(agreement).map((d) => `${label}: CPython ${d}`)];
 }
 
 type Checked = { problems: string[]; summary: string };

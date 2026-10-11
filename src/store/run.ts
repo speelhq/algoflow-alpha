@@ -6,14 +6,14 @@
 import { create } from "zustand";
 import { caseInputs, caseOf } from "@/challenges/cases";
 import { judge, type TestResult } from "@/challenges/judge";
-import { firstDifference, resultRows, watchStep, type WatchStep } from "@/challenges/rows";
+import { firstDifference, watchStep, type WatchStep } from "@/challenges/rows";
 import { seedOf, type Test } from "@/challenges/types";
 import type { Data, HeapEntry, Id, NodeId, Program } from "@/lang/types";
 import { canRun } from "@/lang/validate";
 import { bodyStmts, diamondConditions, nodesById, ownerStmts } from "@/lang/walk";
 import { clamp } from "@/lib/utils";
 import { getNode, keyOf } from "@/nodes/registry";
-import { outcomeOf, type Outcome } from "@/runtime/outcome";
+import { outcomeOf } from "@/runtime/outcome";
 import { run as startRunner } from "@/runtime/run";
 import type { Done, Event, Runner, State } from "@/runtime/types";
 import { inBatches } from "./batches";
@@ -248,15 +248,9 @@ function atBreakpoint(): boolean {
   );
 }
 
-/** The print of the first differing line, or the last step of the run. */
-function differenceOf(
-  test: Test | undefined,
-  outcome: Outcome,
-  prints: number[],
-  total: number,
-): Difference {
-  const first =
-    outcome.done.type === "done" ? firstDifference(resultRows(test?.expect, outcome)) : null;
+/** The print of the verdict's first differing line, or the last step of the run. */
+function differenceOf(verdict: TestResult | null, prints: number[], total: number): Difference {
+  const first = verdict?.status === "fail" ? firstDifference(verdict.rows) : null;
   return watchStep(first, prints, total);
 }
 
@@ -282,13 +276,13 @@ async function prerun(from: Origin, mine: number): Promise<Plan | undefined> {
     const next = probe.next();
     if (next.type === "done" || next.type === "error") {
       const total = next.type === "error" ? events + 1 : events;
-      const outcome = outcomeOf(probe, next);
+      const verdict = from.test ? judge(from.test, outcomeOf(probe, next)) : null;
       found = {
         total,
         outcome: next,
         prints,
-        verdict: from.test ? judge(from.test, outcome) : null,
-        difference: differenceOf(from.test, outcome, prints, total),
+        verdict,
+        difference: differenceOf(verdict, prints, total),
       };
       return true;
     }

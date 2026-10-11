@@ -560,9 +560,12 @@ describe("run store (R-21)", () => {
     useProgram.setState({ program: { ...fizzbuzz().solution, main: [print(str("nope"))] } });
     await paused();
     await run().skip();
-    expect(run().verdict).toMatchObject({
-      status: "fail",
-      mismatches: [{ kind: "stdout", actual: ["nope"] }],
+    const verdict = run().verdict;
+    expect(verdict?.status === "fail" && verdict.rows.output[0]).toEqual({
+      line: 1,
+      actual: "nope",
+      expected: "1",
+      differs: true,
     });
 
     const div = bin("/", num(1), num(0));

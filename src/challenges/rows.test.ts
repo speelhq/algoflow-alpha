@@ -1,22 +1,6 @@
 // U-23: the rows of one case; U-81: the first difference and the step Watch this case opens at.
 import { describe, expect, it } from "vitest";
-import type { Program } from "@/lang/types";
-import { ast } from "@/nodes/testing";
-import { advance, outcomeOf, type Outcome } from "@/runtime/outcome";
-import { run } from "@/runtime/run";
-import { CHALLENGES } from "./index";
-import { judge } from "./judge";
 import { firstDifference, resultRows, watchStep } from "./rows";
-import { seedOf } from "./types";
-
-const { print, str } = ast;
-
-function outcome(p: Program, inputs = {}, seed = 1): Outcome {
-  const runner = run(p, inputs, seed);
-  const done = advance(runner, 1_000_000);
-  if (!done) throw new Error("did not finish");
-  return outcomeOf(runner, done);
-}
 
 describe("resultRows (U-23)", () => {
   it("aligns Output and Expected line by line, with a blank cell where one side has no line", () => {
@@ -71,18 +55,5 @@ describe("firstDifference and watchStep (U-23, U-81)", () => {
     expect(watchStep({ kind: "output", line: 4 }, prints, 12)).toEqual({ step: 12 }); // never printed
     expect(watchStep({ kind: "variable", name: "total" }, prints, 12)).toEqual({ step: 12 });
     expect(watchStep(null, prints, 12)).toEqual({ step: 12 });
-  });
-
-  it("is null exactly when the judge passes, over every challenge test", () => {
-    for (const challenge of CHALLENGES) {
-      const broken = { ...challenge.solution, main: [print(str("nope"))] };
-      for (const test of challenge.tests) {
-        for (const candidate of [challenge.solution, broken]) {
-          const out = outcome(candidate, test.inputs, seedOf(test));
-          const passed = judge(test, out).status === "pass";
-          expect(firstDifference(resultRows(test.expect, out)) === null).toBe(passed);
-        }
-      }
-    }
   });
 });

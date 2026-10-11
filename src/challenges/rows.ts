@@ -1,5 +1,5 @@
-// The rows of the `Result` tab for one case, and the first one that differs.
-// Pure, beside the judge: `firstDifference` is null exactly when `judge` passes a finished run.
+// The rows of the `Result` tab for one case, and the first one that differs; the judge passes a
+// finished run exactly when none differs (`judge.ts`).
 import { dataEquals } from "@/lang/data";
 import type { Data, Id } from "@/lang/types";
 import type { Test } from "./types";
