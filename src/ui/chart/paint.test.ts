@@ -17,7 +17,7 @@ const nodeOf = (owner: string, role: string) =>
 
 function view(partial: Partial<RunView>): RunView {
   return {
-    ended: false,
+    finished: false,
     activeId: null,
     lastEvent: null,
     taken: {},
@@ -101,7 +101,7 @@ describe("paint (U-61)", () => {
   });
 
   it("marks the breakpoint on a loop's check and End once the run has ended", () => {
-    const p = paint(chart, view({ breakpoint: loop.id, ended: true }));
+    const p = paint(chart, view({ breakpoint: loop.id, finished: true }));
     expect(p.breakpoint).toBe(nodeOf(loop.id, "check"));
     expect(p.nodes.has("end")).toBe(true);
   });

@@ -8,14 +8,14 @@ import { useProgram } from "@/store/program";
 import { Input } from "@/ui/primitives/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/primitives/popover";
 import { insertBlock } from "./edits";
-import { menuGroups, searchMenu, type MenuEntry } from "./menu";
+import { menuGroups, searchMenu, type BlockMenuEntry } from "./menu";
 
 function Entries({ place, done }: { place: Place; done: () => void }) {
   const program = useProgram((s) => s.program);
   const [query, setQuery] = useState("");
   const groups = useMemo(() => menuGroups(program, place), [program, place]);
   const shown = useMemo(() => searchMenu(groups, query), [groups, query]);
-  const choose = (entry: MenuEntry) => {
+  const choose = (entry: BlockMenuEntry) => {
     if (entry.disabled) return;
     done();
     insertBlock(entry.create(), place);

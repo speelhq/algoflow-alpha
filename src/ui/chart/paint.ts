@@ -6,7 +6,8 @@ import type { Event } from "@/runtime/types";
 import type { ChartLayout, ChartNode } from "./layout";
 
 export type RunView = {
-  ended: boolean;
+  /** The run finished (`done`): `End` is on the taken path. */
+  finished: boolean;
   activeId: NodeId | null;
   lastEvent: Event | null;
   taken: Record<NodeId, true>;
@@ -43,7 +44,7 @@ export function currentNode(chart: ChartLayout, view: RunView): string | null {
 
 function isTaken(node: ChartNode, view: RunView): boolean {
   if (node.role === "start" || node.role === "input") return true;
-  if (node.role === "end") return view.ended;
+  if (node.role === "end") return view.finished;
   return node.owner !== null && node.owner in view.taken;
 }
 

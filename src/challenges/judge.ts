@@ -1,5 +1,5 @@
-// One test verdict, shared by the Tests tab and scripts/check.ts: a finished run passes when
-// no row of the `Result` tab differs.
+// One test verdict, shared by Run, Submit, and scripts/check.ts: a finished run passes when no
+// row of the `Result` tab differs.
 import type { Outcome } from "@/runtime/outcome";
 import type { RuntimeError } from "@/runtime/types";
 import { firstDifference, resultRows, type Rows } from "./rows";

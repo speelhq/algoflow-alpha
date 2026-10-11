@@ -77,7 +77,7 @@ type Origin = {
   test: Test | undefined;
 };
 /** What the pre-run found, with the chosen case's verdict. */
-type Plan = {
+type Findings = {
   total: number;
   outcome: Done;
   prints: number[];
@@ -97,7 +97,7 @@ type Projection = {
 
 let runner: Runner | null = null;
 let origin: Origin | null = null;
-let plan: Plan | null = null;
+let findings: Findings | null = null;
 let owners = new Map<NodeId, NodeId>();
 /** Each diamond's condition, with its statement: the condition's `compare` marks the diamond. */
 let conditions = new Map<NodeId, NodeId>();
@@ -216,7 +216,7 @@ function loopBodies(program: Program, all: Map<NodeId, NodeId[]>): Map<NodeId, S
 }
 
 function atEnd(): boolean {
-  return plan !== null && projection.step >= plan.total;
+  return findings !== null && projection.step >= findings.total;
 }
 
 /**
@@ -224,17 +224,17 @@ function atEnd(): boolean {
  * frames exist: this is where the driver will pass over the steps inside one.
  */
 function advance(): void {
-  if (!runner || !plan) return;
+  if (!runner || !findings) return;
   const next = runner.next();
   if (next.type === "done" || next.type === "error") {
     // The failing `next()` is itself step `total`; it has no event.
-    projection.step = plan.total;
+    projection.step = findings.total;
     projection.lastEvent = null;
     return;
   }
   apply(next);
   // The last event of a finished run: one more `next()` lets the frames unwind.
-  if (projection.step === plan.total) runner.next();
+  if (projection.step === findings.total) runner.next();
 }
 
 /** The step just taken arrived at the breakpoint (its `enter`, or a pass of that loop). */
@@ -267,11 +267,11 @@ function reset(from: Origin): void {
 }
 
 /** The whole run on a throwaway runner, in batches; undefined when another action took over. */
-async function prerun(from: Origin, mine: number): Promise<Plan | undefined> {
+async function prerun(from: Origin, mine: number): Promise<Findings | undefined> {
   const probe = startRunner(from.program, from.inputs, from.seed);
   const prints: number[] = [];
   let events = 0;
-  let found: Plan | undefined;
+  let found: Findings | undefined;
   const step = (): boolean => {
     const next = probe.next();
     if (next.type === "done" || next.type === "error") {
@@ -308,16 +308,16 @@ export const useRun = create<RunState>()((set, get) => {
     const previous = get();
     const ended = runner !== null && atEnd();
     if (ended) clearTimer();
-    const outcome = plan?.outcome ?? null;
+    const outcome = findings?.outcome ?? null;
     const focus = ended && outcome?.type === "error" ? outcome.error.nodeId : p.lastEvent?.nodeId;
     const state = snapshot();
     set({
       status: ended && outcome ? outcome.type : status,
       busy,
       step: p.step,
-      total: plan?.total ?? 0,
+      total: findings?.total ?? 0,
       outcome,
-      prints: plan?.prints ?? NO_PRINTS,
+      prints: findings?.prints ?? NO_PRINTS,
       lastEvent: p.lastEvent,
       pass: p.lastEvent?.type === "loop" ? (p.passes.get(p.lastEvent.nodeId) ?? null) : null,
       activeId: focus === undefined ? null : (owners.get(focus) ?? focus),
@@ -327,8 +327,8 @@ export const useRun = create<RunState>()((set, get) => {
       verdicts: p.dirty.verdicts ? { ...p.verdicts } : previous.verdicts,
       taken: p.dirty.taken ? { ...p.taken } : previous.taken,
       breakpoint,
-      verdict: ended ? (plan?.verdict ?? null) : null,
-      difference: watching ? (plan?.difference ?? null) : null,
+      verdict: ended ? (findings?.verdict ?? null) : null,
+      difference: watching ? (findings?.difference ?? null) : null,
     });
     p.dirty = { stdout: false, verdicts: false, taken: false };
   };
@@ -394,7 +394,7 @@ export const useRun = create<RunState>()((set, get) => {
       const made = await prerun(from, mine);
       if (!made) return;
       origin = from;
-      plan = made;
+      findings = made;
       owners = ownerStmts(from.program);
       conditions = diamondConditions(from.program);
       bodies = bodyStmts(from.program);
@@ -436,8 +436,8 @@ export const useRun = create<RunState>()((set, get) => {
     },
 
     async seek(step) {
-      if (!runner || !plan || !origin) return;
-      const to = clamp(Math.round(step), 0, plan.total);
+      if (!runner || !findings || !origin) return;
+      const to = clamp(Math.round(step), 0, findings.total);
       cancel();
       target = to;
       // Forward: the current runner goes on; backward: a fresh runner from step 0.
@@ -452,17 +452,17 @@ export const useRun = create<RunState>()((set, get) => {
     },
 
     async skip() {
-      if (!running() || !plan) return;
+      if (!running() || !findings) return;
       cancel();
       publish("playing", true);
-      if (await batched(plan.total, true, "playing")) publish("paused", false);
+      if (await batched(findings.total, true, "playing")) publish("paused", false);
     },
 
     stop() {
       cancel();
       runner = null;
       origin = null;
-      plan = null;
+      findings = null;
       watching = false;
       breakpoint = null;
       projection = freshProjection();

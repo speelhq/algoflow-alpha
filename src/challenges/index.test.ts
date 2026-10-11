@@ -1,7 +1,7 @@
 // C-14: every challenge file is bundled; C-16: the list follows the plans; C-25: every
 // challenge is in one plan.
 import { describe, expect, it, vi } from "vitest";
-import { CHALLENGES, getChallenge, PLANS, planOf } from "./index";
+import { CHALLENGES, challengesOf, getChallenge, PLANS, planOf } from "./index";
 
 describe("challenge bundle (C-14, C-16, C-25)", () => {
   it("loads every challenges/*.json with id, tests, and solution; plans.json is not one", () => {
@@ -17,6 +17,7 @@ describe("challenge bundle (C-14, C-16, C-25)", () => {
 
   it("C-16: lists each plan's members in its order, the plans in theirs", () => {
     expect(CHALLENGES.map((c) => c.id)).toEqual(PLANS.flatMap((plan) => plan.problems));
+    for (const plan of PLANS) expect(challengesOf(plan).map((c) => c.id)).toEqual(plan.problems);
   });
 
   it("C-25: finds the one plan of each challenge; an id in no plan throws", () => {

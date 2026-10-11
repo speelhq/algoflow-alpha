@@ -1,5 +1,5 @@
-// The only registry. Interpreter, emitter, parser, validator, palette,
-// and properties all dispatch through `getNode(keyOf(node))`.
+// The only registry. The interpreter, the emitter, the parser, validation, the chart, the block
+// menu, and the node editor all dispatch through `getNode(keyOf(node))`.
 import type { Node } from "@/lang/types";
 import { assign } from "./assign";
 import { binop } from "./binop";
@@ -79,7 +79,7 @@ export function keyOf(node: Node): string {
 }
 
 /** Block menu entries of one category, in registration order. */
-export function paletteNodes(category: Category): NodeDef[] {
+export function menuBlocks(category: Category): NodeDef[] {
   return ALL.filter((def) => def.category === category && !def.hidden);
 }
 

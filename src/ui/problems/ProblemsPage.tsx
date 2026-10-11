@@ -1,6 +1,6 @@
 // One section per study plan, in plan order; the status marks and plan counts come from
 // progress.
-import { CHALLENGES, getChallenge, planOf, PLANS, type Challenge, type Plan } from "@/challenges";
+import { challengesOf, getChallenge, PLANS, type Challenge, type Plan } from "@/challenges";
 import { planAction, type Status } from "@/challenges/next";
 import { localized, t } from "@/i18n/t";
 import { cn } from "@/lib/utils";
@@ -28,7 +28,6 @@ export function ProblemsPage() {
 function PlanSection({ plan, entries }: { plan: Plan; entries: Progress }) {
   const { problems } = plan;
   const status: Status = (id) => statusOf(entries, id);
-  const challenges = CHALLENGES.filter((challenge) => planOf(challenge.id) === plan);
   const action = planAction(problems, status);
   const solved = solvedCount(entries, problems);
   const next = action && getChallenge(action.id);
@@ -56,7 +55,7 @@ function PlanSection({ plan, entries }: { plan: Plan; entries: Progress }) {
         )}
       </div>
       <ul className="mt-1">
-        {challenges.map((challenge) => (
+        {challengesOf(plan).map((challenge) => (
           <ProblemRow key={challenge.id} challenge={challenge} mark={status(challenge.id)} />
         ))}
       </ul>

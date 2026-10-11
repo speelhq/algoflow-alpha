@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { unparse } from "@/python/emit";
-import { getNode, paletteNodes } from "./registry";
+import { getNode, menuBlocks } from "./registry";
 import { ast, evalExpr } from "./testing";
 
 describe("empty (L-09)", () => {
@@ -9,8 +9,8 @@ describe("empty (L-09)", () => {
     expect(unparse(ast.bin("+", ast.num(1), ast.empty()))).toBe("1 + ...");
   });
 
-  it("is hidden from the palette", () => {
-    expect(paletteNodes("basic").some((def) => def.key === "empty")).toBe(false);
+  it("is hidden from the block menu", () => {
+    expect(menuBlocks("basic").some((def) => def.key === "empty")).toBe(false);
     expect(getNode("empty").hidden).toBe(true);
   });
 

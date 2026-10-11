@@ -5,13 +5,13 @@
 import { nodeText, t } from "@/i18n/t";
 import { placeContext } from "@/lang/scope";
 import type { Place, Program, Stmt } from "@/lang/types";
-import { getNode, paletteNodes } from "@/nodes/registry";
+import { getNode, menuBlocks } from "@/nodes/registry";
 import { CATEGORIES, type Category } from "@/nodes/categories";
 import { parseScope } from "@/python/parse";
 import { blankTemplate } from "@/ui/chart/text";
 import { callableFunctions, callExpr, type LineFunction } from "./line";
 
-export type MenuEntry = {
+export type BlockMenuEntry = {
   /** The registry key, or `call:<name>` for a function of the program. */
   id: string;
   /** The block's template with every slot written `…`. */
@@ -22,19 +22,19 @@ export type MenuEntry = {
   disabled?: string;
   create: () => Stmt;
 };
-export type MenuGroup = { id: Category | "program"; title: string; entries: MenuEntry[] };
+export type BlockMenuGroup = { id: Category | "program"; title: string; entries: BlockMenuEntry[] };
 
 /** The groups of the block menu at `place`; empty groups are left out. */
-export function menuGroups(program: Program, place: Place): MenuGroup[] {
+export function menuGroups(program: Program, place: Place): BlockMenuGroup[] {
   const here = placeContext(program, place);
-  const groups: MenuGroup[] = [];
+  const groups: BlockMenuGroup[] = [];
   for (const category of CATEGORIES) {
-    const entries = paletteNodes(category)
+    const entries = menuBlocks(category)
       .filter((def) => def.shape === "stmt")
-      .map((def): MenuEntry => {
+      .map((def): BlockMenuEntry => {
         const missing =
           (def.requires === "loop" && !here.loop) || (def.requires === "function" && !here.fn);
-        const entry: MenuEntry = {
+        const entry: BlockMenuEntry = {
           id: def.key,
           text: blankTemplate(nodeText(def.key, "template")),
           label: nodeText(def.key, "label"),
@@ -48,7 +48,7 @@ export function menuGroups(program: Program, place: Place): MenuGroup[] {
       groups.push({ id: category, title: t(`menu.category.${category}`), entries });
     }
   }
-  const calls = callableFunctions(program).map((fn): MenuEntry => {
+  const calls = callableFunctions(program).map((fn): BlockMenuEntry => {
     const text = t("node.call.template", {
       fn: fn.name,
       args: fn.params.length > 0 ? blankTemplate("{a}") : "",
@@ -74,7 +74,7 @@ function callStatement(program: Program, fn: LineFunction): Stmt {
 }
 
 /** The groups with only the entries whose label or help contains `query`. */
-export function searchMenu(groups: MenuGroup[], query: string): MenuGroup[] {
+export function searchMenu(groups: BlockMenuGroup[], query: string): BlockMenuGroup[] {
   const q = query.trim().toLowerCase();
   if (q === "") return groups;
   return groups

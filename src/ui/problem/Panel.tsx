@@ -89,7 +89,6 @@ export function Panel({ challenge }: { challenge?: Challenge }) {
         </Tabs>
       </aside>
       <ResizeHandle
-        orientation="vertical"
         label={t("problem.panel.resize")}
         testId="panel-resize"
         size={width}

@@ -1,4 +1,4 @@
-// The placeholder in an unfilled required slot. Never in the palette;
+// The placeholder in an unfilled required slot. Never in the block menu;
 // validate reports E_EMPTY_SLOT before anything runs.
 import { newId } from "@/lang/id";
 import type { Expr, Value } from "@/lang/types";

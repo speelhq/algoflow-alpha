@@ -100,7 +100,7 @@ function useRunPaint(
   return useMemo(() => {
     if (!chart || !inRun(mode)) return { narration: null };
     const painted = paint(chart, {
-      ended: run.status === "done",
+      finished: run.status === "done",
       activeId: run.activeId,
       lastEvent: run.lastEvent,
       taken: run.taken,
