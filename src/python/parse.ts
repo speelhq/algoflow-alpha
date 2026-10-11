@@ -1,8 +1,8 @@
 // Typed expression text → Expr. No third-party imports.
 import { newId } from "@/lang/id";
-import { fitsInt } from "@/lang/data";
 import type { BinOp, Expr, Id, Program } from "@/lang/types";
 import { NODES, hasNode, keyOf } from "@/nodes/registry";
+import { NUMBER, numberLiteral } from "./number";
 import { BINOPS, PRECEDENCE, binopsAt, isBinOp, isComparison } from "./precedence";
 
 export type ParseScope = { classes: Id[]; functions: Id[] };
@@ -34,8 +34,6 @@ type Token = {
   pos: number;
 };
 
-const NUMBER = /^(?:\d+\.\d*(?:[eE][+-]?\d+)?|\d+[eE][+-]?\d+|\.\d+(?:[eE][+-]?\d+)?|\d+)/;
-const LEADING_ZERO = /^0+\d*[1-9]/; // Python rejects `0777`; `0` and `00` are fine
 const NAME = /^[A-Za-z_][A-Za-z0-9_]*/;
 const SYMBOL_OPS = BINOPS.filter((op) => !/^[a-z]/.test(op));
 const OPS2 = SYMBOL_OPS.filter((op) => op.length === 2);
@@ -72,7 +70,6 @@ function tokenize(text: string): Token[] {
     const num = NUMBER.exec(rest);
     if (num) {
       const [raw] = num;
-      if (!/[.eE]/.test(raw) && LEADING_ZERO.test(raw)) fail("E_PARSE_SYNTAX", pos);
       tokens.push({ type: "num", text: raw, value: raw, pos });
       pos += raw.length;
       continue;
@@ -328,10 +325,9 @@ class Parser {
     const token = this.take();
     switch (token.type) {
       case "num": {
-        const float = /[.eE]/.test(token.text);
-        const value = Number(token.text);
-        if (!float && !fitsInt(value)) fail("E_PARSE_SYNTAX", token.pos);
-        return { id: newId(), kind: "num", value, float, raw: token.text };
+        const literal = numberLiteral(token.text);
+        if (!literal) return fail("E_PARSE_SYNTAX", token.pos);
+        return { id: newId(), kind: "num", ...literal, raw: token.text };
       }
       case "str":
         return { id: newId(), kind: "str", value: token.value };
