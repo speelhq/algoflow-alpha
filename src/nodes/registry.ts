@@ -84,4 +84,4 @@ export function paletteNodes(category: Category): NodeDef[] {
 }
 
 export { emptyExpr } from "./empty";
-export type { EmitContext, NodeDef, PyLine, RunContext, Signal, Slot } from "./types";
+export type { EmitContext, NodeDef, Param, PyLine, RunContext, Signal, Slot } from "./types";

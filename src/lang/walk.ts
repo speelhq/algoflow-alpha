@@ -50,6 +50,17 @@ export function variableOf(expr: Expr): string | undefined {
   return typeof name === "string" ? name : undefined;
 }
 
+/**
+ * The argument a builtin's or method's parameter `name` takes, and its position among the
+ * arguments; undefined when the node has no such parameter or that argument is not passed.
+ */
+export function paramArg(node: Node, name: string): { arg: Expr; index: number } | undefined {
+  const index = getNode(keyOf(node)).params?.findIndex((param) => param.name === name) ?? -1;
+  const args = (node as unknown as Bag).args;
+  const arg: unknown = index >= 0 && Array.isArray(args) ? args[index] : undefined;
+  return isExpr(arg) ? { arg, index } : undefined;
+}
+
 export type SlotExpr = { slot: string; expr: Expr; index?: number };
 
 /** Direct expression children with the slot each sits in (target children under the target slot). */

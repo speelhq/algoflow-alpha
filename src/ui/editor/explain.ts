@@ -3,7 +3,7 @@
 import { t } from "@/i18n/t";
 import { chartOf, firstSetters, variableKinds } from "@/lang/kinds";
 import type { Expr, Id, Kind, NodeId, Program } from "@/lang/types";
-import { isEmptyExpr } from "@/lang/walk";
+import { isEmptyExpr, paramArg } from "@/lang/walk";
 import { getNode, keyOf } from "@/nodes/registry";
 import {
   capitalise,
@@ -145,10 +145,8 @@ function operationParts(operation: Expr, current: Expr): Part[] {
         i === 0 ? [written(item)] : [{ text: t("chart.listSeparator") }, written(item)],
       );
     }
-    const index = def.params?.indexOf(name) ?? -1;
-    const args = Array.isArray(bag.args) ? (bag.args as Expr[]) : [];
-    const arg = index >= 0 ? args[index] : undefined;
-    return arg ? [written(arg)] : [];
+    const found = paramArg(operation, name);
+    return found ? [written(found.arg)] : [];
   });
 }
 

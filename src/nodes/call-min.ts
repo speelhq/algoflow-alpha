@@ -6,7 +6,7 @@ import { defineBuiltin } from "./builtin";
 export const min = defineBuiltin({
   name: "min",
   category: "basic",
-  params: ["a", "b"],
+  params: [{ name: "a" }, { name: "b" }],
   kind: ([first], kindOf) => (first ? kindOf(first) : undefined),
   menu: [{ name: "", group: "calculate", on: ["number", "text"] }],
   evaluate([a = { t: "none" }, b = { t: "none" }], node, ctx) {

@@ -7,7 +7,7 @@ const INTEGER = /^\s*[+-]?\d+\s*$/;
 export const intCall = defineBuiltin({
   name: "int",
   category: "basic",
-  params: ["x"],
+  params: [{ name: "x" }],
   kind: () => "number",
   menu: [{ name: "", group: "convert", on: ["number", "text"] }],
   evaluate([x = { t: "none" }], node, ctx) {

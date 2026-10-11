@@ -1,9 +1,22 @@
 // U-39: every node maps to the statement that contains it.
 import { describe, expect, it } from "vitest";
 import { ast, program, tid } from "@/nodes/testing";
-import { bodyStmts, conditionOf, diamondConditions, ownerStmts } from "./walk";
+import { bodyStmts, conditionOf, diamondConditions, ownerStmts, paramArg } from "./walk";
 
-const { assign, num, bin, v, if_, for_, while_, print, ret } = ast;
+const { assign, num, bin, v, if_, for_, while_, print, ret, call } = ast;
+
+describe("paramArg (N-01)", () => {
+  it("finds the argument a builtin's parameter takes, with its position", () => {
+    const a = v("a");
+    const b = num(2);
+    const max = call("max", a, b);
+    expect(paramArg(max, "a")).toEqual({ arg: a, index: 0 });
+    expect(paramArg(max, "b")).toEqual({ arg: b, index: 1 });
+    expect(paramArg(max, "c")).toBeUndefined();
+    expect(paramArg(call("max", a), "b")).toBeUndefined();
+    expect(paramArg(v("x"), "a")).toBeUndefined();
+  });
+});
 
 describe("ownerStmts (U-39)", () => {
   it("maps expressions to their statement and statements, functions, classes to themselves", () => {

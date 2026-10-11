@@ -24,12 +24,15 @@ export type Callee = {
   family: "builtin" | "function" | "class" | "method";
 };
 
+/** A builtin's or method's parameter, `name` as its template writes it. */
+export type Param = { name: string; optional?: true };
+
 /**
  * The argument count `params` expect when `got` is not one they take: the fewest when too few,
- * the most when too many; undefined when `got` fits. A trailing `?` marks an optional parameter.
+ * the most when too many; undefined when `got` fits.
  */
-export function expectedArgs(params: readonly string[], got: number): number | undefined {
-  const fewest = params.filter((param) => !param.endsWith("?")).length;
+export function expectedArgs(params: readonly Param[], got: number): number | undefined {
+  const fewest = params.filter((param) => !param.optional).length;
   if (got < fewest) return fewest;
   if (got > params.length) return params.length;
   return undefined;
@@ -124,11 +127,8 @@ export type NodeDef = {
   shape: "stmt" | "expr";
   category: Category;
   slots: Slot[];
-  /**
-   * Builtin and method parameter names in order, a trailing `?` marking an optional one
-   * (`expectedArgs`); template placeholders use them.
-   */
-  params?: string[];
+  /** Builtin and method parameters in order (`expectedArgs`); template placeholders name them. */
+  params?: Param[];
   /** Emitter aliases accepted by the parser, e.g. "random.randint". */
   aliases?: string[];
   imports?: "math" | "random";

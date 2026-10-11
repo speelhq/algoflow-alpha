@@ -5,7 +5,7 @@
 import { forwardRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { t } from "@/i18n/t";
 import type { Expr, NodeId } from "@/lang/types";
-import { isEmptyExpr, variableOf } from "@/lang/walk";
+import { isEmptyExpr, paramArg, variableOf } from "@/lang/walk";
 import { cn } from "@/lib/utils";
 import { getNode, keyOf } from "@/nodes/registry";
 import type { Side } from "@/nodes/types";
@@ -176,10 +176,8 @@ export const ValueLine = forwardRef<HTMLDivElement, Props>(function ValueLine(pr
       } else if (slot?.role === "id") {
         pieces.push(<span key={`id${at}`}>{typeof value === "string" ? value : ""}</span>);
       } else {
-        const index = def.params?.indexOf(name) ?? -1;
-        const args = Array.isArray(bag.args) ? (bag.args as Expr[]) : [];
-        const arg = index >= 0 ? args[index] : undefined;
-        if (arg) pieces.push(draw(arg, expr, index === 0 ? "left" : "right"));
+        const param = paramArg(expr, name);
+        if (param) pieces.push(draw(param.arg, expr, param.index === 0 ? "left" : "right"));
       }
       at = found.index + found[0].length;
     }

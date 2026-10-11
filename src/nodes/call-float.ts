@@ -6,7 +6,7 @@ const NUMBER = /^\s*[+-]?(?:\d+\.?\d*(?:[eE][+-]?\d+)?|\.\d+(?:[eE][+-]?\d+)?)\s
 export const floatCall = defineBuiltin({
   name: "float",
   category: "basic",
-  params: ["x"],
+  params: [{ name: "x" }],
   kind: () => "number",
   menu: [{ name: "", group: "convert", on: ["number", "text"] }],
   evaluate([x = { t: "none" }], node, ctx) {

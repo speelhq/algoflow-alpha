@@ -6,7 +6,7 @@ import { defineBuiltin } from "./builtin";
 export const strCall = defineBuiltin({
   name: "str",
   category: "basic",
-  params: ["x"],
+  params: [{ name: "x" }],
   kind: () => "text",
   menu: [{ name: "", group: "convert", on: KINDS }],
   evaluate([x = { t: "none" }], _node, ctx) {

@@ -8,7 +8,7 @@ import { nodeText, t } from "@/i18n/t";
 import { toValue } from "@/lang/data";
 import type { Data, Expr, Heap, Node, NodeId, Program, Target, Value } from "@/lang/types";
 import { firstAssignments } from "@/lang/validate";
-import { conditionOf, isEmptyExpr, isExpr, variableOf } from "@/lang/walk";
+import { conditionOf, isEmptyExpr, isExpr, paramArg, variableOf } from "@/lang/walk";
 import { getNode, hasNode, keyOf } from "@/nodes/registry";
 import type { NodeDef, Side } from "@/nodes/types";
 import { writeTarget } from "@/python/emit";
@@ -161,11 +161,10 @@ export function exprParts(expr: Expr, writing: Writing = {}): Part[] {
       case "text":
         return [{ text: textOf(expr, def, slot.name) }];
       case undefined: {
-        // Builtin templates name their parameters (`{a}`, `{b}`): the i-th argument.
-        const index = def.params?.indexOf(placeholderName) ?? -1;
-        const arg =
-          index >= 0 && Array.isArray(bag.args) ? (bag.args[index] as unknown) : undefined;
-        return isExpr(arg) ? operandParts(arg, expr, index === 0 ? "left" : "right", writing) : [];
+        // Builtin templates name their parameters (`{a}`, `{b}`).
+        const found = paramArg(expr, placeholderName);
+        const side = found?.index === 0 ? "left" : "right";
+        return found ? operandParts(found.arg, expr, side, writing) : [];
       }
       default:
         return [];

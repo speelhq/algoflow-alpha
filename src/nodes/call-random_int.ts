@@ -6,7 +6,7 @@ import { defineBuiltin } from "./builtin";
 export const randomInt = defineBuiltin({
   name: "random_int",
   category: "basic",
-  params: ["a", "b"],
+  params: [{ name: "a" }, { name: "b" }],
   kind: () => "number",
   menu: [{ name: "", group: "calculate" }],
   python: "random.randint",

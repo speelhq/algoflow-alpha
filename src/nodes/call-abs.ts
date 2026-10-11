@@ -5,7 +5,7 @@ import { defineBuiltin } from "./builtin";
 export const abs = defineBuiltin({
   name: "abs",
   category: "basic",
-  params: ["x"],
+  params: [{ name: "x" }],
   kind: () => "number",
   menu: [{ name: "", group: "calculate", on: ["number"] }],
   evaluate([x = { t: "none" }], node, ctx) {

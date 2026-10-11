@@ -2,14 +2,21 @@
 // one `args` slot, positional parameters, the argument counts of `expectedArgs`.
 import { newId } from "@/lang/id";
 import type { Expr, Kind, Value } from "@/lang/types";
-import { defineExpr, expectedArgs, type MenuEntry, type NodeDef, type RunContext } from "./types";
+import {
+  defineExpr,
+  expectedArgs,
+  type MenuEntry,
+  type NodeDef,
+  type Param,
+  type RunContext,
+} from "./types";
 import type { Category } from "./categories";
 import { emptyExpr } from "./empty";
 
 export type BuiltinDef = {
   name: string;
   category: Category;
-  params: string[];
+  params: Param[];
   /** Emitted callee, e.g. `random.randint`; defaults to `name`. */
   python?: string;
   aliases?: string[];
@@ -40,7 +47,7 @@ export function defineBuiltin(def: BuiltinDef): NodeDef {
       id: newId(),
       kind: "call",
       fn: def.name,
-      args: def.params.map(() => emptyExpr()),
+      args: def.params.filter((param) => !param.optional).map(() => emptyExpr()),
     }),
     *run(node, ctx) {
       const expected = expectedArgs(def.params, node.args.length);

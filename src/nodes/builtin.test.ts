@@ -1,5 +1,5 @@
-// N-17: a builtin's parameters give the argument counts it takes; a trailing `?` marks an
-// optional one (N-01).
+// N-17: a builtin's parameters give the argument counts it takes, `optional` marking the ones it
+// may go without (N-01); N-18: a new builtin holds an empty argument per required parameter.
 import { describe, expect, it } from "vitest";
 import type { Expr, Value } from "@/lang/types";
 import { defineBuiltin } from "./builtin";
@@ -9,7 +9,7 @@ const one: Value = { t: "int", v: 1 };
 const probe = defineBuiltin({
   name: "probe",
   category: "basic",
-  params: ["x", "n?"],
+  params: [{ name: "x" }, { name: "n", optional: true }],
   evaluate: (args) => args[0] ?? one,
 });
 const ctx = {
@@ -42,11 +42,12 @@ function run(argc: number): Value {
 
 describe("builtin argument counts (N-17)", () => {
   it("a count outside the parameters expects the fewest when too few, the most when too many", () => {
-    expect(expectedArgs(["x", "n?"], 0)).toBe(1);
-    expect(expectedArgs(["x", "n?"], 1)).toBeUndefined();
-    expect(expectedArgs(["x", "n?"], 2)).toBeUndefined();
-    expect(expectedArgs(["x", "n?"], 3)).toBe(2);
-    expect(expectedArgs(["a", "b"], 1)).toBe(2);
+    const params = probe.params ?? [];
+    expect(expectedArgs(params, 0)).toBe(1);
+    expect(expectedArgs(params, 1)).toBeUndefined();
+    expect(expectedArgs(params, 2)).toBeUndefined();
+    expect(expectedArgs(params, 3)).toBe(2);
+    expect(expectedArgs([{ name: "a" }, { name: "b" }], 1)).toBe(2);
   });
 
   it("the runner takes every count the parameters take, the rule validation applies", () => {
@@ -54,5 +55,9 @@ describe("builtin argument counts (N-17)", () => {
     expect(run(2)).toEqual(one);
     expect(() => run(0)).toThrow("E_ARITY");
     expect(() => run(3)).toThrow("E_ARITY");
+  });
+
+  it("N-18: a new builtin holds one empty argument per parameter not marked optional", () => {
+    expect(probe.create()).toMatchObject({ kind: "call", fn: "probe", args: [{ kind: "empty" }] });
   });
 });
