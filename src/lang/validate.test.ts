@@ -1,6 +1,6 @@
 // L-56: every validation code has a failing and a passing case; L-40, L-41, L-42.
 import { describe, expect, it } from "vitest";
-import { ast, program } from "@/nodes/testing";
+import { ast, program, runAll } from "@/nodes/testing";
 import type { Diagnostic, Field, Program, Stmt } from "./types";
 import { firstAssignments, validate } from "./validate";
 
@@ -241,6 +241,16 @@ describe("validate (language.md, Validation)", () => {
     const p = program([print(v("x")), brk(), assign("2bad", bool(true))]);
     const result: Diagnostic[] = validate(p);
     expect(result.map((d) => d.code)).toEqual(["E_UNDEFINED", "E_BREAK_OUTSIDE", "E_BAD_NAME"]);
+  });
+
+  it("L-75: a statement's name changes neither validation nor execution", () => {
+    const steps = [assign("x", num(1)), print(v("x")), print(v("y"))];
+    const named = steps.map((stmt) => ({ ...stmt, name: "a step" }));
+    expect(validate(program(named))).toEqual(validate(program(steps)));
+    expect(validate(program(steps))).not.toEqual([]);
+    const runs = (stmts: Stmt[]) => runAll(program(stmts.slice(0, 2)));
+    expect(runs(named).events).toEqual(runs(steps).events);
+    expect(runs(named).stdout).toEqual(["1"]);
   });
 });
 

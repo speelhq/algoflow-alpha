@@ -91,7 +91,7 @@ describe("migrate (L-53)", () => {
     expect(() => migrate(stored)).toThrow(/^main\[0\]\.body\[0\]\.kind: unknown kind "comment"/);
   });
 
-  it("L-58: keeps a statement's name and rejects one that is not one line of text", () => {
+  it("L-58, L-74: stores a statement's name as an edit does and rejects one that is not one line of text", () => {
     const named = { ...assign("x", num(1)), name: "Start at one" };
     expect(migrate(json(program([named])))).toEqual(program([named]));
     const broken = json(program([{ ...named, name: "two\nlines" }]));
@@ -101,10 +101,11 @@ describe("migrate (L-53)", () => {
         program([
           { ...named, name: "  Start  " },
           { ...named, name: " " },
+          { ...named, name: "Start \t at  one" },
         ]),
       ),
     );
-    expect(loose.main.map((stmt) => stmt.name)).toEqual(["Start", undefined]);
+    expect(loose.main.map((stmt) => stmt.name)).toEqual(["Start", undefined, "Start at one"]);
     expect(loose.main[1]).not.toHaveProperty("name");
     expect(() => migrate(json(program([{ ...named, name: 3 } as never])))).toThrow(
       /^main\[0\]\.name/,

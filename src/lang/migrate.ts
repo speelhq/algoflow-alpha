@@ -3,6 +3,7 @@
 // write, a field default that is not canonical Data. What editing reaches is validate()'s job.
 import { getNode, hasNode, keyOf } from "@/nodes/registry";
 import { dataError } from "./data";
+import { stmtName } from "./edit";
 import { isNodeId } from "./id";
 import { KINDS, type Expr, type InputDecl, type Program, type Target } from "./types";
 import { isRecord } from "./record";
@@ -109,8 +110,8 @@ function checkStmts(value: unknown, path: string): void {
       if (typeof stmt.name !== "string" || /[\n\r]/.test(stmt.name)) {
         throw new MigrateError(`${at}.name`, "expected one line of text");
       }
-      // A name is stored trimmed, and absent when empty.
-      const name = stmt.name.trim();
+      // A name is stored as an edit stores it (one line, its spaces collapsed), absent when empty.
+      const name = stmtName(stmt.name);
       if (name === "") delete stmt.name;
       else stmt.name = name;
     }
