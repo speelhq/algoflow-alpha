@@ -3,12 +3,13 @@
 // the place does not meet disabled with the reason, then the program's own functions as
 // calls. Reads `shape`, `hidden`, `category`, and `requires`, never a kind.
 import { nodeText, t } from "@/i18n/t";
-import { newId } from "@/lang/id";
 import { placeContext } from "@/lang/scope";
-import type { Expr, Place, Program, Stmt } from "@/lang/types";
+import type { Place, Program, Stmt } from "@/lang/types";
 import { getNode, paletteNodes } from "@/nodes/registry";
 import { CATEGORIES, type Category } from "@/nodes/categories";
+import { parseScope } from "@/python/parse";
 import { blankTemplate } from "@/ui/chart/text";
+import { callExpr, type LineFunction } from "./line";
 
 export type MenuEntry = {
   /** The registry key, or `call:<name>` for a function of the program. */
@@ -47,7 +48,10 @@ export function menuGroups(program: Program, place: Place): MenuGroup[] {
       groups.push({ id: category, title: t(`menu.category.${category}`), entries });
     }
   }
-  const calls = program.functions.map((fn): MenuEntry => {
+  // A function whose name no call can take (a diagnostic says why) is not offered.
+  const scope = parseScope(program);
+  const callable = program.functions.filter((fn) => callExpr(fn, scope) !== undefined);
+  const calls = callable.map((fn): MenuEntry => {
     const text = t("node.call.template", {
       fn: fn.name,
       args: fn.params.length > 0 ? blankTemplate("{a}") : "",
@@ -57,19 +61,19 @@ export function menuGroups(program: Program, place: Place): MenuGroup[] {
       text,
       label: fn.name,
       help: nodeText("call", "help"),
-      create: () => callStatement(fn.name, fn.params.length),
+      create: () => callStatement(program, fn),
     };
   });
   if (calls.length > 0) groups.push({ id: "program", title: t("menu.program"), entries: calls });
   return groups;
 }
 
-/** A statement calling `name` with `argc` empty arguments, as the call block creates it. */
-function callStatement(name: string, argc: number): Stmt {
+/** A statement calling `fn` of `program`, its arguments to fill, as a value line makes the call. */
+function callStatement(program: Program, fn: LineFunction): Stmt {
+  const call = callExpr(fn, parseScope(program));
+  if (!call) throw new Error(`"${fn.name}" is no function of the program`);
   const statement = getNode("expr").create() as Extract<Stmt, { kind: "expr" }>;
-  const call = getNode("call").create() as Extract<Expr, { kind: "call" }>;
-  const args: Expr[] = Array.from({ length: argc }, () => ({ id: newId(), kind: "empty" }));
-  return { ...statement, expr: { ...call, fn: name, args } };
+  return { ...statement, expr: call };
 }
 
 /** The groups with only the entries whose label or help contains `query`. */

@@ -4,6 +4,7 @@
 import { declaredBy } from "@/lang/scope";
 import { NAME_PATTERN, RESERVED, type Id, type Program } from "@/lang/types";
 import { programStmts } from "@/lang/walk";
+import { matchesName } from "./line";
 
 /** Every variable name the program has: inputs, parameters, and assigned names, in program order. */
 function programNames(program: Program): Id[] {
@@ -18,11 +19,6 @@ function programNames(program: Program): Id[] {
 export type NameRow = { kind: "name"; name: Id } | { kind: "new"; name: Id };
 export type NameSection = { group: "problem" | "variables" | "new"; rows: NameRow[] };
 
-/** Whether `name` is kept for the text typed: one of its words (split at `_`) begins with it. */
-export function keepsName(name: string, typed: string): boolean {
-  return typed === "" || name.startsWith(typed) || name.split("_").some((w) => w.startsWith(typed));
-}
-
 /** The sections of the list for the text typed; `asked` are the problem's expected names. */
 export function nameSections(program: Program, asked: readonly Id[], typed: string): NameSection[] {
   const problem = [...new Set(asked)];
@@ -33,14 +29,14 @@ export function nameSections(program: Program, asked: readonly Id[], typed: stri
   const sections: NameSection[] = [
     {
       group: "problem",
-      rows: whole(problem.filter((n) => keepsName(n, typed))).map((name) => ({
+      rows: whole(problem.filter((n) => matchesName(n, typed))).map((name) => ({
         kind: "name",
         name,
       })),
     },
     {
       group: "variables",
-      rows: whole(others.filter((n) => keepsName(n, typed))).map((name) => ({
+      rows: whole(others.filter((n) => matchesName(n, typed))).map((name) => ({
         kind: "name",
         name,
       })),

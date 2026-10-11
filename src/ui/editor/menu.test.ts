@@ -47,6 +47,18 @@ describe("block menu (U-40)", () => {
     const stmt = last?.entries[0]?.create();
     expect(stmt).toMatchObject({ kind: "expr", expr: { kind: "call", fn: "double" } });
     expect(stmt?.kind === "expr" && stmt.expr.kind === "call" && stmt.expr.args).toHaveLength(1);
+    // A function no call can name (a word of the language, which validation reports) is not
+    // offered.
+    const reserved = program([], {
+      functions: [
+        { id: "fn0000000001", name: "double", params: ["x"], body: [] },
+        { id: "fn0000000002", name: "None", params: [], body: [] },
+      ],
+    });
+    const offered = menuGroups(reserved, MAIN)
+      .at(-1)
+      ?.entries.map((entry) => entry.id);
+    expect(offered).toEqual(["call:double"]);
   });
 
   it("U-40: entries show the block's template with … for each slot", () => {

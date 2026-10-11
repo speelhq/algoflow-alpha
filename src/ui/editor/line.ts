@@ -349,8 +349,8 @@ function wordsOf(name: string): string[] {
   return name.toLowerCase().split(/[\s_-]+/);
 }
 
-/** Whether a typed word matches a name (one of its words starts with it) or an entry's keys. */
-function matchesName(name: string, word: string): boolean {
+/** Whether a typed word matches a name: the name, or one of its words, starts with it. */
+export function matchesName(name: string, word: string): boolean {
   const w = word.toLowerCase();
   return wordsOf(name).some((part) => part.startsWith(w)) || name.toLowerCase().startsWith(w);
 }

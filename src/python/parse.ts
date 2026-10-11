@@ -1,11 +1,19 @@
 // Typed expression text → Expr. No third-party imports.
 import { newId } from "@/lang/id";
 import { fitsInt } from "@/lang/data";
-import type { BinOp, Expr, Id } from "@/lang/types";
+import type { BinOp, Expr, Id, Program } from "@/lang/types";
 import { NODES, hasNode, keyOf } from "@/nodes/registry";
 import { BINOPS, PRECEDENCE, binopsAt, isBinOp, isComparison } from "./precedence";
 
 export type ParseScope = { classes: Id[]; functions: Id[] };
+
+/** The names a call in `program` may take: its classes and its functions. */
+export function parseScope(program: Program): ParseScope {
+  return {
+    classes: program.classes.map((cls) => cls.name),
+    functions: program.functions.map((fn) => fn.name),
+  };
+}
 export const PARSE_CODES = ["E_PARSE_SYNTAX", "E_PARSE_CHAIN", "E_UNKNOWN_CALL"] as const;
 export type ParseError = {
   code: (typeof PARSE_CODES)[number];
