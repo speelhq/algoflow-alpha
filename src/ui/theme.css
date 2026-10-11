@@ -40,10 +40,14 @@
   --color-foreground: var(--foreground);
   --color-background: var(--background);
   --color-solved: var(--solved);
+  --color-solved-foreground: var(--solved-foreground);
   --color-attempted: var(--attempted);
   --color-selection: var(--selection);
   --color-taken: var(--taken);
   --color-variable: var(--variable);
+  --color-code-keyword: var(--code-keyword);
+  --color-code-string: var(--code-string);
+  --color-code-number: var(--code-number);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -80,6 +84,7 @@
   --radius: 0.625rem;
   /* The status marks of a problem row. */
   --solved: oklch(0.6 0.15 150);
+  --solved-foreground: oklch(1 0 0);
   --attempted: oklch(0.72 0.16 70);
   /* The selected node and its lines; the current node while running. */
   --selection: oklch(0.6 0.19 260);
@@ -87,6 +92,10 @@
   --taken: oklch(0.58 0.15 150);
   /* A variable's name, on the chart and in the editor. */
   --variable: oklch(0.55 0.15 50);
+  /* Keywords, strings, and numbers in the Python tab. */
+  --code-keyword: oklch(0.491 0.27 292.581);
+  --code-string: oklch(0.508 0.118 165.612);
+  --code-number: oklch(0.555 0.163 48.998);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);

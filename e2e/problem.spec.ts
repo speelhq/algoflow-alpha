@@ -86,7 +86,7 @@ test.describe("Python tab (U-25)", () => {
     const lines = page.getByTestId("python-line");
     await expect(lines.first()).toHaveText("1n = 15");
     await expect(lines.nth(1)).toHaveText("2for i in range(1, n + 1):");
-    await expect(lines.nth(1).locator(".text-violet-700").first()).toHaveText("for");
+    await expect(lines.nth(1).locator('[data-token="keyword"]').first()).toHaveText("for");
     await lines.nth(3).click();
     await expect(lines.nth(3)).toHaveAttribute("data-selected", "true");
     await expect(lines.nth(1)).not.toHaveAttribute("data-selected");

@@ -16,9 +16,9 @@ import { highlight, type Token } from "@/ui/python/highlight";
 import { lineOwners, linesOf } from "@/ui/python/lines";
 
 const COLOUR: Record<Token["kind"], string> = {
-  keyword: "text-violet-700",
-  string: "text-emerald-700",
-  number: "text-amber-700",
+  keyword: "text-code-keyword",
+  string: "text-code-string",
+  number: "text-code-number",
   comment: "text-muted-foreground italic",
   text: "",
 };
@@ -114,7 +114,7 @@ export function PythonTab() {
               <pre className="whitespace-pre">
                 {tokens.map((token, j) => (
                   // oxlint-disable-next-line react/no-array-index-key -- tokens are positional
-                  <span key={j} className={COLOUR[token.kind]}>
+                  <span key={j} className={COLOUR[token.kind]} data-token={token.kind}>
                     {token.text}
                   </span>
                 ))}

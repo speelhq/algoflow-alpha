@@ -78,7 +78,7 @@ function ProblemRow({ challenge, mark }: { challenge: Challenge; mark: ReturnTyp
           aria-label={t(`problems.status.${mark ?? "untouched"}`)}
           className={cn(
             "flex size-6 items-center justify-center rounded-full border text-sm",
-            mark === "solved" && "border-solved bg-solved text-white",
+            mark === "solved" && "border-solved bg-solved text-solved-foreground",
             mark === "attempted" && "border-attempted text-attempted",
           )}
         >
