@@ -45,6 +45,8 @@ class Collector {
   readonly diagnostics: Diagnostic[] = [];
   /** Statements whose var target is the first assignment of that name in its region (`templateCreate`). */
   readonly firstAssigns = new Set<NodeId>();
+  /** Functions and classes whose own name a diagnostic refuses: no call can name them. */
+  readonly refusedDefinitions = new Set<NodeId>();
   /** Functions and classes: names a variable may not shadow (they would call a different thing in CPython). */
   private readonly callables = new Set<Id>();
 
@@ -71,15 +73,21 @@ class Collector {
 
   // ------------------------------------------------------------ declarations
 
+  /** Reports the name of a function or class; the definition is then one no call can name. */
+  private refuseName(nodeId: NodeId, code: "E_BAD_NAME" | "E_DUPLICATE_NAME", name: Id): void {
+    this.report(nodeId, code, { name });
+    this.refusedDefinitions.add(nodeId);
+  }
+
   declarations(): void {
     const taken = new Set<Id>(this.program.inputs.map((input) => input.name));
     const claim = (name: Id, nodeId: NodeId) => {
-      if (taken.has(name) || isBuiltinName(name)) this.report(nodeId, "E_DUPLICATE_NAME", { name });
+      if (taken.has(name) || isBuiltinName(name)) this.refuseName(nodeId, "E_DUPLICATE_NAME", name);
       taken.add(name);
       this.callables.add(name);
     };
     for (const fn of this.program.functions) {
-      if (!isValidName(fn.name)) this.report(fn.id, "E_BAD_NAME", { name: fn.name });
+      if (!isValidName(fn.name)) this.refuseName(fn.id, "E_BAD_NAME", fn.name);
       const params = new Set<Id>();
       for (const param of fn.params) {
         if (!isValidName(param)) this.report(fn.id, "E_BAD_NAME", { name: param });
@@ -89,7 +97,7 @@ class Collector {
       claim(fn.name, fn.id);
     }
     for (const cls of this.program.classes) {
-      if (!isValidClassName(cls.name)) this.report(cls.id, "E_BAD_NAME", { name: cls.name });
+      if (!isValidClassName(cls.name)) this.refuseName(cls.id, "E_BAD_NAME", cls.name);
       claim(cls.name, cls.id);
       const fields = new Set<Id>();
       for (const field of cls.fields) {
@@ -261,7 +269,11 @@ function isEmptySlot(slot: Slot, value: unknown): boolean {
   }
 }
 
-type Analysis = { diagnostics: Diagnostic[]; firstAssigns: Set<NodeId> };
+type Analysis = {
+  diagnostics: Diagnostic[];
+  firstAssigns: Set<NodeId>;
+  refusedDefinitions: Set<NodeId>;
+};
 
 // One Collector pass per Program object: the driver, the canvas, and the panels all ask.
 // Edits are pure, so a mutated Program is never re-validated; build a new object.
@@ -274,7 +286,11 @@ function analyze(program: Program): Analysis {
     collector.ids();
     collector.declarations();
     collector.scopes();
-    analysis = { diagnostics: collector.diagnostics, firstAssigns: collector.firstAssigns };
+    analysis = {
+      diagnostics: collector.diagnostics,
+      firstAssigns: collector.firstAssigns,
+      refusedDefinitions: collector.refusedDefinitions,
+    };
     analyses.set(program, analysis);
   }
   return analysis;
@@ -296,4 +312,9 @@ export function canRun(program: Program): boolean {
  */
 export function firstAssignments(program: Program): Set<NodeId> {
   return analyze(program).firstAssigns;
+}
+
+/** Ids of the functions and classes whose own name a diagnostic refuses: no call can name them. */
+export function refusedDefinitions(program: Program): ReadonlySet<NodeId> {
+  return analyze(program).refusedDefinitions;
 }

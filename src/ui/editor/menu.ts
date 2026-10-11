@@ -1,7 +1,7 @@
 // The block menu's entries for one connector: the registered statement blocks
 // grouped by category in menu order, each in registration order, those whose `requires`
-// the place does not meet disabled with the reason, then the program's own functions as
-// calls. Reads `shape`, `hidden`, `category`, and `requires`, never a kind.
+// the place does not meet disabled with the reason, then the program's functions a call can
+// name, as calls. Reads `shape`, `hidden`, `category`, and `requires`, never a kind.
 import { nodeText, t } from "@/i18n/t";
 import { placeContext } from "@/lang/scope";
 import type { Place, Program, Stmt } from "@/lang/types";
@@ -9,7 +9,7 @@ import { getNode, paletteNodes } from "@/nodes/registry";
 import { CATEGORIES, type Category } from "@/nodes/categories";
 import { parseScope } from "@/python/parse";
 import { blankTemplate } from "@/ui/chart/text";
-import { callExpr, type LineFunction } from "./line";
+import { callableFunctions, callExpr, type LineFunction } from "./line";
 
 export type MenuEntry = {
   /** The registry key, or `call:<name>` for a function of the program. */
@@ -48,10 +48,7 @@ export function menuGroups(program: Program, place: Place): MenuGroup[] {
       groups.push({ id: category, title: t(`menu.category.${category}`), entries });
     }
   }
-  // A function whose name no call can take (a diagnostic says why) is not offered.
-  const scope = parseScope(program);
-  const callable = program.functions.filter((fn) => callExpr(fn, scope) !== undefined);
-  const calls = callable.map((fn): MenuEntry => {
+  const calls = callableFunctions(program).map((fn): MenuEntry => {
     const text = t("node.call.template", {
       fn: fn.name,
       args: fn.params.length > 0 ? blankTemplate("{a}") : "",

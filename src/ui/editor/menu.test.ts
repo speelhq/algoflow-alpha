@@ -1,4 +1,5 @@
-// U-40: the block menu's groups, order, disabled entries, search, and This program.
+// U-40: the block menu's groups, order, disabled entries, search, and This program; U-127: only
+// functions a call can name.
 import { describe, expect, it } from "vitest";
 import { ast, program } from "@/nodes/testing";
 import { blankTemplate } from "@/ui/chart/text";
@@ -47,12 +48,14 @@ describe("block menu (U-40)", () => {
     const stmt = last?.entries[0]?.create();
     expect(stmt).toMatchObject({ kind: "expr", expr: { kind: "call", fn: "double" } });
     expect(stmt?.kind === "expr" && stmt.expr.kind === "call" && stmt.expr.args).toHaveLength(1);
-    // A function no call can name (a word of the language, which validation reports) is not
-    // offered.
+  });
+
+  it("U-127: a function no call can name is not offered: a word of the language, a builtin's name", () => {
     const reserved = program([], {
       functions: [
         { id: "fn0000000001", name: "double", params: ["x"], body: [] },
         { id: "fn0000000002", name: "None", params: [], body: [] },
+        { id: "fn0000000003", name: "abs", params: ["x"], body: [] },
       ],
     });
     const offered = menuGroups(reserved, MAIN)

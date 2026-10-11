@@ -7,7 +7,8 @@
 import { errorText } from "@/i18n/t";
 import type { Kinds } from "@/lang/kinds";
 import { exprKind } from "@/lang/kinds";
-import type { Expr, Id, NodeId } from "@/lang/types";
+import type { Expr, Id, NodeId, Program } from "@/lang/types";
+import { refusedDefinitions } from "@/lang/validate";
 import { allExprs, isEmptyExpr, variableOf } from "@/lang/walk";
 import { emptyExpr, getNode, keyOf } from "@/nodes/registry";
 import { isParseError, parse, type ParseScope } from "@/python/parse";
@@ -250,6 +251,14 @@ function signExpr(): Expr | undefined {
 export function callExpr(fn: LineFunction, scope: ParseScope): Expr | undefined {
   const made = parsed(`${fn.name}(${fn.params.map(() => "a").join(", ")})`, scope);
   return made && mapInputs(made, () => emptyExpr());
+}
+
+/** The program's functions a call can name: those whose name no diagnostic refuses. */
+export function callableFunctions(program: Program): LineFunction[] {
+  const refused = refusedDefinitions(program);
+  return program.functions
+    .filter((fn) => !refused.has(fn.id))
+    .map((fn) => ({ name: fn.name, params: fn.params }));
 }
 
 // ---------------------------------------------------------------- starting

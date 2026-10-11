@@ -1,12 +1,13 @@
 // U-50, U-120, U-122, U-52, U-53, U-54, U-93: the value line as keys and choices change it.
 import { describe, expect, it } from "vitest";
 import type { Expr, Kind } from "@/lang/types";
-import { ast } from "@/nodes/testing";
+import { ast, program } from "@/nodes/testing";
 import { unparse } from "@/python/emit";
 import { exprText } from "@/ui/chart/text";
 import { allEntries } from "./entries";
 import {
   backspace,
+  callableFunctions,
   choose,
   clickAt,
   endText,
@@ -383,6 +384,26 @@ describe("the list (U-52)", () => {
       "compare",
       "convert",
       "functions",
+    ]);
+  });
+});
+
+describe("the functions offered (U-127)", () => {
+  it("are the program's functions a call can name, with their parameters", () => {
+    const fn = (id: string, name: string, params = ["x"]) => ({ id, name, params, body: [] });
+    const p = program([], {
+      functions: [
+        fn("fn0000000001", "twice"),
+        fn("fn0000000002", "for"),
+        fn("fn0000000003", "abs"),
+        fn("fn0000000004", "twice"),
+        // A parameter's fault is no fault of the function's name.
+        fn("fn0000000005", "f", ["f", "f"]),
+      ],
+    });
+    expect(callableFunctions(p)).toEqual([
+      { name: "twice", params: ["x"] },
+      { name: "f", params: ["f", "f"] },
     ]);
   });
 });

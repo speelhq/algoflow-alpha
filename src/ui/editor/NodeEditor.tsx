@@ -35,7 +35,7 @@ import {
   startField,
   type Field,
 } from "./fields";
-import { lineTakes, matches, openLine, setText, type LineContext } from "./line";
+import { callableFunctions, lineTakes, matches, openLine, setText, type LineContext } from "./line";
 import { NameOfNode } from "./NameOfNode";
 import { nameChars, type NameRow } from "./names";
 import { nameList, shownNameRow, valueList } from "./rows";
@@ -93,7 +93,7 @@ function Body({ stmt, program, initial }: { stmt: Stmt; program: Program; initia
       variables: visibleAt(program, stmt.id) ?? [],
       kinds,
       scope: parseScope(program),
-      functions: program.functions.map((fn) => ({ name: fn.name, params: fn.params })),
+      functions: callableFunctions(program),
     }),
     [program, stmt.id, kinds],
   );
