@@ -1,5 +1,5 @@
 // What the judge sees of a run: final main-level variables as Data, stdout, and draws.
-// Shared by the Tests tab, the driver's run-to-end batches, and scripts/check.ts.
+// Shared by the stores (which run in batches) and scripts/check.ts (which drains a run at once).
 import { toData } from "@/lang/data";
 import type { Data, Id } from "@/lang/types";
 import type { Done, Runner, State } from "./types";
@@ -18,15 +18,6 @@ export function advance(runner: Runner, limit: number): Done | undefined {
     if (next.type === "done" || next.type === "error") return next;
   }
   return undefined;
-}
-
-/** Batches of `batch` events with `setTimeout(0)` between them, until the run finishes. */
-export async function advanceAsync(runner: Runner, batch: number): Promise<Done> {
-  for (;;) {
-    const done = advance(runner, batch);
-    if (done) return done;
-    await new Promise((resolve) => setTimeout(resolve, 0));
-  }
 }
 
 /** The main-level variables as Data: what the judge compares and the `Result` rows show. */

@@ -15,12 +15,11 @@ import { getNode, keyOf } from "@/nodes/registry";
 import { outcomeOf, type Outcome } from "@/runtime/outcome";
 import { run as startRunner } from "@/runtime/run";
 import type { Done, Event, Runner, State } from "@/runtime/types";
+import { inBatches } from "./batches";
 import { clamp, useLayout } from "./layout";
 import { useProgram } from "./program";
 
 export type Status = "idle" | "paused" | "playing" | "done" | "error";
-
-export const BATCH = 2000;
 
 export type RunState = {
   status: Status;
@@ -118,8 +117,6 @@ let generation = 0;
 let target: number | null = null;
 /** The run was started by `Watch this case`. */
 let watching = false;
-/** A pre-run, Seek, or Skip is working through its batches; Step and Play wait for it. */
-let working = false;
 /** Pause arrived during the pre-run: the run opens paused. */
 let openPaused = false;
 let tick: () => void = () => {};
@@ -149,7 +146,6 @@ function armTimer(): void {
 function cancel(): void {
   generation += 1;
   target = null;
-  working = false;
   clearTimer();
 }
 
@@ -268,10 +264,6 @@ function differenceOf(
   return watchStep(first, prints, total);
 }
 
-function sleep(): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, 0));
-}
-
 function originFor(caseIndex: number): Origin | null {
   const program = useProgram.getState().program;
   if (!canRun(program)) return null;
@@ -289,31 +281,39 @@ async function prerun(from: Origin, mine: number): Promise<Plan | undefined> {
   const probe = startRunner(from.program, from.inputs, from.seed);
   const prints: number[] = [];
   let events = 0;
-  for (;;) {
-    for (let i = 0; i < BATCH; i += 1) {
-      const next = probe.next();
-      if (next.type === "done" || next.type === "error") {
-        const total = next.type === "error" ? events + 1 : events;
-        const outcome = outcomeOf(probe, next);
-        return {
-          total,
-          outcome: next,
-          prints,
-          verdict: from.test ? judge(from.test, outcome) : null,
-          difference: differenceOf(from.test, outcome, prints, total),
-        };
-      }
-      events += 1;
-      if (next.type === "print") prints.push(events);
+  let found: Plan | undefined;
+  const step = (): boolean => {
+    const next = probe.next();
+    if (next.type === "done" || next.type === "error") {
+      const total = next.type === "error" ? events + 1 : events;
+      const outcome = outcomeOf(probe, next);
+      found = {
+        total,
+        outcome: next,
+        prints,
+        verdict: from.test ? judge(from.test, outcome) : null,
+        difference: differenceOf(from.test, outcome, prints, total),
+      };
+      return true;
     }
-    await sleep();
-    if (mine !== generation) return undefined;
-  }
+    events += 1;
+    if (next.type === "print") prints.push(events);
+    return false;
+  };
+  const finished = await inBatches(
+    step,
+    () => {},
+    () => mine !== generation,
+  );
+  return finished ? found : undefined;
 }
 
 export const useRun = create<RunState>()((set, get) => {
-  /** Publishes the projection; a position at the end of the run decides the status itself. */
-  const publish = (status: Status, busy = false) => {
+  /**
+   * Publishes the projection; a position at the end of the run decides the status itself.
+   * `busy` while a pre-run, a Seek, or a Skip works through its batches.
+   */
+  const publish = (status: Status, busy: boolean) => {
     const p = projection;
     const previous = get();
     const ended = runner !== null && atEnd();
@@ -349,23 +349,17 @@ export const useRun = create<RunState>()((set, get) => {
    * Steps up to `until` in batches, publishing `status` once per batch; with `breaks`
    * it also stops on arriving at the breakpoint. False when another action took over.
    */
-  const batched = async (until: number, breaks: boolean, status: Status): Promise<boolean> => {
+  const batched = (until: number, breaks: boolean, status: Status): Promise<boolean> => {
     const mine = generation;
-    const finished = () => {
-      working = false;
-      return true;
-    };
-    working = true;
-    for (;;) {
-      for (let i = 0; i < BATCH; i += 1) {
-        if (projection.step >= until) return finished();
+    return inBatches(
+      () => {
+        if (projection.step >= until) return true;
         advance();
-        if (breaks && !atEnd() && atBreakpoint()) return finished();
-      }
-      publish(status, true);
-      await sleep();
-      if (mine !== generation) return false;
-    }
+        return breaks && !atEnd() && atBreakpoint();
+      },
+      () => publish(status, true),
+      () => mine !== generation,
+    );
   };
 
   tick = () => {
@@ -376,8 +370,8 @@ export const useRun = create<RunState>()((set, get) => {
     advance();
     if (!atEnd() && atBreakpoint()) {
       clearTimer();
-      publish("paused");
-    } else publish("playing");
+      publish("paused", false);
+    } else publish("playing", false);
   };
 
   return {
@@ -405,12 +399,10 @@ export const useRun = create<RunState>()((set, get) => {
       if (!from) return;
       get().stop();
       const mine = generation;
-      working = true;
       openPaused = false;
       set({ busy: true });
       const made = await prerun(from, mine);
       if (!made) return;
-      working = false;
       origin = from;
       plan = made;
       owners = ownerStmts(from.program);
@@ -420,37 +412,37 @@ export const useRun = create<RunState>()((set, get) => {
       reset(from);
       watching = opts?.watch === true;
       if (watching) {
-        if (await batched(made.difference.step, false, "paused")) publish("paused");
+        if (await batched(made.difference.step, false, "paused")) publish("paused", false);
         return;
       }
       if (openPaused) {
-        publish("paused");
+        publish("paused", false);
         return;
       }
       if (!atEnd()) armTimer();
-      publish("playing");
+      publish("playing", false);
     },
 
     stepOnce() {
-      if (!running() || working) return;
+      if (!running() || get().busy) return;
       cancel();
       advance();
-      publish("paused");
+      publish("paused", false);
     },
 
     play() {
-      if (!running() || working || timer !== null) return;
+      if (!running() || get().busy || timer !== null) return;
       cancel();
       armTimer();
-      publish("playing");
+      publish("playing", false);
     },
 
     pause() {
       // During the pre-run there is nothing to pause yet: the run then opens paused.
-      if (runner === null && working) openPaused = true;
+      if (runner === null && get().busy) openPaused = true;
       if (!running()) return;
       cancel();
-      publish("paused");
+      publish("paused", false);
     },
 
     async seek(step) {
@@ -462,7 +454,7 @@ export const useRun = create<RunState>()((set, get) => {
       if (to < projection.step) reset(origin);
       if (!(await batched(to, false, "paused"))) return;
       target = null;
-      publish("paused");
+      publish("paused", false);
     },
 
     back() {
@@ -473,7 +465,7 @@ export const useRun = create<RunState>()((set, get) => {
       if (!running() || !plan) return;
       cancel();
       publish("playing", true);
-      if (await batched(plan.total, true, "playing")) publish("paused");
+      if (await batched(plan.total, true, "playing")) publish("paused", false);
     },
 
     stop() {
@@ -484,7 +476,7 @@ export const useRun = create<RunState>()((set, get) => {
       watching = false;
       breakpoint = null;
       projection = freshProjection();
-      publish("idle");
+      publish("idle", false);
     },
 
     setBreakpoint(id) {

@@ -4,8 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getChallenge, type Challenge } from "@/challenges";
 import { ast, program, runAll, tid } from "@/nodes/testing";
 import { SPEEDS, useLayout } from "./layout";
+import { BATCH } from "./batches";
 import { useProgram } from "./program";
-import { BATCH, canRun, useRun, type RunState } from "./run";
+import { canRun, useRun, type RunState } from "./run";
 
 const { assign, num, bin, v, print, for_, if_, while_, str, exprStmt, call, ret } = ast;
 

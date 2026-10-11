@@ -5,11 +5,13 @@ import { getChallenge } from "@/challenges";
 import { judge, type TestResult } from "@/challenges/judge";
 import type { Test } from "@/challenges/types";
 import type { Program } from "@/lang/types";
-import { advanceAsync, outcomeOf, type Outcome } from "@/runtime/outcome";
+import { outcomeOf, type Outcome } from "@/runtime/outcome";
 import { run } from "@/runtime/run";
+import type { Done } from "@/runtime/types";
+import { inBatches } from "./batches";
 import { useProgress } from "./progress";
 import { useProgram } from "./program";
-import { BATCH, canRun } from "./run";
+import { canRun } from "./run";
 
 export type TestsState = {
   /** One entry per challenge test; null until judged. */
@@ -28,10 +30,22 @@ export type TestsState = {
 
 let generation = 0;
 
-async function evaluate(program: Program, test: Test): Promise<Outcome> {
+/** One test on its own runner, in batches; undefined once a later action took over. */
+async function evaluate(program: Program, test: Test, mine: number): Promise<Outcome | undefined> {
   const runner = run(program, test.inputs, test.seed ?? 1);
-  const done = await advanceAsync(runner, BATCH);
-  return outcomeOf(runner, done);
+  let done: Done | undefined;
+  const step = (): boolean => {
+    const next = runner.next();
+    if (next.type !== "done" && next.type !== "error") return false;
+    done = next;
+    return true;
+  };
+  const finished = await inBatches(
+    step,
+    () => {},
+    () => mine !== generation,
+  );
+  return finished && done ? outcomeOf(runner, done) : undefined;
 }
 
 function current(): { id: string; program: Program; tests: Test[] } | null {
@@ -80,8 +94,8 @@ export const useTests = create<TestsState>()((set, get) => {
       return guarded(mine, async () => {
         let passed = 0;
         for (const [index, test] of target.tests.entries()) {
-          const outcome = await evaluate(target.program, test);
-          if (mine !== generation) return;
+          const outcome = await evaluate(target.program, test, mine);
+          if (!outcome) return;
           record(index, test, outcome, target.tests.length);
           if (get().results[index]?.status === "pass") passed += 1;
         }

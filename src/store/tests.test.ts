@@ -90,6 +90,16 @@ describe("tests store (U-80, C-10, C-11, C-12)", () => {
     });
   });
 
+  it("U-124: a change of the program during a submission abandons it; nothing is recorded", async () => {
+    useProgress.setState({ entries: {} });
+    useProgram.setState({ program: fizzbuzz().solution });
+    const judging = useTests.getState().submit();
+    useProgram.setState({ program: { ...fizzbuzz().solution } });
+    await judging;
+    expect(useTests.getState()).toMatchObject({ results: [], running: false });
+    expect(useProgress.getState().entries).toEqual({});
+  });
+
   it("U-86: a program of no challenge is not judged; a change of the program clears the results", async () => {
     useProgram.setState({ program: program([print(str("x"))]) });
     await useTests.getState().submit();
