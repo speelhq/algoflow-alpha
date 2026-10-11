@@ -115,7 +115,7 @@ describe("checkChallengeSchema (C-01, C-03)", () => {
     );
   });
 
-  it("C-01, L-70: inputs are declared with a kind, and every test's value has it, as canonical Data", () => {
+  it("C-01, L-70, C-28: inputs are declared with a kind, and every test's value has it, as canonical Data the blocks write", () => {
     const c = valid();
     (c.tests[0]!.inputs as Record<string, unknown>).n = "one";
     expect(checkChallengeSchema(c, "demo").problems).toEqual([
@@ -128,6 +128,14 @@ describe("checkChallengeSchema (C-01, C-03)", () => {
       "tests[1].inputs.n: expected an integer within the int range",
       "tests[2].expect.variables.total[1]: expected an integer within the int range",
     ]);
+    // No list block exists yet, so no block writes a list.
+    const list = valid();
+    list.inputs = [{ name: "n", kind: "list" }];
+    list.solution.inputs = [{ name: "n", kind: "list" }];
+    for (const test of list.tests) (test.inputs as Record<string, unknown>).n = [1];
+    expect(checkChallengeSchema(list, "demo").problems).toEqual(
+      expect.arrayContaining(["tests[0].inputs.n is a value no block writes"]),
+    );
     const undeclared = valid();
     (undeclared.inputs[0] as Record<string, unknown>).kind = "word";
     expect(checkChallengeSchema(undeclared, "demo").problems).toEqual(

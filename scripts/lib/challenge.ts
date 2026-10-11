@@ -7,6 +7,7 @@ import { isInputDecl, migrate } from "@/lang/migrate";
 import { isRecord } from "@/lang/record";
 import type { Data, Kind } from "@/lang/types";
 import { isValidClassName, isValidName, validate } from "@/lang/validate";
+import { isParseError, parseData } from "@/python/parse";
 
 export function isLocalized(value: unknown, requireJa: boolean): value is Localized {
   if (!isRecord(value) || typeof value.en !== "string") return false;
@@ -113,6 +114,8 @@ export function checkChallengeSchema(
         else if (!canonical(test.inputs[name], `tests[${i}].inputs.${name}`)) continue;
         else if (dataKind(test.inputs[name] as Data) !== kind)
           problems.push(`tests[${i}].inputs.${name} is not of the kind ${kind}`);
+        else if (isParseError(parseData(test.inputs[name] as Data)))
+          problems.push(`tests[${i}].inputs.${name} is a value no block writes`);
       }
       for (const name of Object.keys(test.inputs))
         if (!declared.has(name)) problems.push(`tests[${i}].inputs has unknown input "${name}"`);
