@@ -162,3 +162,36 @@ export function narrateDifference(difference: { line?: number }): Narration {
     ? { key: "run.narrate.difference.end", params: {} }
     : { key: "run.narrate.difference.line", params: { line: difference.line } };
 }
+
+/** The driver's position, as the run store holds it. */
+export type Position = {
+  step: number;
+  total: number;
+  outcome: Done | null;
+  lastEvent: Event | null;
+  state: State | null;
+  frame: number;
+  pass: number | null;
+  /** Where `Watch this case` opened. */
+  difference: { step: number; line?: number } | null;
+};
+
+/** The one sentence of the narration line, and whether it is an error's message. */
+export type Told = { narration: Narration; error: boolean };
+
+/**
+ * What the narration line says at a position: an error wherever the run stops on it, a
+ * difference in place of its step, the end, else the event; nothing before the first step.
+ */
+export function narratePosition(position: Position, program: Program): Told | null {
+  const { step, total, outcome, lastEvent, state, difference } = position;
+  const end = outcome && step === total ? outcome : null;
+  if (end?.type === "error") return { narration: narrateEnd(end, total), error: true };
+  if (difference && step === difference.step) {
+    return { narration: narrateDifference(difference), error: false };
+  }
+  if (end) return { narration: narrateEnd(end, total), error: false };
+  if (!lastEvent || !state) return null;
+  const { frame, pass } = position;
+  return { narration: narrate(lastEvent, { program, state, frame, pass }), error: false };
+}

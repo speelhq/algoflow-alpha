@@ -8,7 +8,14 @@ import { ast, program, tid, withInputs } from "@/nodes/testing";
 import { run } from "@/runtime/run";
 import type { Event } from "@/runtime/types";
 import { valueText } from "@/ui/chart/text";
-import { narrate, narrateDifference, narrateEnd, type Narration } from "./narrate";
+import {
+  narrate,
+  narrateDifference,
+  narrateEnd,
+  narratePosition,
+  type Narration,
+  type Position,
+} from "./narrate";
 
 const { assign, num, float, str, bool, none, bin, not, v, print, for_, while_, if_ } = ast;
 const { exprStmt, call, ret } = ast;
@@ -162,6 +169,55 @@ describe("narrate (U-63)", () => {
     );
     expect(say(narrateDifference({ line: 1 }))).toBe("This printed line 1");
     expect(say(narrateDifference({}))).toBe("The run ended here");
+  });
+
+  it("U-63, U-65, U-81: the line says the error where the run stops on it, a difference at its step, then the end, else the event", () => {
+    const p = program([print(str("a")), print(str("b"))]);
+    const runner = run(p, {}, 1);
+    let first = runner.next();
+    while (first.type !== "print") {
+      if (first.type === "done" || first.type === "error") throw new Error("no print");
+      first = runner.next();
+    }
+    const state = runner.state();
+    const done = { type: "done", steps: 2, loops: 0 } as const;
+    const error = {
+      type: "error",
+      error: { nodeId: "x", code: "E_INDEX", params: { index: 5, length: 3 } },
+      steps: 2,
+    } as const;
+    const at = (position: Partial<Position>) => {
+      const line = narratePosition(
+        {
+          step: 1,
+          total: 2,
+          outcome: done,
+          lastEvent: first,
+          state,
+          frame: 0,
+          pass: null,
+          difference: null,
+          ...position,
+        },
+        p,
+      );
+      return line && { text: say(line.narration), error: line.error };
+    };
+    expect(at({})).toEqual({ text: 'Printed "a"', error: false });
+    expect(at({ difference: { step: 1, line: 1 } })).toEqual({
+      text: "This printed line 1",
+      error: false,
+    });
+    expect(at({ step: 2 })).toEqual({ text: "Finished in 2 steps", error: false });
+    expect(at({ step: 2, difference: { step: 2 } })).toEqual({
+      text: "The run ended here",
+      error: false,
+    });
+    expect(at({ step: 2, outcome: error, difference: { step: 2 } })).toEqual({
+      text: "Item 5 does not exist (length 3)",
+      error: true,
+    });
+    expect(at({ step: 0, lastEvent: null, state: null })).toBeNull();
   });
 
   it("U-117 valueText writes containers with the same words inside", () => {

@@ -23,7 +23,7 @@ import { accepts, tryMove } from "@/ui/editor/moves";
 import { DiagnosticMessage, flaggedStatements, NodeEditor } from "@/ui/editor/NodeEditor";
 import { cn } from "@/lib/utils";
 import { Button } from "@/ui/primitives/button";
-import { narrate, narrateDifference, narrateEnd, type Narration } from "@/ui/run/narrate";
+import { narratePosition } from "@/ui/run/narrate";
 import { caseText } from "./caseText";
 import { clickNode } from "./actions";
 import { RunBar } from "./RunBar";
@@ -55,8 +55,6 @@ function SolutionBand({ challenge }: { challenge: Challenge }) {
   );
 }
 
-const say = (sentence: Narration) => t(sentence.key, sentence.params);
-
 /** The driver fields the chart draws and narrates from. */
 type Shown = Pick<
   RunState,
@@ -74,18 +72,6 @@ type Shown = Pick<
   | "verdicts"
   | "breakpoint"
 >;
-
-/** The sentence for the run's position, or none before the first step. */
-function narrationOf(run: Shown, program: Program): string | null {
-  const { step, total, outcome, lastEvent, state, difference } = run;
-  const end = outcome && step === total ? narrateEnd(outcome, total) : null;
-  // An error is said wherever the run stops on it; a difference is said in place of the step.
-  if (end && outcome?.type === "error") return say(end);
-  if (difference && step === difference.step) return say(narrateDifference(difference));
-  if (end) return say(end);
-  if (!lastEvent || !state) return null;
-  return say(narrate(lastEvent, { program, state, frame: run.frame, pass: run.pass }));
-}
 
 /** What the chart draws and says in run mode; in build mode the editor shows a diagnostic. */
 function useRunPaint(
@@ -120,9 +106,12 @@ function useRunPaint(
       verdicts: run.verdicts,
       breakpoint: run.breakpoint,
     });
-    const text = narrationOf(run, program);
-    const error = run.status === "error" && run.step === run.total;
-    return { paint: painted, narration: text === null ? null : { text, error } };
+    const told = narratePosition(run, program);
+    const narration = told && {
+      text: t(told.narration.key, told.narration.params),
+      error: told.error,
+    };
+    return { paint: painted, narration };
   }, [chart, run, program, mode]);
 }
 
