@@ -27,6 +27,24 @@ export type Callee = {
 /** A stored literal field its block would not write, and why. */
 export type FieldFault = { field: string; message: string };
 
+const BUILTIN = "call:";
+const METHOD = "method:";
+
+/** The registry key of the builtin `name`: `call:<name>`. */
+export function builtinKey(name: string): string {
+  return `${BUILTIN}${name}`;
+}
+
+/** The builtin a registry key names, or undefined for a key of another block. */
+export function builtinOf(key: string): string | undefined {
+  return key.startsWith(BUILTIN) ? key.slice(BUILTIN.length) : undefined;
+}
+
+/** The registry key of the method `name`: `method:<name>`. */
+export function methodKey(name: string): string {
+  return `${METHOD}${name}`;
+}
+
 /** A builtin's or method's parameter, `name` as its template writes it. */
 export type Param = { name: string; optional?: true };
 

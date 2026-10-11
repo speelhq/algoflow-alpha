@@ -1,7 +1,7 @@
 // Typed expression text → Expr. No third-party imports.
 import { newId } from "@/lang/id";
 import type { BinOp, Data, Expr, Id, Program } from "@/lang/types";
-import { NODES, hasNode, keyOf } from "@/nodes/registry";
+import { builtinKey, builtinOf, methodKey, NODES, hasNode, keyOf } from "@/nodes/registry";
 import { dataToPython } from "./emit";
 import { NUMBER, numberLiteral } from "./number";
 import { BINOPS, PRECEDENCE, binopsAt, isBinOp, isComparison } from "./precedence";
@@ -129,8 +129,9 @@ function tokenize(text: string): Token[] {
 function aliasTable(): Map<string, string> {
   const table = new Map<string, string>();
   for (const def of NODES.values()) {
-    if (!def.key.startsWith("call:")) continue;
-    for (const alias of def.aliases ?? []) table.set(alias, def.key.slice("call:".length));
+    const name = builtinOf(def.key);
+    if (name === undefined) continue;
+    for (const alias of def.aliases ?? []) table.set(alias, name);
   }
   return table;
 }
@@ -306,7 +307,7 @@ class Parser {
     if (this.scope.classes.includes(name)) {
       return this.node(position, { id: newId(), kind: "new", cls: name, args });
     }
-    if (hasNode(`call:${name}`)) return { id: newId(), kind: "call", fn: name, args };
+    if (hasNode(builtinKey(name))) return { id: newId(), kind: "call", fn: name, args };
     if (this.scope.functions.includes(name)) {
       return this.node(position, { id: newId(), kind: "call", fn: name, args });
     }
@@ -319,7 +320,7 @@ class Parser {
       const fn = this.aliases.get(`${obj.name}.${name.text}`);
       if (fn) return { id: newId(), kind: "call", fn, args };
     }
-    if (hasNode(`method:${name.text}`)) {
+    if (hasNode(methodKey(name.text))) {
       return { id: newId(), kind: "method", obj, name: name.text, args };
     }
     return fail("E_UNKNOWN_CALL", name.pos, { name: name.text });

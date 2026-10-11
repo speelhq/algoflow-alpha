@@ -3,6 +3,7 @@
 import { newId } from "@/lang/id";
 import type { Expr, Kind, Value } from "@/lang/types";
 import {
+  builtinKey,
   defineExpr,
   expectedArgs,
   type MenuEntry,
@@ -30,7 +31,7 @@ export type BuiltinDef = {
 export function defineBuiltin(def: BuiltinDef): NodeDef {
   const callee = def.python ?? def.name;
   return defineExpr<"call">({
-    key: `call:${def.name}`,
+    key: builtinKey(def.name),
     category: def.category,
     slots: [{ name: "args", role: "exprs", required: true }],
     params: def.params,

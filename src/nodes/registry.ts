@@ -24,7 +24,7 @@ import { num } from "./num";
 import { print } from "./print";
 import { returnStmt } from "./return";
 import { str } from "./str";
-import type { NodeDef } from "./types";
+import { builtinKey, methodKey, type NodeDef } from "./types";
 import { unop } from "./unop";
 import { variable } from "./var";
 import { whileStmt } from "./while";
@@ -73,8 +73,8 @@ export function getNode(key: string): NodeDef {
 
 /** Registry key of an AST node: its kind, or `call:<fn>` / `method:<name>` for builtins. */
 export function keyOf(node: Node): string {
-  if (node.kind === "call") return NODES.has(`call:${node.fn}`) ? `call:${node.fn}` : "call";
-  if (node.kind === "method") return `method:${node.name}`;
+  if (node.kind === "call") return NODES.has(builtinKey(node.fn)) ? builtinKey(node.fn) : "call";
+  if (node.kind === "method") return methodKey(node.name);
   return node.kind;
 }
 
@@ -84,4 +84,5 @@ export function paletteNodes(category: Category): NodeDef[] {
 }
 
 export { emptyExpr } from "./empty";
+export { builtinKey, builtinOf, methodKey } from "./types";
 export type { EmitContext, NodeDef, Param, PyLine, RunContext, Signal, Slot } from "./types";

@@ -1,7 +1,7 @@
 // Every validation code, run after every edit and before every run: scope rules,
 // names, empty slots, and field defaults.
 // Dispatch is registry-driven: slots, `requires`, `loop`, `params`, `callee`.
-import { getNode, hasNode, keyOf } from "@/nodes/registry";
+import { builtinKey, getNode, hasNode, keyOf } from "@/nodes/registry";
 import { expectedArgs, type NodeDef, type Slot } from "@/nodes/types";
 import {
   CLASS_NAME_PATTERN,
@@ -31,7 +31,7 @@ export function isValidClassName(name: string): boolean {
 
 /** A builtin call key (`abs`, `random_int`, …) may not be redefined. */
 function isBuiltinName(name: string): boolean {
-  return hasNode(`call:${name}`);
+  return hasNode(builtinKey(name));
 }
 
 /** A field default is a number, a text, a boolean, none, or an empty list or dict. */
