@@ -3,13 +3,14 @@
 import { t } from "@/i18n/t";
 import { chartOf, firstSetters, variableKinds } from "@/lang/kinds";
 import type { Expr, Id, Kind, NodeId, Program } from "@/lang/types";
-import { isEmptyExpr, paramArg } from "@/lang/walk";
+import { isEmptyExpr } from "@/lang/walk";
 import { getNode, keyOf } from "@/nodes/registry";
 import {
   capitalise,
   exprTemplate,
   exprText,
   generatedText,
+  placeholderValue,
   sentence,
   templateParts,
   type Part,
@@ -129,31 +130,25 @@ function operationAt(line: Line): { operation: Expr; input: Expr } | undefined {
 
 /** An operation's template with the caret's input underlined and every other empty one `…`. */
 function operationParts(operation: Expr, current: Expr): Part[] {
-  const def = getNode(keyOf(operation));
-  const bag = operation as unknown as Record<string, unknown>;
   const written = (input: Expr): Part => {
     const text = isEmptyExpr(input) ? t("chart.blank") : exprText(input);
     return input === current ? { text, underline: true } : { text };
   };
   return templateParts(exprTemplate(operation), (name) => {
-    const slot = def.slots.find((s) => s.name === name);
-    const value = bag[name];
-    if (slot?.role === "expr") return [written(value as Expr)];
-    if (slot?.role === "text") return [{ text: textSlot(operation, name) }];
-    if (slot?.role === "exprs" && Array.isArray(value)) {
-      return (value as Expr[]).flatMap((item, i) =>
-        i === 0 ? [written(item)] : [{ text: t("chart.listSeparator") }, written(item)],
-      );
+    const held = placeholderValue(operation, name);
+    switch (held?.role) {
+      case "expr":
+        return held.expr ? [written(held.expr)] : [];
+      case "exprs":
+        return held.items.flatMap((item, i) =>
+          i === 0 ? [written(item)] : [{ text: t("chart.listSeparator") }, written(item)],
+        );
+      case "text":
+        return [{ text: held.text }];
+      default:
+        return [];
     }
-    const found = paramArg(operation, name);
-    return found ? [written(found.arg)] : [];
   });
-}
-
-function textSlot(operation: Expr, slot: string): string {
-  const def = getNode(keyOf(operation));
-  const value = (operation as unknown as Record<string, unknown>)[slot];
-  return def.text?.(operation, slot) || (typeof value === "string" ? value : "");
 }
 
 /** The explanation of a value line, with `highlighted` the row the list highlights. */

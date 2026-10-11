@@ -6,6 +6,7 @@
 // `precedence` only, never a kind.
 import { nodeText, t } from "@/i18n/t";
 import { toValue } from "@/lang/data";
+import { isRecord } from "@/lang/record";
 import type { Data, Expr, Heap, Node, NodeId, Program, Target, Value } from "@/lang/types";
 import { firstAssignments } from "@/lang/validate";
 import { conditionOf, isEmptyExpr, isExpr, paramArg, variableOf } from "@/lang/walk";
@@ -17,9 +18,34 @@ import { str, writeValue } from "@/runtime/values";
 
 type Bag = Record<string, unknown>;
 
-/** A template with every `{slot}` written as `…`. */
+/** A piece of a template: its own words, or a placeholder naming a slot or a parameter. */
+export type Piece = { words: string } | { name: string };
+
+/** A template as its words and its placeholders in reading order: the one reading of a template. */
+export function templatePieces(template: string): Piece[] {
+  const pieces: Piece[] = [];
+  let at = 0;
+  for (const found of template.matchAll(/\{(\w+)\}/g)) {
+    if (found.index > at) pieces.push({ words: template.slice(at, found.index) });
+    pieces.push({ name: found[1] ?? "" });
+    at = found.index + found[0].length;
+  }
+  if (at < template.length) pieces.push({ words: template.slice(at) });
+  return pieces;
+}
+
+/** A template with every placeholder written as `…`. */
 export function blankTemplate(template: string): string {
-  return template.replace(/\{\w+\}/g, t("chart.blank"));
+  return templatePieces(template)
+    .map((piece) => ("words" in piece ? piece.words : t("chart.blank")))
+    .join("");
+}
+
+/** The words of a template, without its placeholders. */
+function templateWords(template: string): string {
+  return templatePieces(template)
+    .map((piece) => ("words" in piece ? piece.words : ""))
+    .join("");
 }
 
 export function capitalise(text: string): string {
@@ -59,14 +85,9 @@ export type Writing = { value?: (name: string) => string | undefined };
  * across parts as in a sentence, and a part left with no text is dropped.
  */
 export function templateParts(template: string, fill: (name: string) => Part[]): Part[] {
-  const parts: Part[] = [];
-  let at = 0;
-  for (const found of template.matchAll(/\{(\w+)\}/g)) {
-    parts.push({ text: template.slice(at, found.index) });
-    parts.push(...fill(found[1] ?? ""));
-    at = found.index + found[0].length;
-  }
-  parts.push({ text: template.slice(at) });
+  const parts = templatePieces(template).flatMap((piece) =>
+    "words" in piece ? [{ text: piece.words }] : fill(piece.name),
+  );
   const out: Part[] = [];
   for (const part of parts) {
     const before = out[out.length - 1]?.text ?? "";
@@ -101,7 +122,7 @@ const hasInputs = (def: NodeDef) =>
 /** An operation written in words around its inputs (`remainder of i divided by 15`). */
 export function isWordOperation(expr: Expr): boolean {
   const def = getNode(keyOf(expr));
-  return hasInputs(def) && /\p{L}/u.test(exprTemplate(expr).replace(/\{\w+\}/g, ""));
+  return hasInputs(def) && /\p{L}/u.test(templateWords(exprTemplate(expr)));
 }
 
 /** An operation written with a symbol, which has a precedence (`+`, `=`, `−`). */
@@ -133,6 +154,47 @@ function operandParts(child: Expr, parent: Expr, side: Side, writing: Writing): 
   return bracketed(child, parent, side) ? inBrackets(parts) : parts;
 }
 
+/**
+ * What a placeholder of a node's template holds: an expression slot or a builtin's parameter
+ * (its input, and the side it is on), a list of values, a name, a target, or a literal field as
+ * its block writes it. Undefined when the placeholder holds nothing drawn (a body).
+ */
+export type Held =
+  | { role: "expr"; expr: Expr | undefined; side: Side }
+  | { role: "exprs"; items: Expr[] }
+  | { role: "id"; name: string }
+  | { role: "target"; target: Target | undefined }
+  | { role: "text"; text: string };
+
+/** What the placeholder `name` of `node`'s template holds. */
+export function placeholderValue(node: Node, name: string): Held | undefined {
+  const def = getNode(keyOf(node));
+  const slot = def.slots.find((s) => s.name === name);
+  if (!slot) {
+    // Builtin templates name their parameters (`{a}`, `{b}`).
+    const found = paramArg(node, name);
+    return found && { role: "expr", expr: found.arg, side: found.index === 0 ? "left" : "right" };
+  }
+  const value = (node as unknown as Bag)[name];
+  switch (slot.role) {
+    case "expr": {
+      const first = def.slots.find((s) => s.role === "expr");
+      const side = slot === first ? "left" : "right";
+      return { role: "expr", expr: isExpr(value) ? value : undefined, side };
+    }
+    case "exprs":
+      return { role: "exprs", items: Array.isArray(value) ? value.filter(isExpr) : [] };
+    case "id":
+      return { role: "id", name: typeof value === "string" ? value : "" };
+    case "target":
+      return { role: "target", target: isRecord(value) ? (value as Target) : undefined };
+    case "text":
+      return { role: "text", text: textOf(node, def, name) };
+    case "body":
+      return undefined;
+  }
+}
+
 /** An expression as the chart writes it. */
 export function exprParts(expr: Expr, writing: Writing = {}): Part[] {
   if (isEmptyExpr(expr)) return [{ text: placeholder(), empty: true, hole: expr.id }];
@@ -141,31 +203,17 @@ export function exprParts(expr: Expr, writing: Writing = {}): Part[] {
     const value = writing.value?.(name);
     return value === undefined ? [{ text: name, variable: true }] : [{ text: value }];
   }
-  const def = getNode(keyOf(expr));
-  const bag = expr as unknown as Bag;
-  const first = def.slots.find((s) => s.role === "expr");
   return templateParts(exprTemplate(expr), (placeholderName) => {
-    const slot = def.slots.find((s) => s.name === placeholderName);
-    const value = slot ? bag[slot.name] : undefined;
-    switch (slot?.role) {
+    const held = placeholderValue(expr, placeholderName);
+    switch (held?.role) {
       case "expr":
-        return isExpr(value)
-          ? operandParts(value, expr, slot === first ? "left" : "right", writing)
-          : [];
+        return held.expr ? operandParts(held.expr, expr, held.side, writing) : [];
       case "exprs":
-        return listParts(Array.isArray(value) ? value.filter(isExpr) : [], (item) =>
-          exprParts(item, writing),
-        );
+        return listParts(held.items, (item) => exprParts(item, writing));
       case "id":
-        return [{ text: typeof value === "string" ? value : "" }];
+        return [{ text: held.name }];
       case "text":
-        return [{ text: textOf(expr, def, slot.name) }];
-      case undefined: {
-        // Builtin templates name their parameters (`{a}`, `{b}`).
-        const found = paramArg(expr, placeholderName);
-        const side = found?.index === 0 ? "left" : "right";
-        return found ? operandParts(found.arg, expr, side, writing) : [];
-      }
+        return [{ text: held.text }];
       default:
         return [];
     }
@@ -222,24 +270,20 @@ function drawsPlaceholder(node: Node, def: NodeDef, name: string): boolean {
 
 /** The parts of one slot of a statement, each naming the slot. */
 function stmtSlotParts(node: Node, def: NodeDef, name: string): Part[] {
-  const slot = def.slots.find((s) => s.name === name);
-  if (!slot) return [];
-  const value = (node as unknown as Bag)[name];
   const parts = (): Part[] => {
     if (drawsPlaceholder(node, def, name)) return [{ text: placeholder(), empty: true }];
-    switch (slot.role) {
+    const held = placeholderValue(node, name);
+    switch (held?.role) {
       case "expr":
-        return isExpr(value) ? exprParts(value) : [];
+        return held.expr ? exprParts(held.expr) : [];
       case "exprs":
-        return listParts(Array.isArray(value) ? value.filter(isExpr) : [], (item) =>
-          exprParts(item),
-        );
+        return listParts(held.items, (item) => exprParts(item));
       case "id":
-        return [{ text: typeof value === "string" ? value : "", variable: true }];
+        return [{ text: held.name, variable: true }];
       case "target":
-        return value && typeof value === "object" ? targetParts(value as Target) : [];
+        return held.target ? targetParts(held.target) : [];
       case "text":
-        return [{ text: textOf(node, def, name) }];
+        return [{ text: held.text }];
       default:
         return [];
     }

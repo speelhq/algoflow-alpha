@@ -5,11 +5,18 @@
 import { forwardRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { t } from "@/i18n/t";
 import type { Expr, NodeId } from "@/lang/types";
-import { isEmptyExpr, paramArg, variableOf } from "@/lang/walk";
+import { isEmptyExpr, variableOf } from "@/lang/walk";
 import { cn } from "@/lib/utils";
 import { getNode, keyOf } from "@/nodes/registry";
 import type { Side } from "@/nodes/types";
-import { bracketed, exprTemplate, exprText, isWordOperation } from "@/ui/chart/text";
+import {
+  bracketed,
+  exprTemplate,
+  exprText,
+  isWordOperation,
+  placeholderValue,
+  templatePieces,
+} from "@/ui/chart/text";
 import { inputs, type Line } from "./line";
 
 type Bag = Record<string, unknown>;
@@ -139,50 +146,47 @@ export const ValueLine = forwardRef<HTMLDivElement, Props>(function ValueLine(pr
   };
 
   const operation = (expr: Expr): ReactNode => {
-    const def = getNode(keyOf(expr));
-    const bag = expr as unknown as Bag;
-    const first = def.slots.find((s) => s.role === "expr");
     const pieces: ReactNode[] = [];
-    const template = exprTemplate(expr);
-    let at = 0;
-    for (const found of template.matchAll(/\{(\w+)\}/g)) {
-      const words = template.slice(at, found.index);
-      if (words.trim() !== "") pieces.push(<span key={`w${at}`}>{words}</span>);
-      else if (words !== "") pieces.push(" ");
-      const name = found[1] ?? "";
-      const slot = def.slots.find((s) => s.name === name);
-      const value = bag[name];
-      if (slot?.role === "expr" && value && typeof value === "object") {
-        pieces.push(draw(value as Expr, expr, slot === first ? "left" : "right"));
-      } else if (slot?.role === "exprs" && Array.isArray(value)) {
-        (value as Expr[]).forEach((item, i) => {
-          if (i > 0) pieces.push(<span key={`c${item.id}`}>{t("chart.listSeparator")}</span>);
-          pieces.push(draw(item));
-        });
-      } else if (slot?.role === "text") {
-        pieces.push(
-          <button
-            key={`op${expr.id}`}
-            type="button"
-            tabIndex={-1}
-            onMouseDown={(event) => event.preventDefault()}
-            data-op={expr.id}
-            className="cursor-pointer rounded-sm px-0.5 hover:bg-muted"
-            onClick={() => props.onClickAt(expr.id, true)}
-          >
-            {def.text?.(expr, name) || (typeof value === "string" ? value : "")}
-          </button>,
-        );
-      } else if (slot?.role === "id") {
-        pieces.push(<span key={`id${at}`}>{typeof value === "string" ? value : ""}</span>);
-      } else {
-        const param = paramArg(expr, name);
-        if (param) pieces.push(draw(param.arg, expr, param.index === 0 ? "left" : "right"));
+    templatePieces(exprTemplate(expr)).forEach((piece, i) => {
+      if ("words" in piece) {
+        // oxlint-disable-next-line react/no-array-index-key -- a template's pieces keep their order
+        if (piece.words.trim() !== "") pieces.push(<span key={`w${i}`}>{piece.words}</span>);
+        else pieces.push(" ");
+        return;
       }
-      at = found.index + found[0].length;
-    }
-    const tail = template.slice(at);
-    if (tail.trim() !== "") pieces.push(<span key="tail">{tail}</span>);
+      const held = placeholderValue(expr, piece.name);
+      switch (held?.role) {
+        case "expr":
+          if (held.expr) pieces.push(draw(held.expr, expr, held.side));
+          return;
+        case "exprs":
+          held.items.forEach((item, j) => {
+            if (j > 0) pieces.push(<span key={`c${item.id}`}>{t("chart.listSeparator")}</span>);
+            pieces.push(draw(item));
+          });
+          return;
+        case "text":
+          pieces.push(
+            <button
+              key={`op${expr.id}`}
+              type="button"
+              tabIndex={-1}
+              onMouseDown={(event) => event.preventDefault()}
+              data-op={expr.id}
+              className="cursor-pointer rounded-sm px-0.5 hover:bg-muted"
+              onClick={() => props.onClickAt(expr.id, true)}
+            >
+              {held.text}
+            </button>,
+          );
+          return;
+        case "id":
+          pieces.push(<span key={`id:${piece.name}`}>{held.name}</span>);
+          return;
+        default:
+          return;
+      }
+    });
     return isWordOperation(expr) ? (
       <span className="rounded bg-muted px-1 py-0.5" data-operation={expr.id}>
         {pieces}

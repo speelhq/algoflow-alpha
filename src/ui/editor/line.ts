@@ -12,7 +12,7 @@ import { allExprs, childSlots, isEmptyExpr, variableOf } from "@/lang/walk";
 import { emptyExpr, getNode, keyOf } from "@/nodes/registry";
 import { isParseError, parse, type ParseScope } from "@/python/parse";
 import { levelAssociativity } from "@/python/precedence";
-import { exprTemplate, exprText } from "@/ui/chart/text";
+import { exprTemplate, exprText, templatePieces } from "@/ui/chart/text";
 import { allEntries, makeEntry, takesValue, type Entry } from "./entries";
 
 type Bag = Record<string, unknown>;
@@ -520,10 +520,18 @@ export function type(line: Line, key: string, ctx: LineContext): Outcome {
   return refused(line);
 }
 
+/** The template's last words, when it ends with words rather than a placeholder. */
+function closingWords(expr: Expr): string | undefined {
+  const last = templatePieces(exprTemplate(expr)).findLast(
+    (piece) => !("words" in piece) || piece.words.trim() !== "",
+  );
+  return last && "words" in last ? last.words.trim() : undefined;
+}
+
 /** `)` with no bracket open closes the brackets of the innermost call around the caret. */
 function leave(line: Line): Outcome | undefined {
   const { caret, root } = line;
-  const bracketed = (expr: Expr) => /\)\s*$/.test(exprTemplate(expr));
+  const bracketed = (expr: Expr) => closingWords(expr)?.endsWith(")") ?? false;
   let up = parentOf(root, "at" in caret ? caret.at : caret.after);
   while (up && !bracketed(up.parent)) up = parentOf(root, up.parent.id);
   return up ? done({ ...line, caret: { after: up.parent.id }, pending: undefined }) : undefined;
@@ -532,7 +540,7 @@ function leave(line: Line): Outcome | undefined {
 // ---------------------------------------------------------------- removing and moving
 
 /** Whether an operation's template ends with its own words (`{x} as text`). */
-const endsInWords = (expr: Expr) => !/\}\s*$/.test(exprTemplate(expr));
+const endsInWords = (expr: Expr) => closingWords(expr) !== undefined;
 
 /** Backspace removes what is before the caret. */
 export function backspace(line: Line): Outcome {

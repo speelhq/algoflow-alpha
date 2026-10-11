@@ -27,7 +27,7 @@ import { emptyExpr, getNode, keyOf } from "@/nodes/registry";
 import { parseScope } from "@/python/parse";
 import { useEditor } from "@/store/editor";
 import { useProgram } from "@/store/program";
-import { templateOf } from "@/ui/chart/text";
+import { placeholderValue, templateOf, templatePieces } from "@/ui/chart/text";
 import { Button } from "@/ui/primitives/button";
 import { Popover } from "@/ui/primitives/popover";
 import { apply } from "./edits";
@@ -142,18 +142,16 @@ function setName(program: Program, stmt: Stmt, slot: string, name: string): Prog
 
 /** The fields of the sentence, in its reading order. */
 function fieldsOf(stmt: Stmt, program: Program): Field[] {
-  const def = getNode(keyOf(stmt));
-  const bag = stmt as unknown as Bag;
   const out: Field[] = [];
-  for (const found of templateOf(stmt, program).matchAll(/\{(\w+)\}/g)) {
-    const slot = def.slots.find((s) => s.name === found[1]);
-    const value = slot ? bag[slot.name] : undefined;
-    if (!slot) continue;
-    if ((slot.role === "id" || slot.role === "target") && nameOf(stmt, slot.name) !== undefined) {
-      out.push({ slot: slot.name, role: slot.role });
-    } else if (slot.role === "expr" && isExpr(value)) out.push({ slot: slot.name, role: "expr" });
-    else if (slot.role === "exprs" && Array.isArray(value)) {
-      value.forEach((_, index) => out.push({ slot: slot.name, role: "expr", index }));
+  for (const piece of templatePieces(templateOf(stmt, program))) {
+    if ("words" in piece) continue;
+    const held = placeholderValue(stmt, piece.name);
+    const slot = piece.name;
+    if ((held?.role === "id" || held?.role === "target") && nameOf(stmt, slot) !== undefined) {
+      out.push({ slot, role: held.role });
+    } else if (held?.role === "expr" && held.expr) out.push({ slot, role: "expr" });
+    else if (held?.role === "exprs") {
+      held.items.forEach((_, index) => out.push({ slot, role: "expr", index }));
     }
   }
   return out;
@@ -681,17 +679,12 @@ function Body({ stmt, program, initial }: { stmt: Stmt; program: Program; initia
     );
   };
 
-  const template = templateOf(stmt, program);
-  const sentence: ReactNode[] = [];
-  let at = 0;
-  for (const found of template.matchAll(/\{(\w+)\}/g)) {
-    const text = template.slice(at, found.index).trim();
-    if (text !== "") sentence.push(<span key={`t${at}`}>{text}</span>);
-    sentence.push(widget(found[1] ?? ""));
-    at = found.index + found[0].length;
-  }
-  const tail = template.slice(at).trim();
-  if (tail !== "") sentence.push(<span key="tail">{tail}</span>);
+  const sentence = templatePieces(templateOf(stmt, program)).map((piece, i) => {
+    if (!("words" in piece)) return widget(piece.name);
+    const text = piece.words.trim();
+    // oxlint-disable-next-line react/no-array-index-key -- a template's pieces keep their order
+    return text === "" ? null : <span key={`t${i}`}>{text}</span>;
+  });
 
   // ------------------------------------------------------------ the list and its explanation
 

@@ -11,9 +11,11 @@ import {
   generatedText,
   inputParts,
   joinParts,
+  placeholderValue,
   questionParts,
   sentence,
   sentenceParts,
+  templatePieces,
 } from "./text";
 
 const { assign, num, str, bool, bin, neg, not, v, print, for_, if_, call, ret, empty } = ast;
@@ -23,6 +25,37 @@ function expr(python: string): Expr {
   if (isParseError(parsed)) throw new Error(python);
   return parsed;
 }
+
+describe("templatePieces and placeholderValue (N-02)", () => {
+  it("reads a template as its words and placeholders, in order", () => {
+    expect(templatePieces("set {target} to {value}")).toEqual([
+      { words: "set " },
+      { name: "target" },
+      { words: " to " },
+      { name: "value" },
+    ]);
+    expect(templatePieces("{x} as text")).toEqual([{ name: "x" }, { words: " as text" }]);
+    expect(templatePieces("break")).toEqual([{ words: "break" }]);
+  });
+
+  it("gives what a placeholder holds: a slot, a parameter's argument with its side, or nothing", () => {
+    const left = v("a");
+    const right = num(2);
+    const sum = bin("+", left, right);
+    expect(placeholderValue(sum, "left")).toEqual({ role: "expr", expr: left, side: "left" });
+    expect(placeholderValue(sum, "right")).toEqual({ role: "expr", expr: right, side: "right" });
+    expect(placeholderValue(sum, "op")).toEqual({ role: "text", text: "+" });
+    const max = call("max", left, right);
+    expect(placeholderValue(max, "b")).toEqual({ role: "expr", expr: right, side: "right" });
+    expect(placeholderValue(call("max", left), "b")).toBeUndefined();
+    expect(placeholderValue(print(left), "args")).toEqual({ role: "exprs", items: [left] });
+    expect(placeholderValue(for_("i", num(0), num(3), []), "var")).toEqual({
+      role: "id",
+      name: "i",
+    });
+    expect(placeholderValue(for_("i", num(0), num(3), []), "body")).toBeUndefined();
+  });
+});
 
 describe("sentence (N-08)", () => {
   it("renders statements from their template, with the create form of a first assignment", () => {
