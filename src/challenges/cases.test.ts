@@ -1,8 +1,9 @@
-// C-13, U-32: the chosen case gives the values of a program's inputs.
+// C-13, U-32: the chosen case gives the values of a program's inputs; C-01, R-36: its seed.
 import { describe, expect, it } from "vitest";
 import { program } from "@/nodes/testing";
 import { caseInputs, caseOf } from "./cases";
 import { getChallenge } from "./index";
+import { seedOf } from "./types";
 
 describe("the chosen case", () => {
   const fizzbuzz = getChallenge("fizzbuzz");
@@ -19,5 +20,14 @@ describe("the chosen case", () => {
     const declared = program([], { inputs: [{ name: "n", kind: "number" }] });
     expect(() => caseInputs(declared, 0)).toThrow(/no case 0 gives the inputs/);
     expect(() => caseInputs(fizzbuzz.solution, 9)).toThrow(/no case 9/);
+  });
+});
+
+describe("the seed of a run (C-01, R-36)", () => {
+  it("is the test's own, else 1, and 1 for a run with no test", () => {
+    const test = { inputs: {}, expect: { stdout: [] } };
+    expect(seedOf({ ...test, seed: 7 })).toBe(7);
+    expect(seedOf(test)).toBe(1);
+    expect(seedOf(undefined)).toBe(1);
   });
 });
