@@ -25,7 +25,16 @@ import { DiagnosticMessage, editorDiagnostics } from "./diagnostics";
 import { apply } from "./edits";
 import { EditorList } from "./EditorList";
 import { explainLine, explainVariable, helpParts, type Explanation } from "./explain";
-import { fieldKey, fieldsOf, nameOf, sameField, setName, startField, type Field } from "./fields";
+import {
+  fieldKey,
+  fieldLabel,
+  fieldsOf,
+  nameOf,
+  sameField,
+  setName,
+  startField,
+  type Field,
+} from "./fields";
 import { lineTakes, matches, openLine, setText, type LineContext } from "./line";
 import { NameOfNode } from "./NameOfNode";
 import { nameChars, type NameRow } from "./names";
@@ -177,7 +186,7 @@ function Body({ stmt, program, initial }: { stmt: Stmt; program: Program; initia
         ref={register(field)}
         root={root}
         line={shown}
-        label={field.slot}
+        label={fieldLabel(stmt, program, field.slot)}
         unmatched={shown !== null && shown.word !== "" && matches(shown, ctx).length === 0}
         onKey={onValueKey}
         onFocus={() => {
@@ -251,7 +260,7 @@ function Body({ stmt, program, initial }: { stmt: Stmt; program: Program; initia
           <NameField
             key={name}
             slot={name}
-            label={name}
+            label={fieldLabel(stmt, program, name)}
             name={shownName}
             typed={on ? session.typed : null}
             on={on}

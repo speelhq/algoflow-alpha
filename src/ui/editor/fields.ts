@@ -1,5 +1,6 @@
 // The fields of a statement's sentence in the node editor: each name slot, each value slot, and
 // each item of a list of values, in the sentence's reading order.
+import { nodeText } from "@/i18n/t";
 import { setSlot } from "@/lang/edit";
 import type { Expr, NodeId, Program, Stmt, Target } from "@/lang/types";
 import { allExprs, isEmptyExpr, isExpr } from "@/lang/walk";
@@ -46,6 +47,14 @@ export function fieldsOf(stmt: Stmt, program: Program): Field[] {
     }
   }
   return out;
+}
+
+/** A slot's accessible name: the template's words just before it, else the block's label. */
+export function fieldLabel(stmt: Stmt, program: Program, slot: string): string {
+  const pieces = templatePieces(templateOf(stmt, program));
+  const before = pieces[pieces.findIndex((piece) => "name" in piece && piece.name === slot) - 1];
+  const words = before && "words" in before ? before.words.trim() : "";
+  return words !== "" ? words : nodeText(getNode(keyOf(stmt)).key, "label");
 }
 
 /** The expression a value field holds. */
