@@ -1,5 +1,5 @@
-# lint, test, check, build, test:e2e on every pull request and on every push
-# to main; main deploys dist/ to GitHub Pages.
+# lint, format, test, check, build, test:e2e on every pull request and on
+# every push to main; main deploys dist/ to GitHub Pages.
 name: CI
 
 on:
@@ -10,9 +10,12 @@ on:
 permissions:
   contents: read
 
+# A newer push to a pull request cancels the run of the one before. On main a run waits for the
+# one before, and of the runs waiting only the latest starts, so main's latest commit is always
+# checked and deployed.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   # Project Pages serve from /<repo>/; vite.config.ts and playwright.config.ts read this.
@@ -33,7 +36,9 @@ jobs:
         with:
           python-version: "3.12"
       - run: pnpm install --frozen-lockfile
+      # Lint type-checks too (`--type-check`); the build does not repeat it.
       - run: pnpm lint
+      - run: pnpm format --check
       - run: pnpm test
       - run: pnpm check
       - run: pnpm build
