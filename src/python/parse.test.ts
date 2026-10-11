@@ -1,4 +1,4 @@
-// G-01, G-02, G-03, G-04, G-05, G-06, and G-07.
+// G-01, G-02, G-03, G-04, G-06, G-07, and G-08.
 import { describe, expect, it } from "vitest";
 import type { Expr } from "@/lang/types";
 import { NODES } from "@/nodes/registry";
@@ -205,14 +205,26 @@ function generator(seed: number) {
   return () => gen(4);
 }
 
-describe("G-05 / G-06: unparse(parse(s)) is a fixed point", () => {
-  it("holds for 1,000 generated expressions", () => {
+/** An expression with every node id removed, for comparing structure alone. */
+function withoutIds(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(withoutIds);
+  if (typeof value !== "object" || value === null) return value;
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([key]) => key !== "id")
+      .map(([key, field]) => [key, withoutIds(field)]),
+  );
+}
+
+describe("G-06, G-08: parse(unparse(e)) is e apart from ids", () => {
+  it("holds for 1,000 generated expressions, so the text is a fixed point", () => {
     const next = generator(20260903);
     for (let i = 0; i < 1000; i += 1) {
       const expr = next();
       const text = unparse(expr);
       const parsed = parse(text);
       if (isParseError(parsed)) throw new Error(`case ${i}: ${text} → ${JSON.stringify(parsed)}`);
+      expect(withoutIds(parsed), `case ${i}: ${text}`).toEqual(withoutIds(expr));
       expect(unparse(parsed), `case ${i}`).toBe(text);
     }
   });
