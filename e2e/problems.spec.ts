@@ -4,8 +4,6 @@ import { expect, test } from "./fixtures";
 import { planOf } from "../src/challenges/plans";
 import { seedProgress } from "./seed";
 
-/** Stores `entries` under `algoflow:progress` (C-17) before the app loads. */
-
 test.describe("first launch (U-90)", () => {
   test("with nothing stored, the first problem of the first plan opens", async ({ page }) => {
     await page.goto("/");
