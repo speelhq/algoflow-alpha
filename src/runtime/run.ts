@@ -53,13 +53,16 @@ export function run(program: Program, inputs: Readonly<Record<Id, Data>>, seed: 
     *call(fn, args, nodeId) {
       const def = functions.get(fn);
       if (!def) throw new Error(`unknown function ${fn}`);
-      if (def.params.length !== args.length) {
-        ctx.fail(nodeId, "E_ARITY", { name: fn, expected: def.params.length, got: args.length });
-      }
+      // Validation reports a wrong count before any run, as it reports an unknown function.
+      if (def.params.length !== args.length)
+        throw new Error(`${fn} takes ${def.params.length} arguments, given ${args.length}`);
       // The stack holds at most CALL_DEPTH_LIMIT frames, `main` included.
       if (frames.length >= CALL_DEPTH_LIMIT) ctx.fail(nodeId, "E_RECURSION");
       const vars = new Map<Id, Value>();
-      def.params.forEach((param, i) => vars.set(param, args[i] ?? { t: "none" }));
+      for (const [i, param] of def.params.entries()) {
+        const arg = args[i];
+        if (arg) vars.set(param, arg);
+      }
       frames.push({ fn, callNodeId: nodeId, vars });
       yield { type: "call", nodeId, fn, args };
       const signal = yield* ctx.exec(def.body);

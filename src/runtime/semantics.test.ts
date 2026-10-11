@@ -2,6 +2,7 @@
 // the basic and control blocks, and the R-03/R-08/R-10 event rules.
 import { describe, expect, it } from "vitest";
 import { ast, evalExpr, eventTypes, program, runAll, varData, withInputs } from "@/nodes/testing";
+import { validate } from "@/lang/validate";
 import { run, STEP_LIMIT } from "./run";
 import { floatRepr, strRepr } from "./values";
 
@@ -103,6 +104,13 @@ describe("the semantics table of language.md", () => {
       type: "error",
       error: { code: "E_DIV_ZERO" },
     });
+  });
+
+  it("L-28: a program function's argument count is validated, so the runner is never given a wrong one", () => {
+    const f = { id: "f0000000000f", name: "f", params: ["a", "b"], body: [] };
+    const p = program([exprStmt(call("f", num(1)))], { functions: [f] });
+    expect(validate(p).map((d) => d.code)).toEqual(["E_ARITY"]);
+    expect(() => runAll(p)).toThrow("f takes 2 arguments, given 1");
   });
 
   it("L-72 zero to a negative power → E_DIV_ZERO", () => {
