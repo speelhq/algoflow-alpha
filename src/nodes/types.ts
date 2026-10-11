@@ -24,6 +24,9 @@ export type Callee = {
   family: "builtin" | "function" | "class" | "method";
 };
 
+/** A stored literal field its block would not write, and why. */
+export type FieldFault = { field: string; message: string };
+
 /** A builtin's or method's parameter, `name` as its template writes it. */
 export type Param = { name: string; optional?: true };
 
@@ -149,6 +152,11 @@ export type NodeDef = {
   python(node: Stmt | Expr, ctx: EmitContext): PyLine[] | string;
   /** Template variant suffix (`node.<key>.template<Form>`); `""` or absent = the base template. */
   form?(node: Stmt | Expr, ctx: FormContext): string;
+  /**
+   * Which of a stored node's literal fields no edit could have written (an operator, a number's
+   * text), and why; undefined when its block would make them.
+   */
+  fieldsError?(fields: Readonly<Record<string, unknown>>): FieldFault | undefined;
   /** Canvas text of a `text` slot; default `String(node[slot])`. */
   text?(node: Stmt | Expr, slot: string): string;
   /** How the chart draws the block's regions; absent = a box with the sentence. */

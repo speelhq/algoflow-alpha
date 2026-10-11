@@ -112,11 +112,18 @@ describe("checkChallengeSchema (C-01, C-03)", () => {
     );
   });
 
-  it("C-01: inputs are declared with a kind, and every test's value has it", () => {
+  it("C-01, L-70: inputs are declared with a kind, and every test's value has it, as canonical Data", () => {
     const c = valid();
     (c.tests[0]!.inputs as Record<string, unknown>).n = "one";
     expect(checkChallengeSchema(c, "demo").problems).toEqual([
       "tests[0].inputs.n is not of the kind number",
+    ]);
+    const beyond = valid();
+    (beyond.tests[1]!.inputs as Record<string, unknown>).n = 2 ** 53;
+    (beyond.tests[2]!.expect.variables as Record<string, unknown>).total = [1, 2 ** 60];
+    expect(checkChallengeSchema(beyond, "demo").problems).toEqual([
+      "tests[1].inputs.n: expected an integer within the int range",
+      "tests[2].expect.variables.total[1]: expected an integer within the int range",
     ]);
     const undeclared = valid();
     (undeclared.inputs[0] as Record<string, unknown>).kind = "word";

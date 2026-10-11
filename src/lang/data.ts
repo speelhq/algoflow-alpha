@@ -1,4 +1,5 @@
 // Data (JSON form) ⇄ Value/heap; expectation equality.
+import { isRecord } from "./record";
 import type { Data, Heap, HeapEntry, HeapId, Id, Value } from "./types";
 
 const INT_KEY = "$int:";
@@ -30,6 +31,70 @@ export function isFloatData(data: Data): data is number | { $float: number } {
 export function isEmptyContainer(data: Data): boolean {
   if (Array.isArray(data)) return data.length === 0;
   return typeof data === "object" && data !== null && Object.keys(data).length === 0;
+}
+
+/** Why a number is not canonical: not finite, or an integer beyond the int range. */
+function numberError(n: number): string | undefined {
+  if (!Number.isFinite(n)) return "expected a finite number";
+  return Number.isInteger(n) && !fitsInt(n)
+    ? "expected an integer within the int range"
+    : undefined;
+}
+
+/** Why a dict key is not canonical: a `$int:` key that is no integer within the int range. */
+function keyError(key: string): string | undefined {
+  if (!key.startsWith(INT_KEY)) return undefined;
+  const text = key.slice(INT_KEY.length);
+  return /^-?(0|[1-9]\d*)$/.test(text) && fitsInt(Number(text))
+    ? undefined
+    : "expected a $int: key within the int range";
+}
+
+/** Where a JSON value fails to be canonical `Data`, as a path below it, and why. */
+export type DataFault = { at: string; message: string };
+
+function faultAt(json: unknown, at: string): DataFault | undefined {
+  if (typeof json === "number") {
+    const message = numberError(json);
+    return message === undefined ? undefined : { at, message };
+  }
+  if (json === null || typeof json === "string" || typeof json === "boolean") return undefined;
+  if (Array.isArray(json)) {
+    for (const [i, item] of json.entries()) {
+      const fault = faultAt(item, `${at}[${i}]`);
+      if (fault) return fault;
+    }
+    return undefined;
+  }
+  if (!isRecord(json)) return { at, message: "expected Data" };
+  if ("$float" in json) {
+    const only = Object.keys(json).length === 1 && typeof json.$float === "number";
+    return only && Number.isFinite(json.$float)
+      ? undefined
+      : { at, message: "expected { $float: n }, n a finite number" };
+  }
+  const object = "$cls" in json;
+  if (object && typeof json.$cls !== "string") {
+    return { at: `${at}.$cls`, message: "expected a name" };
+  }
+  const id = json.$id;
+  if (object && id !== undefined && !(typeof id === "number" && Number.isInteger(id) && id > 0)) {
+    return { at: `${at}.$id`, message: "expected a positive integer" };
+  }
+  for (const [key, item] of Object.entries(json)) {
+    if (object && (key === "$cls" || key === "$id")) continue;
+    const message = object ? undefined : keyError(key);
+    const where = object ? `${at}.${key}` : `${at}[${JSON.stringify(key)}]`;
+    if (message !== undefined) return { at: where, message };
+    const fault = faultAt(item, where);
+    if (fault) return fault;
+  }
+  return undefined;
+}
+
+/** Where a JSON value fails to be canonical `Data`, and why; undefined when it is canonical. */
+export function dataError(json: unknown): DataFault | undefined {
+  return faultAt(json, "");
 }
 
 function isObjectData(data: Data): data is { $cls: string; [field: string]: Data } {
@@ -64,9 +129,12 @@ export function inputValue(inputs: Readonly<Record<Id, Data>>, name: Id): Data {
   return data;
 }
 
+/** A value from canonical `Data`; other `Data` is a caller's error. */
 export function toValue(data: Data, heap: Heap): Value {
   if (typeof data === "number") {
-    return fitsInt(data) ? { t: "int", v: data } : { t: "float", v: data };
+    const message = numberError(data);
+    if (message !== undefined) throw new Error(`toValue: ${data}: ${message}`);
+    return Number.isInteger(data) ? { t: "int", v: data } : { t: "float", v: data };
   }
   if (typeof data === "string") return { t: "str", v: data };
   if (typeof data === "boolean") return { t: "bool", v: data };
@@ -86,6 +154,8 @@ export function toValue(data: Data, heap: Heap): Value {
   }
   const entries = new Map<string, Value>();
   for (const [key, item] of Object.entries(data)) {
+    const message = keyError(key);
+    if (message !== undefined) throw new Error(`toValue: ${key}: ${message}`);
     const encoded = key.startsWith(INT_KEY) ? `i:${key.slice(INT_KEY.length)}` : `s:${key}`;
     entries.set(encoded, toValue(item, heap));
   }

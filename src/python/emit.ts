@@ -25,10 +25,7 @@ const INDENT = "    ";
 
 /** A Data value as a Python literal. */
 export function dataToPython(data: Data): string {
-  if (typeof data === "number") {
-    if (!Number.isInteger(data)) return floatRepr(data);
-    return Math.abs(data) < 1e21 ? String(data) : BigInt(data).toString();
-  }
+  if (typeof data === "number") return Number.isInteger(data) ? String(data) : floatRepr(data);
   if (typeof data === "string") return pyString(data);
   if (typeof data === "boolean") return data ? "True" : "False";
   if (data === null) return "None";

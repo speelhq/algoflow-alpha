@@ -107,9 +107,10 @@ describe("emit (emitter.md)", () => {
     expect(dataToPython(1e-7)).toBe("1e-07");
   });
 
-  it("E-03: integral inputs beyond 1e21 stay integer literals", () => {
-    expect(dataToPython(1e21)).toBe("1000000000000000000000");
+  it("E-03: an int input is its digits, a float input its repr", () => {
+    expect(dataToPython(2 ** 53 - 1)).toBe("9007199254740991");
     expect(dataToPython(12)).toBe("12");
+    expect(dataToPython({ $float: 2 })).toBe("2.0");
   });
 
   it("E-04: 4-space indentation, no trailing whitespace, one trailing newline", () => {

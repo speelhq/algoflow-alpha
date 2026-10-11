@@ -1,5 +1,6 @@
 // The `num` block: `raw` is the source text; float when raw has `.`, `e`, or `E`.
 import { newId } from "@/lang/id";
+import { numberLiteral } from "@/python/number";
 import { makeNumber } from "@/runtime/values";
 import { defineExpr } from "./types";
 
@@ -15,7 +16,16 @@ export const num = defineExpr<"num">({
     float: node.kind === "num" && node.float,
     raw: node.kind === "num" && node.float ? "0.0" : "0",
   }),
-  // A stored literal outside the int range is a float, as a result is.
+  fieldsError: (fields) => {
+    const literal = typeof fields.raw === "string" ? numberLiteral(fields.raw) : undefined;
+    if (!literal) return { field: "raw", message: "expected a number literal within range" };
+    if (literal.value !== fields.value) {
+      return { field: "value", message: "expected the number raw writes" };
+    }
+    return literal.float === fields.float
+      ? undefined
+      : { field: "float", message: "expected whether raw writes a float" };
+  },
   *run(node) {
     return makeNumber(node.value, node.float);
   },

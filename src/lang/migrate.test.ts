@@ -1,9 +1,10 @@
-// L-56: import validates and migrates by version (L-53).
+// L-56: import validates and migrates by version (L-53); L-71: it refuses a literal field its
+// block would not make and a field default that is not canonical Data.
 import { describe, expect, it } from "vitest";
 import { ast, program } from "@/nodes/testing";
 import { MigrateError, migrate } from "./migrate";
 
-const { assign, print, num, bin, v, for_, ret } = ast;
+const { assign, print, num, float, str, bool, not, bin, v, for_, ret } = ast;
 
 function json(value: unknown): unknown {
   return JSON.parse(JSON.stringify(value));
@@ -136,5 +137,49 @@ describe("migrate (L-53)", () => {
     expect(() => migrate(badTarget)).toThrow(/^main\[0\]\.target\.field: expected a name/);
     badTarget.main[0]!.target = { kind: "index", list: v("xs") };
     expect(() => migrate(badTarget)).toThrow(/^main\[0\]\.target\.index: expected an expression/);
+  });
+
+  it("L-71: refuses a literal field its block would not make, at its path", () => {
+    const valueOf = (expr: unknown) => json(program([assign("x", expr as never)]));
+    const at = (fields: Record<string, unknown>, of: unknown) => {
+      const p = valueOf(of) as { main: Array<{ value: Record<string, unknown> }> };
+      Object.assign(p.main[0]!.value, fields);
+      return () => migrate(p);
+    };
+    expect(() => migrate(valueOf(num(7)))).not.toThrow();
+    expect(() => migrate(valueOf(float(2, "2.0")))).not.toThrow();
+    expect(() => migrate(valueOf(num(2 ** 53 - 1)))).not.toThrow();
+    expect(at({ raw: "007", value: 7 }, num(7))).toThrow(
+      /^main\[0\]\.value\.raw: expected a number literal/,
+    );
+    expect(at({ raw: "9007199254740992", value: 2 ** 53 }, num(1))).toThrow(
+      /value\.raw: expected a number/,
+    );
+    expect(at({ raw: "-3", value: -3 }, num(1))).toThrow(/value\.raw: expected a number/);
+    expect(at({ value: 8 }, num(7))).toThrow(
+      /^main\[0\]\.value\.value: expected the number raw writes/,
+    );
+    expect(at({ float: true }, num(7))).toThrow(/value\.float: expected whether raw/);
+    expect(at({ float: false }, float(2, "2.0"))).toThrow(/value\.float: expected whether raw/);
+    expect(at({ op: "^" }, bin("+", num(1), num(2)))).toThrow(
+      /value\.op: expected a known operator/,
+    );
+    expect(at({ op: "neg!" }, not(v("a")))).toThrow(/value\.op: expected a known operator/);
+    expect(at({ value: 3 }, str("a"))).toThrow(/value\.value: expected a text/);
+    expect(at({ value: "yes" }, bool(true))).toThrow(/value\.value: expected true or false/);
+  });
+
+  it("L-71: refuses a class field default that is not canonical Data, at its path", () => {
+    const withDefault = (value: unknown) => ({
+      ...program([]),
+      classes: [{ id: "c0000000000c", name: "C", fields: [{ name: "n", default: value }] }],
+    });
+    expect(() => migrate(withDefault(2 ** 53 - 1))).not.toThrow();
+    expect(() => migrate(withDefault(2 ** 60))).toThrow(
+      /^classes\[0\]\.fields\[0\]\.default: expected an integer within the int range/,
+    );
+    expect(() => migrate(withDefault({ $float: "1" }))).toThrow(
+      /^classes\[0\]\.fields\[0\]\.default: expected \{ \$float: n \}/,
+    );
   });
 });

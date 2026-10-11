@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dataEquals, inputValue, toData, toValue } from "./data";
+import { dataEquals, dataError, inputValue, toData, toValue } from "./data";
 import type { Data, Heap } from "./types";
 
 function roundTrip(data: Data): Data {
@@ -18,11 +18,13 @@ describe("L-06 toValue / toData", () => {
     expect(roundTrip({ $float: 2 })).toEqual({ $float: 2 });
   });
 
-  it("L-68, L-69: a Data number outside the int range is a float", () => {
+  it("L-68, L-70: an integral Data number is an int within the range; beyond it, no value", () => {
     const heap: Heap = new Map();
     expect(toValue(2 ** 53 - 1, heap)).toEqual({ t: "int", v: 2 ** 53 - 1 });
-    expect(toValue(2 ** 53, heap)).toEqual({ t: "float", v: 2 ** 53 });
-    expect(toValue(-(2 ** 53), heap)).toEqual({ t: "float", v: -(2 ** 53) });
+    expect(toValue(-(2 ** 53 - 1), heap)).toEqual({ t: "int", v: -(2 ** 53 - 1) });
+    expect(() => toValue(2 ** 53, heap)).toThrow("int range");
+    expect(() => toValue(-(2 ** 53), heap)).toThrow("int range");
+    expect(() => toValue({ "$int:9007199254740992": 1 }, heap)).toThrow("int range");
   });
 
   it("round-trips scalars", () => {
@@ -109,5 +111,44 @@ describe("inputValue", () => {
     expect(inputValue({ n: null }, "n")).toBeNull();
     expect(() => inputValue({}, "n")).toThrow(/no value for input n/);
     expect(() => inputValue({}, "toString")).toThrow(/no value for input toString/);
+  });
+});
+
+describe("dataError (L-70)", () => {
+  it("accepts canonical Data", () => {
+    for (const data of [
+      0,
+      -(2 ** 53 - 1),
+      2.5,
+      { $float: 2 },
+      { $float: 1e300 },
+      "x",
+      true,
+      null,
+      [1, [2.5]],
+      { "$int:-3": "a", b: [] },
+      { $cls: "Node", $id: 1, next: null },
+    ]) {
+      expect(dataError(data), JSON.stringify(data)).toBeUndefined();
+    }
+  });
+
+  it("names where and why a value is not canonical", () => {
+    expect(dataError(2 ** 53)).toEqual({
+      at: "",
+      message: "expected an integer within the int range",
+    });
+    expect(dataError([1, 2 ** 60])).toMatchObject({ at: "[1]" });
+    expect(dataError({ a: { $float: "2" } })).toMatchObject({ at: '["a"]' });
+    expect(dataError({ $float: 2, x: 1 })).toMatchObject({ at: "" });
+    expect(dataError({ "$int:07": 1 })).toMatchObject({ at: '["$int:07"]' });
+    expect(dataError({ "$int:9007199254740992": 1 })).toMatchObject({
+      at: '["$int:9007199254740992"]',
+    });
+    expect(dataError({ $cls: "Node", next: [Infinity] })).toMatchObject({ at: ".next[0]" });
+    expect(dataError({ $cls: 3 })).toMatchObject({ at: ".$cls" });
+    expect(dataError({ $cls: "Node", $id: "1" })).toMatchObject({ at: ".$id" });
+    expect(dataError(Number.NaN)).toMatchObject({ message: "expected a finite number" });
+    expect(dataError(undefined)).toMatchObject({ message: "expected Data" });
   });
 });

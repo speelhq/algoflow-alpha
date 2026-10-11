@@ -7,6 +7,10 @@ export const bool = defineExpr<"bool">({
   category: "basic",
   slots: [],
   create: () => ({ id: newId(), kind: "bool", value: true }),
+  fieldsError: (fields) =>
+    typeof fields.value === "boolean"
+      ? undefined
+      : { field: "value", message: "expected true or false" },
   zeroLike: () => ({ id: newId(), kind: "bool", value: false }),
   *run(node) {
     return { t: "bool", v: node.value };

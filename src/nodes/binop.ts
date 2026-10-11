@@ -3,7 +3,7 @@
 import { dictKey } from "@/lang/data";
 import { newId } from "@/lang/id";
 import { KINDS, type Expr, type Value } from "@/lang/types";
-import { binopPrecedence, isComparison } from "@/python/precedence";
+import { binopPrecedence, isBinOp, isComparison } from "@/python/precedence";
 import { typeError } from "@/runtime/access";
 import type { Event, Ref } from "@/runtime/types";
 import {
@@ -121,6 +121,10 @@ export const binop = defineExpr<"binop">({
   ],
   precedence: (node) => binopPrecedence((node as Binop).op),
   create: () => ({ id: newId(), kind: "binop", op: "+", left: emptyExpr(), right: emptyExpr() }),
+  fieldsError: (fields) =>
+    typeof fields.op === "string" && isBinOp(fields.op)
+      ? undefined
+      : { field: "op", message: "expected a known operator" },
   *run(node, ctx) {
     if (node.op === "and" || node.op === "or") {
       // Short-circuit, returning the deciding operand

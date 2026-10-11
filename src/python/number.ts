@@ -13,12 +13,13 @@ export type NumberLiteral = { value: number; float: boolean };
 
 /**
  * What a literal written `raw` is: a float when it has `.`, `e`, or `E`, else an int. Undefined
- * when `raw` is no literal Python takes, or an int outside the int range.
+ * when `raw` is no literal Python takes, an int outside the int range, or a float beyond the
+ * largest one (stored JSON has no infinity).
  */
 export function numberLiteral(raw: string): NumberLiteral | undefined {
   if (NUMBER.exec(raw)?.[0] !== raw) return undefined;
   const float = /[.eE]/.test(raw);
   const value = Number(raw);
-  if (!float && (LEADING_ZERO.test(raw) || !fitsInt(value))) return undefined;
-  return { value, float };
+  if (float) return Number.isFinite(value) ? { value, float } : undefined;
+  return LEADING_ZERO.test(raw) || !fitsInt(value) ? undefined : { value, float };
 }

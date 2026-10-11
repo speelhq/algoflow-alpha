@@ -8,7 +8,10 @@ import { emptyExpr } from "./empty";
 
 type Unop = Extract<Expr, { kind: "unop" }>;
 
-const precedenceOf = (node: Unop) => (node.op === "neg" ? PRECEDENCE.unary : PRECEDENCE.not);
+/** Each operator with its precedence. */
+const OPS: Record<Unop["op"], number> = { neg: PRECEDENCE.unary, not: PRECEDENCE.not };
+
+const precedenceOf = (node: Unop) => OPS[node.op];
 
 export const unop = defineExpr<"unop">({
   key: "unop",
@@ -19,6 +22,10 @@ export const unop = defineExpr<"unop">({
   ],
   precedence: (node) => precedenceOf(node as Unop),
   create: () => ({ id: newId(), kind: "unop", op: "neg", operand: emptyExpr() }),
+  fieldsError: (fields) =>
+    typeof fields.op === "string" && Object.hasOwn(OPS, fields.op)
+      ? undefined
+      : { field: "op", message: "expected a known operator" },
   *run(node, ctx) {
     const value = yield* ctx.eval(node.operand);
     if (node.op === "not") return { t: "bool", v: !truthy(value, ctx.heap) };

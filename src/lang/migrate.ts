@@ -1,6 +1,8 @@
-// Import validates and migrates by `version`. Only version 1 exists; the
-// check is structural (shape, known kinds, ids); semantics are validate()'s job.
+// Import validates and migrates by `version`. Only version 1 exists. It refuses what no edit
+// could make: a wrong shape, an unknown kind, a bad id, a literal field its block would not
+// write, a field default that is not canonical Data. What editing reaches is validate()'s job.
 import { getNode, hasNode, keyOf } from "@/nodes/registry";
+import { dataError } from "./data";
 import { isNodeId } from "./id";
 import { KINDS, type Expr, type InputDecl, type Program, type Target } from "./types";
 import { isRecord } from "./record";
@@ -47,6 +49,12 @@ function expectNodeId(value: unknown, path: string): void {
   if (!isNodeId(value)) throw new MigrateError(path, "expected a 12-character node id");
 }
 
+/** A node's literal fields, as its block would write them. */
+function checkFields(node: Record<string, unknown>, path: string): void {
+  const fault = getNode(keyOf(node as unknown as Expr)).fieldsError?.(node);
+  if (fault) throw new MigrateError(`${path}.${fault.field}`, fault.message);
+}
+
 /**
  * The raw expression values of a node, by the registry's slot roles (no `isExpr` filtering);
  * a required expression absent and a name that is no string are rejected here.
@@ -86,6 +94,7 @@ function checkExpr(value: unknown, path: string): void {
   if (!hasNode(keyOf(value as unknown as Expr))) {
     throw new MigrateError(`${path}.kind`, `unknown kind "${kind}"`);
   }
+  checkFields(value, path);
   for (const child of rawChildren(value, path)) checkExpr(child.value, child.path);
 }
 
@@ -108,6 +117,7 @@ function checkStmts(value: unknown, path: string): void {
     if (!hasNode(kind) || getNode(kind).shape !== "stmt") {
       throw new MigrateError(`${at}.kind`, `unknown kind "${kind}"`);
     }
+    checkFields(stmt, at);
     for (const child of rawChildren(stmt, at)) checkExpr(child.value, child.path);
     // Every region by the block's slots: `regionsOf` passes over one that is no array.
     for (const slot of getNode(kind).slots) {
@@ -132,9 +142,12 @@ function checkV1(json: Record<string, unknown>): Program {
     }
     expectNodeId(cls.id, `classes[${i}].id`);
     cls.fields.forEach((field, j) => {
+      const at = `classes[${i}].fields[${j}]`;
       if (!isRecord(field) || typeof field.name !== "string" || !("default" in field)) {
-        throw new MigrateError(`classes[${i}].fields[${j}]`, "expected { name, default }");
+        throw new MigrateError(at, "expected { name, default }");
       }
+      const fault = dataError(field.default);
+      if (fault) throw new MigrateError(`${at}.default${fault.at}`, fault.message);
     });
   });
   expectArray(json.functions, "functions").forEach((fn, i) => {

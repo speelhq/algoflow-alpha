@@ -1,6 +1,7 @@
 // Structural checks of a challenge file (used by scripts/check.ts).
 // The schema types live in src/challenges/types.ts.
 import { DIFFICULTIES, TOPICS, type Challenge, type Localized } from "@/challenges/types";
+import { dataError } from "@/lang/data";
 import { dataKind } from "@/lang/kinds";
 import { isInputDecl, migrate } from "@/lang/migrate";
 import { isRecord } from "@/lang/record";
@@ -92,6 +93,12 @@ export function checkChallengeSchema(
   const tests = Array.isArray(json.tests) ? json.tests : [];
   if (!Array.isArray(json.tests) || tests.length < 3)
     problems.push("tests must be an array of at least 3");
+  /** Whether a value is canonical Data; a fault is reported at its path. */
+  const canonical = (value: unknown, at: string): boolean => {
+    const fault = dataError(value);
+    if (fault) problems.push(`${at}${fault.at}: ${fault.message}`);
+    return fault === undefined;
+  };
   let edge = false;
   tests.forEach((test, i) => {
     if (!isRecord(test)) return problems.push(`tests[${i}] must be an object`);
@@ -103,6 +110,7 @@ export function checkChallengeSchema(
       for (const [name, kind] of declared) {
         if (!Object.hasOwn(test.inputs, name))
           problems.push(`tests[${i}].inputs is missing "${name}"`);
+        else if (!canonical(test.inputs[name], `tests[${i}].inputs.${name}`)) continue;
         else if (dataKind(test.inputs[name] as Data) !== kind)
           problems.push(`tests[${i}].inputs.${name} is not of the kind ${kind}`);
       }
@@ -116,6 +124,9 @@ export function checkChallengeSchema(
       (!isRecord(test.expect.variables) && !Array.isArray(test.expect.stdout))
     ) {
       problems.push(`tests[${i}].expect needs variables and/or stdout`);
+    } else if (isRecord(test.expect.variables)) {
+      for (const [name, value] of Object.entries(test.expect.variables))
+        canonical(value, `tests[${i}].expect.variables.${name}`);
     }
   });
   if (tests.length > 0 && !edge) problems.push("no test has edge: true");

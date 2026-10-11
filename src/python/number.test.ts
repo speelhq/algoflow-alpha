@@ -19,9 +19,12 @@ describe("numberLiteral (G-01, G-07)", () => {
     }
   });
 
-  it("G-07: an int literal ends at 2^53 − 1; a float literal has no such bound", () => {
+  it("G-07: an int literal ends at 2^53 − 1, a float literal at the largest float", () => {
     expect(numberLiteral("9007199254740991")).toEqual({ value: 2 ** 53 - 1, float: false });
     expect(numberLiteral("9007199254740992")).toBeUndefined();
     expect(numberLiteral("9007199254740992.0")).toEqual({ value: 2 ** 53, float: true });
+    expect(numberLiteral("1e308")).toEqual({ value: 1e308, float: true });
+    expect(numberLiteral("1e400")).toBeUndefined();
+    expect(numberLiteral(`1${"0".repeat(400)}.0`)).toBeUndefined();
   });
 });
