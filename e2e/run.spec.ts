@@ -208,6 +208,40 @@ test("Run with a diagnostic leads to its node instead of running (U-60)", async 
   await expect(page.getByTestId("position")).toHaveCount(0);
 });
 
+test("a runtime error outlines its node and says its message, and playback stops (U-65)", async ({
+  page,
+}) => {
+  await seedProgress(page, {});
+  const num = (id: string, value: number) => ({
+    id,
+    kind: "num",
+    value,
+    float: false,
+    raw: `${value}`,
+  });
+  const divide = {
+    id: "asg-divz-001",
+    kind: "assign",
+    target: { kind: "var", name: "x" },
+    value: {
+      id: "div-divz-001",
+      kind: "binop",
+      op: "/",
+      left: num("one-divz-001", 1),
+      right: num("zro-divz-001", 0),
+    },
+  };
+  await seedProgram(page, "fizzbuzz", programWith([divide]));
+  await page.goto("/#/p/fizzbuzz");
+  await page.getByRole("button", { name: "▶ Run" }).click();
+  await expect(page.locator('[data-chart-node="asg-divz-001"]')).toHaveAttribute(
+    "data-current",
+    "error",
+  );
+  await expect(page.getByTestId("run-error")).toHaveText("Cannot divide by zero");
+  await expect(page.getByRole("button", { name: "↺ Replay" })).toBeVisible();
+});
+
 test("a run that never ends reports it before playback (U-60)", async ({ page }) => {
   await seedProgress(page, {});
   const loop = {
