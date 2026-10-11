@@ -525,7 +525,7 @@
       "ref": {
         "index": "item {index} of {name}",
         "key": "{name} at {key}",
-        "field": "{name}.{field}",
+        "field": "{field} of {name}",
         "list": "a list",
         "dict": "a dict",
         "object": "an object"
