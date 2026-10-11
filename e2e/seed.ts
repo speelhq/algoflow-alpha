@@ -25,6 +25,16 @@ export async function seedProgram(page: Page, id: string, program: unknown): Pro
   );
 }
 
+/** Lists Playground programs, each stored with `seedProgram`, under `algoflow:playground`. */
+export async function seedPlayground(
+  page: Page,
+  index: Record<string, { edited: number }>,
+): Promise<void> {
+  await page.addInitScript((value) => {
+    localStorage.setItem("algoflow:playground", value);
+  }, JSON.stringify(index));
+}
+
 /** A stored program for problem id with main as given (opening the problem restores challengeId and inputs). */
 export function programWith(main: unknown[]): Record<string, unknown> {
   return { version: 1, title: "", inputs: [], classes: [], functions: [], main };

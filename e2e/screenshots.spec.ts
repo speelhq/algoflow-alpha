@@ -2,7 +2,7 @@
 // `pnpm screenshots` and under test-results/ by any other run. Drawn at 1280 × 800, the size of
 // the boards in docs/design/.
 import { expect, test } from "./fixtures";
-import { programWith, seedProgram, seedProgress, solutionOf } from "./seed";
+import { programWith, seedPlayground, seedProgram, seedProgress, solutionOf } from "./seed";
 
 /** Where the screenshot `name` goes: the tracked folder only when snapshots are being updated. */
 function shot(name: string): string {
@@ -104,10 +104,7 @@ test("Playground", async ({ page }) => {
     index[id] = { edited: new Date(time).getTime() };
     await seedProgram(page, id, { ...programWith([]), title });
   }
-  await page.addInitScript(
-    (value) => localStorage.setItem("algoflow:playground", value),
-    JSON.stringify(index),
-  );
+  await seedPlayground(page, index);
   await page.goto("/#/play");
   await expect(page.getByTestId("playground-row")).toHaveCount(4);
   await page.screenshot({ path: shot("playground"), animations: "disabled" });

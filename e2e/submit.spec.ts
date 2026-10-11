@@ -1,10 +1,11 @@
 // Solving a problem: open FizzBuzz from the list, load the solution from storage, run it, drag the
 // position bar to the end, submit, see Accepted, open the Python tab, and reach the next
-// problem. U-80, U-81, U-82, U-83, U-86, C-17: Wrong Answer and `▶ Watch this case`.
+// problem. U-80, U-81, U-82, U-83, U-84, U-86, C-17: Wrong Answer, an error, and
+// `▶ Watch this case`.
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { planOf } from "../src/challenges/plans";
-import { seedProgram, seedProgress, solutionOf } from "./seed";
+import { programWith, seedProgram, seedProgress, solutionOf } from "./seed";
 
 /** Drags the position bar's thumb past its right end. */
 async function dragToEnd(page: Page): Promise<void> {
@@ -103,6 +104,37 @@ test("Wrong Answer shows the rows only, and Watch opens at the first difference 
   await expect(page.getByRole("button", { name: "▶ Play" })).toBeVisible();
   await expect(page.getByTestId("submission")).toHaveCount(0);
   await expect(page.getByTestId("output-row").first()).toHaveText("FizzBuzz1");
+});
+
+test("a test that ends in an error shows its message in place of Output (U-84)", async ({
+  page,
+}) => {
+  const num = (id: string, value: number) => ({
+    id,
+    kind: "num",
+    value,
+    float: false,
+    raw: `${value}`,
+  });
+  const divide = {
+    id: "div-asgn-001",
+    kind: "assign",
+    target: { kind: "var", name: "x" },
+    value: {
+      id: "div-binp-001",
+      kind: "binop",
+      op: "/",
+      left: num("div-left-001", 1),
+      right: num("div-zero-001", 0),
+    },
+  };
+  await seedProgress(page, {});
+  await seedProgram(page, "fizzbuzz", programWith([divide]));
+  await page.goto("/#/p/fizzbuzz");
+  await page.getByTestId("tab-result").click();
+  await page.getByRole("button", { name: "✓ Submit" }).click();
+  await expect(page.getByTestId("result-error")).toContainText("Cannot divide by zero");
+  await expect(page.getByTestId("output-row")).toHaveCount(0);
 });
 
 test("a submission is recorded as attempted, and solved only when accepted (C-17)", async ({

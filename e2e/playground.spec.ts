@@ -1,7 +1,7 @@
-// U-15, U-01, U-05, U-07, L-53, S-07: Playground programs, their page, persistence,
-// Export and Import, and Open in Playground.
+// U-15, U-01, U-05, U-07, U-23, L-53, S-07: Playground programs, their page, running one,
+// persistence, Export and Import, and Open in Playground.
 import { expect, test } from "./fixtures";
-import { seedProgram, seedProgress, solutionOf } from "./seed";
+import { programWith, seedPlayground, seedProgram, seedProgress, solutionOf } from "./seed";
 
 test.beforeEach(async ({ page }) => {
   await seedProgress(page, {});
@@ -27,6 +27,25 @@ test("New opens an empty program that keeps its title and is listed (U-15, U-01,
   await page.getByRole("link", { name: "← Playground" }).click();
   await expect(page.getByTestId("playground-row")).toHaveCount(1);
   await expect(page.getByTestId("playground-row")).toContainText("Squares");
+});
+
+test("a Playground program runs to its output, with no case selector and no Expected (U-23)", async ({
+  page,
+}) => {
+  const id = "play-sayhello0001";
+  const say = {
+    id: "pgr-prnt-001",
+    kind: "print",
+    args: [{ id: "pgr-text-001", kind: "str", value: "hi" }],
+  };
+  await seedProgram(page, id, { ...programWith([say]), title: "Say hi" });
+  await seedPlayground(page, { [id]: { edited: 0 } });
+  await page.goto(`/#/play/${id}`);
+  await page.getByRole("button", { name: "▶ Run" }).click();
+  await expect(page.getByTestId("narration")).toHaveText(/Finished in/);
+  await expect(page.getByTestId("output-row")).toHaveText(["hi"]);
+  await expect(page.getByTestId("case-select")).toHaveCount(0);
+  await expect(page.getByTestId("result-rows")).not.toContainText("Expected");
 });
 
 test("Delete asks first and then removes the program (U-15)", async ({ page }) => {

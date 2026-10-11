@@ -91,4 +91,21 @@ test.describe("Python tab (U-25)", () => {
     await expect(lines.nth(3)).toHaveAttribute("data-selected", "true");
     await expect(lines.nth(1)).not.toHaveAttribute("data-selected");
   });
+
+  test("Copy and Download .py give the shown file", async ({ page, context }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await seedProgress(page, {});
+    await seedProgram(page, "fizzbuzz", solutionOf("fizzbuzz"));
+    await page.goto("/#/p/fizzbuzz");
+    await page.getByTestId("tab-python").click();
+    await page.getByRole("button", { name: "Copy", exact: true }).click();
+    const copied = () => page.evaluate(() => navigator.clipboard.readText());
+    await expect.poll(copied).toMatch(/^n = 15\nfor i in range\(1, n \+ 1\):\n/);
+    const downloading = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Download .py" }).click();
+    const file = await downloading;
+    expect(file.suggestedFilename()).toBe("main.py");
+    const chunks = await (await file.createReadStream()).toArray();
+    expect(Buffer.concat(chunks).toString("utf8")).toBe(await copied());
+  });
 });
