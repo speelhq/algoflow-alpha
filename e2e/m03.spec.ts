@@ -1,7 +1,8 @@
 // Solving a problem: open FizzBuzz from the list, load the solution from storage, run it, drag the
 // position bar to the end, submit, see Accepted, open the Python tab, and reach the next
 // problem. U-80, U-81, U-82, U-83, U-84, U-85, U-86: Wrong Answer and `▶ Watch this case`.
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { planOf } from "../src/challenges/plans";
 import { seedProgram, seedProgress, solutionOf } from "./seed";
 

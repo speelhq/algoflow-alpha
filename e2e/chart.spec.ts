@@ -1,6 +1,6 @@
 // U-22, U-25, U-30, U-31, U-32, U-33, U-38: the chart, its Input nodes, zoom, path bar, and the
 // solution.
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { seedProgram, seedProgress, solutionOf } from "./seed";
 
 test.beforeEach(async ({ page }) => {
@@ -89,14 +89,11 @@ test("Show solution draws the solution read-only; Back to my chart returns (U-22
 test("opening another problem while a solution is shown draws that problem's chart (C-13)", async ({
   page,
 }) => {
-  const errors: string[] = [];
-  page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/#/p/fizzbuzz");
   await page.getByRole("button", { name: "Show solution" }).click();
   await expect(page.getByTestId("solution-band")).toBeVisible();
   await page.goto("/#/p/max-of-three");
   await expect(page.getByTestId("chart")).toContainText("Input a = 3");
-  expect(errors).toEqual([]);
 });
 
 test("Load into my chart replaces the program with the solution as one undoable edit (U-22)", async ({

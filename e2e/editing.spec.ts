@@ -1,5 +1,6 @@
 // U-03, U-04, U-35, U-36, L-52: selecting, removing, duplicating, dragging, undo and redo.
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { programWith, seedProgram, seedProgress, solutionOf } from "./seed";
 
 const node = (page: Page, id: string) => page.locator(`[data-chart-node="${id}"]`);

@@ -1,22 +1,12 @@
 // Editing: build FizzBuzz from an empty chart through the + menu and the node editors, by
 // typing and choosing in value lines, and submit it to Accepted. U-34, U-40, U-41, U-50, U-51,
 // U-52, U-53, U-54, U-93, U-94, U-95, U-96.
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { seedProgram, seedProgress, solutionOf } from "./seed";
 
 const editor = (page: Page) => page.getByTestId("node-editor");
 const chart = (page: Page) => page.getByTestId("chart");
-
-// An uncaught error unmounts the page; it fails the test with its own message.
-const pageErrors = new WeakMap<Page, string[]>();
-test.beforeEach(({ page }) => {
-  const errors: string[] = [];
-  pageErrors.set(page, errors);
-  page.on("pageerror", (error) => errors.push(error.stack ?? error.message));
-});
-test.afterEach(({ page }) => {
-  expect(pageErrors.get(page) ?? []).toEqual([]);
-});
 
 /** Inserts the block `entry` at the connector of `place`, returning the new statement's id. */
 async function insert(page: Page, place: string, entry: string): Promise<string> {

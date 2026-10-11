@@ -1,6 +1,6 @@
 // U-15, U-01, U-05, U-07, L-53, S-07: Playground programs, their page, persistence,
 // Export and Import, and Open in Playground.
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { seedProgram, seedProgress, solutionOf } from "./seed";
 
 test.beforeEach(async ({ page }) => {

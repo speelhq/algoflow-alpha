@@ -1,5 +1,5 @@
 // U-37: a node with a diagnostic shows a red dot; hovering shows the message and its fix.
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { programWith, seedProgram, seedProgress } from "./seed";
 
 test.beforeEach(async ({ page }) => {

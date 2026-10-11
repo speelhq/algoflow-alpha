@@ -1,6 +1,6 @@
 // U-03, U-20, U-21, U-24, U-25, C-13, C-17: the Problem page, its panel, and the Problem and
 // Python tabs.
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { seedProgram, seedProgress, solutionOf } from "./seed";
 
 test.describe("Problem page (U-03, U-20, U-21, U-24)", () => {
