@@ -1,5 +1,6 @@
 # lint, format, test, check, build, test:e2e on every pull request and on
-# every push to main; main deploys dist/ to GitHub Pages.
+# every push to main; on a pull request, beside them, the message of each of
+# its commits; main deploys dist/ to GitHub Pages.
 name: CI
 
 on:
@@ -22,6 +23,23 @@ env:
   VITE_BASE: /${{ github.event.repository.name }}/
 
 jobs:
+  # Apart from verify, so that a message to reword never hides how the code fares.
+  commits:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      # The whole history, so that the commits of the pull request can be read.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm commits ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}
+
   verify:
     runs-on: ubuntu-latest
     steps:
