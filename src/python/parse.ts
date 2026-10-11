@@ -1,7 +1,8 @@
 // Typed expression text → Expr. No third-party imports.
 import { newId } from "@/lang/id";
-import type { BinOp, Expr, Id, Program } from "@/lang/types";
+import type { BinOp, Data, Expr, Id, Program } from "@/lang/types";
 import { NODES, hasNode, keyOf } from "@/nodes/registry";
+import { dataToPython } from "./emit";
 import { NUMBER, numberLiteral } from "./number";
 import { BINOPS, PRECEDENCE, binopsAt, isBinOp, isComparison } from "./precedence";
 
@@ -385,6 +386,11 @@ export function parse(
     if (error instanceof Fail) return error.error;
     throw error;
   }
+}
+
+/** A value as the blocks write it: its Python text parsed, or the error where no block writes it. */
+export function parseData(data: Data): Expr | ParseError {
+  return parse(dataToPython(data));
 }
 
 export { isComparison };

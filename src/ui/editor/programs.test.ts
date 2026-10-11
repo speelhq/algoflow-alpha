@@ -16,6 +16,14 @@ describe("whole-program actions", () => {
     expect(copy.main).toHaveLength(3);
   });
 
+  it("U-110, C-28: an input no block can write is refused, not dropped", () => {
+    // No list block exists yet, so a list cannot be written as an assignment.
+    const made = withInputs({ xs: [1, 2] }, [print(v("xs"))]);
+    expect(() => playgroundCopy(made.program, "Lists", made.inputs)).toThrow(
+      "no block writes the value of input xs: [1,2]",
+    );
+  });
+
   it("L-53: Export writes <title>.algoflow.json, an empty title as the untitled name", () => {
     expect(exportName("Squares", "Untitled")).toBe("Squares.algoflow.json");
     expect(exportName("  ", "Untitled")).toBe("Untitled.algoflow.json");
