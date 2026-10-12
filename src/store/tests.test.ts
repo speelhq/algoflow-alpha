@@ -54,7 +54,7 @@ describe("tests store (U-80, C-10, C-11, C-12)", () => {
     useProgram.setState({ program: { ...fizzbuzz().solution, main: [print(str("1"))] } });
     await useTests.getState().submit();
     // n = 15 fails, n = 1 passes ("1"), n = 3 fails.
-    expect(useTests.getState().results.map((r) => r?.status)).toEqual(["fail", "pass", "fail"]);
+    expect(useTests.getState().results.map((r) => r.status)).toEqual(["fail", "pass", "fail"]);
     expect(useTests.getState().selected).toBe(0);
     useTests.getState().select(2);
     expect(useTests.getState().selected).toBe(2);
@@ -62,6 +62,23 @@ describe("tests store (U-80, C-10, C-11, C-12)", () => {
     expect(useTests.getState().selected).toBe(2);
     useTests.getState().reset();
     expect(useTests.getState().selected).toBe(0);
+  });
+
+  it("U-86: verdicts appear once every test is judged; Submit again clears the previous ones", async () => {
+    useProgram.setState({ program: { ...fizzbuzz().solution, main: [print(str("1"))] } });
+    await useTests.getState().submit();
+    useTests.getState().select(2);
+    const judging = useTests.getState().submit();
+    expect(useTests.getState()).toMatchObject({
+      results: [],
+      outcomes: [],
+      running: true,
+      cleared: false,
+      selected: 0,
+    });
+    await judging;
+    expect(useTests.getState()).toMatchObject({ running: false, selected: 0 });
+    expect(useTests.getState().results).toHaveLength(3);
   });
 
   it("U-81: an accepted submission leaves the first chip selected", async () => {

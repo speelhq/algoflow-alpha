@@ -165,7 +165,7 @@ export function SubmissionView({ challenge }: { challenge: Challenge }) {
   if (submitting) {
     return <p className="text-muted-foreground">{t("result.submitting")}</p>;
   }
-  const passed = results.filter((result) => result?.status === "pass").length;
+  const passed = results.filter((result) => result.status === "pass").length;
   return (
     <div className="space-y-4" data-testid="submission">
       <h2

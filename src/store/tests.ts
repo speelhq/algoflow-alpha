@@ -14,12 +14,12 @@ import { useProgress } from "./progress";
 import { useProgram } from "./program";
 
 export type TestsState = {
-  /** One entry per challenge test; null until judged. */
-  results: Array<TestResult | null>;
-  /** What each judged test printed and left in its variables, for the rows of its case. */
-  outcomes: Array<Outcome | null>;
+  /** One verdict per challenge test, set once every test is judged. */
+  results: TestResult[];
+  /** What each test printed and left in its variables, for the rows of its case. */
+  outcomes: Outcome[];
   running: boolean;
-  /** Every test judged and passing. */
+  /** Every test passed. */
   cleared: boolean;
   /** The chip whose rows are shown: the first failing test once judged, else 0. */
   selected: number;
@@ -56,66 +56,47 @@ function current(): { id: string; program: Program; tests: Test[] } | null {
     : null;
 }
 
-export const useTests = create<TestsState>()((set, get) => {
-  const record = (index: number, test: Test, outcome: Outcome, count: number) => {
-    const results = [...get().results];
-    const outcomes = [...get().outcomes];
-    while (results.length < count) results.push(null);
-    while (outcomes.length < count) outcomes.push(null);
-    results[index] = judge(test, outcome);
-    outcomes[index] = outcome;
-    set({
-      results,
-      outcomes,
-      cleared: results.length === count && results.every((r) => r?.status === "pass"),
-    });
-  };
+export const useTests = create<TestsState>()((set, get) => ({
+  results: [],
+  outcomes: [],
+  running: false,
+  cleared: false,
+  selected: 0,
 
-  const guarded = async (mine: number, work: () => Promise<void>) => {
-    set({ running: true });
+  async submit() {
+    const target = current();
+    if (!target) return;
+    const mine = ++generation;
+    set({ results: [], outcomes: [], running: true, cleared: false, selected: 0 });
     try {
-      await work();
+      const results: TestResult[] = [];
+      const outcomes: Outcome[] = [];
+      for (const test of target.tests) {
+        const outcome = await evaluate(target.program, test, mine);
+        if (!outcome) return;
+        results.push(judge(test, outcome));
+        outcomes.push(outcome);
+      }
+      // `pnpm check` holds every challenge to three tests or more, so no submission is empty.
+      const cleared = results.every((result) => result.status === "pass");
+      const failing = results.findIndex((result) => result.status !== "pass");
+      set({ results, outcomes, cleared, selected: Math.max(failing, 0) });
+      useProgress.getState().submitted(target.id, cleared);
     } finally {
+      // Also after an internal error, which leaves no verdict; a later action has set its own state.
       if (mine === generation) set({ running: false });
     }
-  };
+  },
 
-  return {
-    results: [],
-    outcomes: [],
-    running: false,
-    cleared: false,
-    selected: 0,
+  select(index) {
+    if (index >= 0 && index < get().results.length) set({ selected: index });
+  },
 
-    submit() {
-      const target = current();
-      if (!target) return Promise.resolve();
-      const mine = ++generation;
-      return guarded(mine, async () => {
-        let passed = 0;
-        for (const [index, test] of target.tests.entries()) {
-          const outcome = await evaluate(target.program, test, mine);
-          if (!outcome) return;
-          record(index, test, outcome, target.tests.length);
-          if (get().results[index]?.status === "pass") passed += 1;
-        }
-        // Accepted only when every test of this submission passed.
-        useProgress.getState().submitted(target.id, passed > 0 && passed === target.tests.length);
-        const failing = get().results.findIndex((result) => result?.status !== "pass");
-        set({ selected: Math.max(failing, 0) });
-      });
-    },
-
-    select(index) {
-      if (index >= 0 && index < get().results.length) set({ selected: index });
-    },
-
-    reset() {
-      generation += 1;
-      set({ results: [], outcomes: [], running: false, cleared: false, selected: 0 });
-    },
-  };
-});
+  reset() {
+    generation += 1;
+    set({ results: [], outcomes: [], running: false, cleared: false, selected: 0 });
+  },
+}));
 
 useProgram.subscribe((state, previous) => {
   if (state.program !== previous.program) useTests.getState().reset();
