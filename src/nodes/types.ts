@@ -104,7 +104,7 @@ export type RunContext = {
   valueError(node: Expr, value: Value): never;
   /** `E_NUMBER_TEXT`: the operation of `node` cannot read this text as its number. */
   textError(node: Expr, text: string): never;
-  random: { int(a: number, b: number): number; float(a: number, b: number): number };
+  random: { int(a: number, b: number): number };
   print(line: string): void;
 };
 
@@ -152,7 +152,7 @@ export type NodeDef = {
   params?: Param[];
   /** Emitter aliases accepted by the parser, e.g. "random.randint". */
   aliases?: string[];
-  imports?: "math" | "random";
+  imports?: "random";
   /** Precedence of this expression; undefined = atom. */
   precedence?: (node: Expr) => number;
   /** Not in the block menu (`empty`, `expr`). */

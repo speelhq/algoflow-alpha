@@ -83,7 +83,6 @@ export function run(program: Program, inputs: Readonly<Record<Id, Data>>, seed: 
     },
     random: {
       int: (a, b) => random.int(a, b),
-      float: (a, b) => random.float(a, b),
     },
     print(line) {
       stdout.push(line);

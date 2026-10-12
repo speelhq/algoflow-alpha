@@ -13,7 +13,6 @@ export function mulberry32(seed: number): () => number {
 
 export type Random = {
   int(a: number, b: number): number; // inclusive
-  float(a: number, b: number): number;
   draws(): number[];
 };
 
@@ -23,11 +22,6 @@ export function createRandom(seed: number): Random {
   return {
     int(a, b) {
       const value = a + Math.floor(next() * (b - a + 1));
-      draws.push(value);
-      return value;
-    },
-    float(a, b) {
-      const value = a + next() * (b - a);
       draws.push(value);
       return value;
     },

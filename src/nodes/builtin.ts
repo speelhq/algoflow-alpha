@@ -21,7 +21,7 @@ export type BuiltinDef = {
   /** Emitted callee, e.g. `random.randint`; defaults to `name`. */
   python?: string;
   aliases?: string[];
-  imports?: "math" | "random";
+  imports?: "random";
   /** The call's kind, given its arguments. */
   kind?: (args: Expr[], kindOf: (expr: Expr) => Kind | undefined) => Kind | undefined;
   menu?: readonly MenuEntry[];
