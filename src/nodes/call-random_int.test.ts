@@ -5,14 +5,14 @@ import { ast, evalExpr, program, runAll, varData } from "./testing";
 const { call, num, float, str, assign, for_ } = ast;
 
 describe("builtin random_int (nodes.md)", () => {
-  it("N-03 / N-05: emits `random.randint(<a>, <b>)` and adds `import random`", () => {
+  it("emits `random.randint(<a>, <b>)` and adds `import random`", () => {
     expect(unparse(call("random_int", num(1), num(6)))).toBe("random.randint(1, 6)");
     expect(emit(program([assign("d", call("random_int", num(1), num(6)))]), {}).code).toBe(
       "import random\n\nd = random.randint(1, 6)\n",
     );
   });
 
-  it("N-10 / L-32: inclusive int draws, recorded in draws(), identical for the same seed (R-10)", () => {
+  it("inclusive int draws, recorded in draws(), identical for the same seed", () => {
     const prog = program([
       for_("i", num(0), num(50), [assign("d", call("random_int", num(1), num(3)))]),
     ]);
@@ -26,7 +26,7 @@ describe("builtin random_int (nodes.md)", () => {
     expect(runAll(prog, {}, 8).draws).not.toEqual(a.draws);
   });
 
-  it("N-10: a bound that is no int → E_TYPE, naming the types of both bounds", () => {
+  it("a bound that is no int → E_TYPE, naming the types of both bounds", () => {
     expect(evalExpr(call("random_int", float(1), num(2))).done).toMatchObject({
       type: "error",
       error: { code: "E_TYPE", params: { left: "float", right: "int" } },

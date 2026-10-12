@@ -5,11 +5,11 @@ import { ast, program, runAll, varData } from "./testing";
 const { brk, for_, assign, num, v, while_, bool } = ast;
 
 describe("break (nodes.md)", () => {
-  it("N-03: emits `break`", () => {
+  it("emits `break`", () => {
     expect(emit(program([while_(bool(true), [brk()])]), {}).code).toBe("while True:\n    break\n");
   });
 
-  it("N-10: leaves the innermost loop only", () => {
+  it("leaves the innermost loop only", () => {
     const result = runAll(
       program([
         assign("outer", num(0)),

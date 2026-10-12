@@ -1,5 +1,5 @@
-// N-17: a builtin's parameters give the argument counts it takes, `optional` marking the ones it
-// may go without (N-01); N-18: a new builtin holds an empty argument per required parameter.
+// A builtin's parameters give the argument counts it takes, `optional` marking the ones it may go
+// without; a new builtin holds an empty argument per required parameter.
 import { describe, expect, it } from "vitest";
 import type { Expr, Value } from "@/lang/types";
 import { defineBuiltin } from "./builtin";
@@ -37,7 +37,7 @@ function run(argc: number): Value {
   }
 }
 
-describe("builtin argument counts (N-17)", () => {
+describe("builtin argument counts", () => {
   it("a count outside the parameters expects the fewest when too few, the most when too many", () => {
     const params = probe.params ?? [];
     expect(expectedArgs(params, 0)).toBe(1);
@@ -54,7 +54,7 @@ describe("builtin argument counts (N-17)", () => {
     expect(() => run(3)).toThrow("probe takes 2 arguments, given 3");
   });
 
-  it("N-18: a new builtin holds one empty argument per parameter not marked optional", () => {
+  it("a new builtin holds one empty argument per parameter not marked optional", () => {
     expect(probe.create()).toMatchObject({ kind: "call", fn: "probe", args: [{ kind: "empty" }] });
   });
 });

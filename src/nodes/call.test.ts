@@ -14,14 +14,14 @@ const twice: FunctionDef = {
 };
 
 describe("call (nodes.md)", () => {
-  it("N-03: emits `<fn>(<args>)`", () => {
+  it("emits `<fn>(<args>)`", () => {
     expect(unparse(call("twice", num(3)))).toBe("twice(3)");
     expect(
       emit(program([assign("y", call("twice", num(3)))], { functions: [twice] }), {}).code,
     ).toBe("def twice(x):\n    return x * 2\n\n\ny = twice(3)\n");
   });
 
-  it("N-10 / R-14: call and return events around the body; the value comes back", () => {
+  it("call and return events around the body; the value comes back", () => {
     const stmt = assign("y", call("twice", num(3)));
     const result = runAll(program([stmt], { functions: [twice] }));
     expect(eventTypes(result.events)).toEqual(["enter", "call", "enter", "return", "write"]);
@@ -39,7 +39,7 @@ describe("call (nodes.md)", () => {
     expect(result.state.frames).toHaveLength(1);
   });
 
-  it("N-10 / L-28: a function without return yields None; depth over 200 → E_RECURSION", () => {
+  it("a function without return yields None; depth over 200 → E_RECURSION", () => {
     const noReturn: FunctionDef = {
       id: "f0000000000g",
       name: "noop",
@@ -66,7 +66,7 @@ describe("call (nodes.md)", () => {
     expect(() => runAll(p)).toThrow("f takes 2 arguments, given 1");
   });
 
-  it("R-14: a stack of 200 frames runs; a call that would make it deeper is E_RECURSION", () => {
+  it("a stack of 200 frames runs; a call that would make it deeper is E_RECURSION", () => {
     const down: FunctionDef = {
       id: "f0000000000i",
       name: "down",

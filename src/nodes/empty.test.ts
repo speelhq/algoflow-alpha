@@ -3,7 +3,7 @@ import { unparse } from "@/python/emit";
 import { getNode, menuBlocks } from "./registry";
 import { ast, evalExpr } from "./testing";
 
-describe("empty (L-09)", () => {
+describe("empty", () => {
   it("emits `...` so a program with an unfilled slot still renders as Python", () => {
     expect(unparse(ast.empty())).toBe("...");
     expect(unparse(ast.bin("+", ast.num(1), ast.empty()))).toBe("1 + ...");

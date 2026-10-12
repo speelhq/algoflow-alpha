@@ -6,7 +6,7 @@ import { ast, program, runAll, varData } from "./testing";
 const { call, num, bin, v, assign, ret, for_, if_ } = ast;
 
 describe("return (nodes.md)", () => {
-  it("N-03: emits `return <value>` or `return`", () => {
+  it("emits `return <value>` or `return`", () => {
     const fn: FunctionDef = {
       id: "f0000000000f",
       name: "f",
@@ -18,7 +18,7 @@ describe("return (nodes.md)", () => {
     );
   });
 
-  it("N-10: leaves the function from inside a loop with the value", () => {
+  it("leaves the function from inside a loop with the value", () => {
     const first: FunctionDef = {
       id: "f0000000000f",
       name: "first_even",

@@ -5,13 +5,13 @@ import { ast, program, runAll, varData } from "./testing";
 const { cont, for_, assign, num, v, bin, while_ } = ast;
 
 describe("continue (nodes.md)", () => {
-  it("N-03: emits `continue`", () => {
+  it("emits `continue`", () => {
     expect(emit(program([for_("i", num(0), num(3), [cont()])]), {}).code).toBe(
       "for i in range(3):\n    continue\n",
     );
   });
 
-  it("N-10: skips the rest of the body and moves to the next iteration", () => {
+  it("skips the rest of the body and moves to the next iteration", () => {
     const result = runAll(
       program([
         assign("n", num(0)),
@@ -22,7 +22,7 @@ describe("continue (nodes.md)", () => {
     expect(result.done).toMatchObject({ loops: 3 });
   });
 
-  it("N-10: re-evaluates a while condition", () => {
+  it("re-evaluates a while condition", () => {
     const result = runAll(
       program([
         assign("k", num(3)),

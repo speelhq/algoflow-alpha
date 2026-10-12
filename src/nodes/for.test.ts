@@ -8,7 +8,7 @@ const lines = (main: Parameters<typeof program>[0]) =>
   emit(program(main), {}).code.trimEnd().split("\n");
 
 describe("for (nodes.md)", () => {
-  it("N-03: `range(<stop>)` when start is num 0, else `range(<start>, <stop>)`", () => {
+  it("`range(<stop>)` when start is num 0, else `range(<start>, <stop>)`", () => {
     expect(lines([for_("i", num(0), v("n"), [assign("x", v("i"))])])).toEqual([
       "for i in range(n):",
       "    x = i",
@@ -20,7 +20,7 @@ describe("for (nodes.md)", () => {
     expect(lines([for_("i", float(0), num(3), [])])[0]).toBe("for i in range(0.0, 3):");
   });
 
-  it("N-10 / R-07: one loop event per iteration carrying var and value", () => {
+  it("one loop event per iteration carrying var and value", () => {
     const stmt = for_("i", num(0), num(2), [assign("x", v("i"))]);
     const result = runAll(program([stmt]));
     expect(eventTypes(result.events)).toEqual([
@@ -42,7 +42,7 @@ describe("for (nodes.md)", () => {
     expect(result.done).toEqual({ type: "done", steps: 7, loops: 2 });
   });
 
-  it("N-10 / L-25, L-43: bounds are evaluated once; the variable stays visible after the loop", () => {
+  it("bounds are evaluated once; the variable stays visible after the loop", () => {
     const made = withInputs({ n: 3 }, [
       for_("i", num(0), v("n"), [assign("n", bin("+", v("n"), num(1)))]),
     ]);
@@ -65,7 +65,7 @@ describe("for (nodes.md)", () => {
     expect(varData(result, "acc")).toBe(2 + 3 + 4);
   });
 
-  it("N-10: break stops and continue skips the rest of the body", () => {
+  it("break stops and continue skips the rest of the body", () => {
     const result = runAll(
       program([
         assign("acc", num(0)),
@@ -79,7 +79,7 @@ describe("for (nodes.md)", () => {
     expect(varData(result, "acc")).toBe(0 + 2 + 3);
   });
 
-  it("N-10 / L-25: a float bound → E_TYPE", () => {
+  it("a float bound → E_TYPE", () => {
     const stmt = for_("i", num(0), float(2.5), []);
     const result = runAll(program([stmt]));
     expect(result.done).toMatchObject({
@@ -92,7 +92,7 @@ describe("for (nodes.md)", () => {
     });
   });
 
-  it("N-09: a counted loop over `body`", () => {
+  it("a counted loop over `body`", () => {
     expect(forStmt.chart).toEqual({ counted: "body" });
   });
 });

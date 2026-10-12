@@ -7,14 +7,14 @@ const lines = (main: Parameters<typeof program>[0]) =>
   emit(program(main), {}).code.trimEnd().split("\n");
 
 describe("assign (nodes.md)", () => {
-  it("N-03: emits `<target> = <value>`", () => {
+  it("emits `<target> = <value>`", () => {
     expect(lines([assign("x", bin("+", num(1), num(2)))])).toEqual(["x = 1 + 2"]);
     expect(lines([assignTo({ kind: "index", list: v("xs"), index: num(0) }, num(9))])).toEqual([
       "xs[0] = 9",
     ]);
   });
 
-  it("N-10 / R-05: enter then write, and the variable is set", () => {
+  it("enter then write, and the variable is set", () => {
     const stmt = assign("x", num(5));
     const result = runAll(program([stmt]));
     expect(eventTypes(result.events)).toEqual(["enter", "write"]);
@@ -28,7 +28,7 @@ describe("assign (nodes.md)", () => {
     expect(result.done).toEqual({ type: "done", steps: 2, loops: 0 });
   });
 
-  it("N-10: an index target writes the heap slot (L-20, negative from the end)", () => {
+  it("an index target writes the heap slot, negative from the end", () => {
     const stmt = assignTo({ kind: "index", list: v("xs"), index: num(-1) }, num(9));
     const made = withInputs({ xs: [1, 2] }, [stmt]);
     const result = runAll(made.program, made.inputs);
@@ -36,7 +36,7 @@ describe("assign (nodes.md)", () => {
     expect(result.events[1]).toMatchObject({ type: "write", ref: { heap: 1, index: 1 } });
   });
 
-  it("N-10: an index out of range → E_INDEX with index and length", () => {
+  it("an index out of range → E_INDEX with index and length", () => {
     const stmt = assignTo({ kind: "index", list: v("xs"), index: num(5) }, num(0));
     const made = withInputs({ xs: [1, 2] }, [stmt]);
     const result = runAll(made.program, made.inputs);

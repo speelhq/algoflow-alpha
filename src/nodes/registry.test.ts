@@ -1,4 +1,4 @@
-// N-01, N-02, N-09, N-16: what every registered block owes the catalog and the chart.
+// What every registered block owes the catalog and the chart.
 import { describe, expect, it } from "vitest";
 import en from "@/i18n/en.json";
 import { flatten } from "@/i18n/flatten";
@@ -20,12 +20,12 @@ function conditionIn(chart: ChartShape): string | undefined {
   return "check" in chart ? chart.check.cond : undefined;
 }
 
-describe("registry (N-01, N-02, N-09, N-16)", () => {
-  it("N-01: the categories are in menu order", () => {
+describe("registry", () => {
+  it("the categories are in menu order", () => {
     expect(CATEGORIES).toEqual(["basic", "control", "list", "function", "dict"]);
   });
 
-  it("N-01: only an expression has a text slot", () => {
+  it("only an expression has a text slot", () => {
     const statements = [...NODES.values()].filter((def) => def.shape === "stmt");
     expect(statements.length).toBeGreaterThan(0);
     for (const def of statements) {
@@ -37,12 +37,12 @@ describe("registry (N-01, N-02, N-09, N-16)", () => {
     expect([...NODES.values()].some((def) => def.slots.some((s) => s.role === "text"))).toBe(true);
   });
 
-  it("N-09: break jumps out of the innermost loop and continue into its next pass", () => {
+  it("break jumps out of the innermost loop and continue into its next pass", () => {
     expect(NODES.get("break")?.chart).toEqual({ jump: "exit" });
     expect(NODES.get("continue")?.chart).toEqual({ jump: "next" });
   });
 
-  it("N-02: every block has label, template, and help", () => {
+  it("every block has label, template, and help", () => {
     for (const key of NODES.keys()) {
       for (const part of ["label", "template", "help"]) {
         expect(keys.has(`node.${key}.${part}`), `node.${key}.${part}`).toBe(true);
@@ -50,7 +50,7 @@ describe("registry (N-01, N-02, N-09, N-16)", () => {
     }
   });
 
-  it("N-08: binop writes school symbols, and %, //, **, and in in words", () => {
+  it("binop writes school symbols, and %, //, **, and in in words", () => {
     const binop = NODES.get("binop");
     const node = (op: string) => ({ id: "b", kind: "binop", op }) as never;
     const symbols = ["+", "-", "*", "/", "==", "!=", "<", "<=", ">", ">=", "and", "or"].map((op) =>
@@ -66,7 +66,7 @@ describe("registry (N-01, N-02, N-09, N-16)", () => {
     }
   });
 
-  it("N-11: expression blocks declare the value list's entries in the table's order", () => {
+  it("expression blocks declare the value list's entries in the table's order", () => {
     const any = "number,text,truefalse,none,list,dict";
     const rows = [...NODES.values()].flatMap((def) =>
       (def.menu ?? []).map((entry) =>
@@ -113,7 +113,7 @@ describe("registry (N-01, N-02, N-09, N-16)", () => {
     ]);
   });
 
-  it("N-02: a named entry has its label and help, and a help names the entry's keys", () => {
+  it("a named entry has its label and help, and a help names the entry's keys", () => {
     for (const def of NODES.values()) {
       for (const entry of def.menu ?? []) {
         const base = entry.name === "" ? `node.${def.key}` : `node.${def.key}.${entry.name}`;
@@ -124,7 +124,7 @@ describe("registry (N-01, N-02, N-09, N-16)", () => {
     }
   });
 
-  it("N-09: a chart names the body slots of its block, and a diamond's condition an expr slot", () => {
+  it("a chart names the body slots of its block, and a diamond's condition an expr slot", () => {
     const shaped = [...NODES.values()].filter((def) => def.chart);
     expect(new Set(shaped.map((def) => def.key))).toEqual(
       new Set(["if", "while", "for", "break", "continue"]),
@@ -140,7 +140,7 @@ describe("registry (N-01, N-02, N-09, N-16)", () => {
     }
   });
 
-  it("N-16: a counted loop has the texts of init, check, and step", () => {
+  it("a counted loop has the texts of init, check, and step", () => {
     for (const def of NODES.values()) {
       if (!def.chart || !("counted" in def.chart)) continue;
       for (const part of ["init", "check", "step"]) {

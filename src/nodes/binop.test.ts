@@ -5,7 +5,7 @@ import { ast, evalExpr } from "./testing";
 const { num, float, str, bin, v, neg, bool } = ast;
 
 describe("binop (nodes.md)", () => {
-  it("N-03 / E-05: infix with parentheses only where precedence requires", () => {
+  it("infix with parentheses only where precedence requires", () => {
     expect(unparse(bin("+", v("a"), bin("*", v("b"), v("c"))))).toBe("a + b * c");
     expect(unparse(bin("*", bin("+", v("a"), v("b")), v("c")))).toBe("(a + b) * c");
     expect(unparse(bin("-", v("a"), bin("-", v("b"), v("c"))))).toBe("a - (b - c)");
@@ -20,7 +20,7 @@ describe("binop (nodes.md)", () => {
     expect(unparse(bin("//", neg(num(7)), num(2)))).toBe("-7 // 2");
   });
 
-  it("N-10 / L-10, L-11: int ∘ int stays int except `/`; any float makes float", () => {
+  it("int ∘ int stays int except `/`; any float makes float", () => {
     expect(evalExpr(bin("//", num(7), num(2))).value).toEqual({ t: "int", v: 3 });
     expect(evalExpr(bin("/", num(4), num(2))).value).toEqual({ t: "float", v: 2 });
     expect(evalExpr(bin("+", num(1), float(2))).value).toEqual({ t: "float", v: 3 });
@@ -29,7 +29,7 @@ describe("binop (nodes.md)", () => {
     expect(evalExpr(bin("**", num(2), neg(num(1)))).value).toEqual({ t: "float", v: 0.5 });
   });
 
-  it("N-10 / L-12: `//` floors and `%` takes the divisor's sign", () => {
+  it("`//` floors and `%` takes the divisor's sign", () => {
     expect(evalExpr(bin("//", neg(num(7)), num(2))).data).toBe(-4);
     expect(evalExpr(bin("%", neg(num(7)), num(2))).data).toBe(1);
     expect(evalExpr(bin("%", num(7), neg(num(2)))).data).toBe(-1);
@@ -45,7 +45,7 @@ describe("binop (nodes.md)", () => {
     expect(evalExpr(bin("%", float(0.1), float(0.01))).data).toBe(0.1 % 0.01);
   });
 
-  it("N-10 / L-13: division or modulo by zero → E_DIV_ZERO", () => {
+  it("division or modulo by zero → E_DIV_ZERO", () => {
     for (const op of ["/", "//", "%"] as const) {
       const e = bin(op, num(1), num(0));
       expect(evalExpr(e).done).toMatchObject({
@@ -69,7 +69,7 @@ describe("binop (nodes.md)", () => {
     expect(evalExpr(bin("**", num(0), num(0))).value).toEqual({ t: "int", v: 1 });
   });
 
-  it("N-10 / L-14, L-15: str + str concatenates; mixing with a number → E_TYPE", () => {
+  it("str + str concatenates; mixing with a number → E_TYPE", () => {
     expect(evalExpr(bin("+", str("a"), str("b"))).data).toBe("ab");
     const e = bin("+", str("a"), num(1));
     expect(evalExpr(e).done).toMatchObject({
@@ -108,7 +108,7 @@ describe("binop (nodes.md)", () => {
     expect(evalExpr(bin("in", num(0), v("xs")), { xs: [false] }).data).toBe(true);
   });
 
-  it("N-10 / R-06: every comparison emits one compare event with its result alone", () => {
+  it("every comparison emits one compare event with its result alone", () => {
     const e = bin(">", num(5), num(3));
     const result = evalExpr(e);
     expect(result.events).toEqual([
@@ -124,7 +124,7 @@ describe("binop (nodes.md)", () => {
     expect(evalExpr(bin("<=", str("a"), str("b"))).data).toBe(true);
   });
 
-  it("N-10 / L-17: and / or short-circuit and return the deciding operand", () => {
+  it("and / or short-circuit and return the deciding operand", () => {
     expect(evalExpr(bin("or", num(0), num(5))).data).toBe(5);
     expect(evalExpr(bin("and", num(0), bin("/", num(1), num(0)))).data).toBe(0);
     expect(evalExpr(bin("and", num(2), num(3))).data).toBe(3);
@@ -134,7 +134,7 @@ describe("binop (nodes.md)", () => {
     ).toHaveLength(2);
   });
 
-  it("N-10 / L-19, R-04: `in` on a list reads one ref per compared element, then compares", () => {
+  it("`in` on a list reads one ref per compared element, then compares", () => {
     const e = bin("in", num(2), v("xs"));
     const result = evalExpr(e, { xs: [1, 2, 3] });
     expect(result.data).toBe(true);
