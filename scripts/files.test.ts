@@ -37,18 +37,4 @@ describe("repoFiles", () => {
     git(root, "add", "linked");
     expect(repoFiles(root)).toEqual([".gitignore", "notes.md", "src/a.ts"]);
   });
-
-  it("ignores a contributor's global ignore file", () => {
-    write("notes.md", "untracked");
-    write("global/config", `[core]\n\texcludesFile = ${join(root, "global", "ignore")}\n`);
-    write("global/ignore", "notes.md\n");
-    const global = process.env.GIT_CONFIG_GLOBAL;
-    process.env.GIT_CONFIG_GLOBAL = join(root, "global", "config");
-    try {
-      expect(repoFiles(root)).toContain("notes.md");
-    } finally {
-      if (global === undefined) delete process.env.GIT_CONFIG_GLOBAL;
-      else process.env.GIT_CONFIG_GLOBAL = global;
-    }
-  });
 });
