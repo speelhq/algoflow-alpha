@@ -87,6 +87,7 @@ describe("emit (emitter.md)", () => {
     expect(dataToPython(2 ** 53 - 1)).toBe("9007199254740991");
     expect(dataToPython(12)).toBe("12");
     expect(dataToPython({ $float: 2 })).toBe("2.0");
+    expect(dataToPython({ "$int:-3": "a" })).toBe('{-3: "a"}');
   });
 
   it("E-04: 4-space indentation, no trailing whitespace, one trailing newline", () => {

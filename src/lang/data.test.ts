@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dataEquals, dataError, inputValue, toData, toValue } from "./data";
+import { dataEquals, dataError, dataKey, inputValue, toData, toValue } from "./data";
 import type { Data, Heap } from "./types";
 
 function roundTrip(data: Data): Data {
@@ -49,6 +49,12 @@ describe("L-06 toValue / toData", () => {
     const entry = heap.get(3);
     expect(entry?.kind === "dict" && [...entry.entries.keys()]).toEqual(["s:a", "i:3"]);
     expect(roundTrip({ a: 1, "$int:3": "x" })).toEqual({ a: 1, "$int:3": "x" });
+  });
+
+  it("reads a dict key as the int or the text it stands for", () => {
+    expect(dataKey("$int:3")).toBe(3);
+    expect(dataKey("$int:-3")).toBe(-3);
+    expect(dataKey("a")).toBe("a");
   });
 
   it("L-76: an object is no value, while no block constructs one", () => {
@@ -118,6 +124,7 @@ describe("dataError (L-70)", () => {
     expect(dataError({ a: { $float: "2" } })).toMatchObject({ at: '["a"]' });
     expect(dataError({ $float: 2, x: 1 })).toMatchObject({ at: "" });
     expect(dataError({ "$int:07": 1 })).toMatchObject({ at: '["$int:07"]' });
+    expect(dataError({ "$int:-0": 1 })).toMatchObject({ at: '["$int:-0"]' });
     expect(dataError({ "$int:9007199254740992": 1 })).toMatchObject({
       at: '["$int:9007199254740992"]',
     });

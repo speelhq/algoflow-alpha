@@ -1,6 +1,6 @@
 // Program → Python text plus the NodeId → line map. No third-party imports.
 import type { Data, Expr, FunctionDef, Id, NodeId, Program, Stmt, Target } from "@/lang/types";
-import { floatOf, inputValue, isFloatData } from "@/lang/data";
+import { dataKey, floatOf, inputValue, isFloatData } from "@/lang/data";
 import { programExprs } from "@/lang/walk";
 import { getNode, keyOf } from "@/nodes/registry";
 import type { EmitContext, PyLine, Side } from "@/nodes/types";
@@ -21,10 +21,10 @@ export function dataToPython(data: Data): string {
   if (data === null) return "None";
   if (Array.isArray(data)) return `[${data.map(dataToPython).join(", ")}]`;
   if (isFloatData(data)) return floatRepr(floatOf(data));
-  const entries = Object.entries(data).map(
-    ([key, value]) =>
-      `${key.startsWith("$int:") ? key.slice(5) : pyString(key)}: ${dataToPython(value)}`,
-  );
+  const entries = Object.entries(data).map(([key, value]) => {
+    const stands = dataKey(key);
+    return `${typeof stands === "number" ? String(stands) : pyString(stands)}: ${dataToPython(value)}`;
+  });
   return `{${entries.join(", ")}}`;
 }
 

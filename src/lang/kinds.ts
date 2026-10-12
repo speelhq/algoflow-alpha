@@ -2,6 +2,7 @@
 // expression's kind from its block's `kind`, and a variable's from its input's declared kind,
 // else the value of its first assignment, else the kind its loop block declares. Registry-driven.
 import { getNode, keyOf } from "@/nodes/registry";
+import { isFloatData } from "./data";
 import { assignedValue, declaredBy } from "./scope";
 import type { Data, Expr, Id, Kind, NodeId, Program, Stmt } from "./types";
 import { allStmts, variableOf } from "./walk";
@@ -13,7 +14,7 @@ export function dataKind(data: Data): Kind {
   if (typeof data === "boolean") return "truefalse";
   if (data === null) return "none";
   if (Array.isArray(data)) return "list";
-  return "$float" in data ? "number" : "dict";
+  return isFloatData(data) ? "number" : "dict";
 }
 
 export type Kinds = ReadonlyMap<Id, Kind>;

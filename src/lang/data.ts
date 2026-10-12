@@ -37,15 +37,15 @@ function numberError(n: number): string | undefined {
 
 /**
  * Why a dict key is not canonical: `$cls`, which marks an object no block constructs, or a
- * `$int:` key that is no integer within the int range.
+ * `$int:` key that is no integer within the int range as Python writes it (no `-0`).
  */
 function keyError(key: string): string | undefined {
   if (key === "$cls") return "expected no object: no block constructs one";
   if (!key.startsWith(INT_KEY)) return undefined;
   const text = key.slice(INT_KEY.length);
-  return /^-?(0|[1-9]\d*)$/.test(text) && fitsInt(Number(text))
+  return /^(0|-?[1-9]\d*)$/.test(text) && fitsInt(Number(text))
     ? undefined
-    : "expected a $int: key within the int range";
+    : "expected a $int: key as Python writes an int in the int range";
 }
 
 /** Where a JSON value fails to be canonical `Data`, as a path below it, and why. */
@@ -99,6 +99,11 @@ export function dictKey(value: Value): string | undefined {
   return undefined;
 }
 
+/** The int or the text a `Data` dict key stands for: `$int:3` is 3, any other key its text. */
+export function dataKey(key: string): number | string {
+  return key.startsWith(INT_KEY) ? Number(key.slice(INT_KEY.length)) : key;
+}
+
 export function keyValue(key: string): Value {
   return key.startsWith("i:")
     ? { t: "int", v: Number(key.slice(2)) }
@@ -133,8 +138,8 @@ export function toValue(data: Data, heap: Heap): Value {
   for (const [key, item] of Object.entries(data)) {
     const message = keyError(key);
     if (message !== undefined) throw new Error(`toValue: ${key}: ${message}`);
-    const encoded = key.startsWith(INT_KEY) ? `i:${key.slice(INT_KEY.length)}` : `s:${key}`;
-    entries.set(encoded, toValue(item, heap));
+    const stands = dataKey(key);
+    entries.set(typeof stands === "number" ? `i:${stands}` : `s:${stands}`, toValue(item, heap));
   }
   return { t: "dict", ref: alloc(heap, { kind: "dict", entries }) };
 }
