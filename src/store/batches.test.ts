@@ -1,8 +1,8 @@
-// R-24: work goes in batches of `BATCH` calls with setTimeout(0) between them.
+// Work goes in batches of `BATCH` calls with setTimeout(0) between them.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { BATCH, inBatches } from "./batches";
 
-describe("inBatches (R-24)", () => {
+describe("inBatches", () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 

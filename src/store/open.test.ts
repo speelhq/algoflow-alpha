@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-// C-13: opening a program loads it, chooses the first case, and discards any run; U-20: the page
-// opens on its first tab with nothing selected.
+// Opening a program loads it, chooses the first case, and discards any run; the page opens on its
+// first tab with nothing selected.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getChallenge } from "@/challenges";
 import { useEditor } from "./editor";
@@ -9,7 +9,7 @@ import { createPlaygroundProgram, emptyProgram, useProgram } from "./program";
 import { useRun } from "./run";
 import { settle } from "./testing";
 
-describe("openProgram (C-13, U-20)", () => {
+describe("openProgram", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     localStorage.clear();
@@ -19,7 +19,7 @@ describe("openProgram (C-13, U-20)", () => {
     vi.useRealTimers();
   });
 
-  it("C-13, U-20: a problem opens at its first case with no run, on the Problem tab", async () => {
+  it("a problem opens at its first case with no run, on the Problem tab", async () => {
     openProgram("fizzbuzz");
     const challenge = getChallenge("fizzbuzz");
     if (!challenge) throw new Error("fizzbuzz missing");
@@ -45,7 +45,7 @@ describe("openProgram (C-13, U-20)", () => {
     });
   });
 
-  it("U-20: a Playground program opens on the Result tab", () => {
+  it("a Playground program opens on the Result tab", () => {
     const id = createPlaygroundProgram(emptyProgram("Mine"));
     openProgram(id);
     expect(useProgram.getState()).toMatchObject({ id, program: { title: "Mine" } });

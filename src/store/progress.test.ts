@@ -10,7 +10,7 @@ async function anotherTab(): Promise<typeof useProgress> {
   return (await import("./progress")).useProgress;
 }
 
-describe("progress store (C-17)", () => {
+describe("progress store", () => {
   beforeEach(() => {
     localStorage.clear();
     useProgress.setState({ entries: {} });
@@ -44,7 +44,7 @@ describe("progress store (C-17)", () => {
     expect(useProgress.getState().entries.fizzbuzz?.hints).toBe(3);
   });
 
-  it("U-10, U-12: the status mark of a row and the solved count of a plan", () => {
+  it("the status mark of a row and the solved count of a plan", () => {
     const { submitted } = useProgress.getState();
     submitted("tutorial", true);
     submitted("sum-to-n", false);
@@ -61,7 +61,7 @@ describe("progress store (C-17)", () => {
     expect(localStorage.length).toBe(1);
   });
 
-  it("C-26: a write keeps what another tab recorded since this one loaded", async () => {
+  it("a write keeps what another tab recorded since this one loaded", async () => {
     const other = await anotherTab();
     useProgress.getState().submitted("fizzbuzz", true);
     other.getState().hintShown("gcd", 2);
@@ -73,7 +73,7 @@ describe("progress store (C-17)", () => {
     expect(other.getState().entries).toEqual(both);
   });
 
-  it("C-26: two records join entry by entry", async () => {
+  it("two records join entry by entry", async () => {
     const other = await anotherTab();
     useProgress.getState().submitted("gcd", true);
     other.getState().solutionShown("gcd");
@@ -83,7 +83,7 @@ describe("progress store (C-17)", () => {
     expect(other.getState().entries.gcd).toEqual({ status: "solved", hints: 1, solution: true });
   });
 
-  it("C-27: another tab's write is read on the storage event and joined", () => {
+  it("another tab's write is read on the storage event and joined", () => {
     useProgress.getState().hintShown("tutorial", 1);
     localStorage.setItem(
       PROGRESS_STORAGE_KEY,

@@ -2,7 +2,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { LAYOUT_STORAGE_KEY, mergePersisted, PANEL, panelWidth, SPEEDS, useLayout } from "./layout";
 
-describe("layout store (U-03, U-24, U-60)", () => {
+describe("layout store", () => {
   beforeEach(() => {
     localStorage.clear();
     useLayout.setState({ panel: PANEL.default, collapsed: false, speed: SPEEDS.normal });
@@ -12,7 +12,7 @@ describe("layout store (U-03, U-24, U-60)", () => {
     expect(useLayout.getState()).toMatchObject({ panel: 320, collapsed: false });
   });
 
-  it("U-03: the panel is set between 280 px and half the viewport width, rounded", () => {
+  it("the panel is set between 280 px and half the viewport width, rounded", () => {
     const { setPanel } = useLayout.getState();
     setPanel(10, 1280);
     expect(useLayout.getState().panel).toBe(280);
@@ -26,7 +26,7 @@ describe("layout store (U-03, U-24, U-60)", () => {
     expect(useLayout.getState().panel).toBe(300);
   });
 
-  it("U-03: panelWidth draws a stored width within the bounds of the present viewport", () => {
+  it("panelWidth draws a stored width within the bounds of the present viewport", () => {
     expect(panelWidth(900, 1280)).toBe(640);
     expect(panelWidth(900, 1920)).toBe(900);
     expect(panelWidth(320, 1280)).toBe(320);
@@ -35,7 +35,7 @@ describe("layout store (U-03, U-24, U-60)", () => {
     expect(panelWidth(333.3, 1281)).toBe(333);
   });
 
-  it("U-60, R-26: the speed is Normal at first, one of 1, 4, and 15, and persists", () => {
+  it("the speed is Normal at first, one of 1, 4, and 15, and persists", () => {
     expect(useLayout.getState().speed).toBe(4);
     useLayout.getState().setSpeed(SPEEDS.fast);
     expect(useLayout.getState().speed).toBe(15);
@@ -50,7 +50,7 @@ describe("layout store (U-03, U-24, U-60)", () => {
     expect(mergePersisted({ speed: "fast" }, current).speed).toBe(4);
   });
 
-  it("U-114: persists the width, the collapsed state, and the speed as a bare record", () => {
+  it("persists the width, the collapsed state, and the speed as a bare record", () => {
     useLayout.getState().setPanel(360, 1280);
     useLayout.getState().setCollapsed(true);
     const raw = localStorage.getItem(LAYOUT_STORAGE_KEY);

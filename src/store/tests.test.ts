@@ -1,4 +1,4 @@
-// U-80, C-10, C-11, C-12: Submit judges every test on its own runner.
+// Submit judges every test on its own runner.
 import { beforeEach, describe, expect, it } from "vitest";
 import { getChallenge } from "@/challenges";
 import { ast, program } from "@/nodes/testing";
@@ -15,7 +15,7 @@ const fizzbuzz = () => {
   return challenge;
 };
 
-describe("tests store (U-80, C-10, C-11, C-12)", () => {
+describe("tests store", () => {
   beforeEach(() => {
     useRun.getState().stop();
     useTests.getState().reset();
@@ -50,7 +50,7 @@ describe("tests store (U-80, C-10, C-11, C-12)", () => {
     });
   });
 
-  it("U-81, U-106: selects the first failing test, and a chip selects another judged one", async () => {
+  it("selects the first failing test, and a chip selects another judged one", async () => {
     useProgram.setState({ program: { ...fizzbuzz().solution, main: [print(str("1"))] } });
     await useTests.getState().submit();
     // n = 15 fails, n = 1 passes ("1"), n = 3 fails.
@@ -64,7 +64,7 @@ describe("tests store (U-80, C-10, C-11, C-12)", () => {
     expect(useTests.getState().selected).toBe(0);
   });
 
-  it("U-86: verdicts appear once every test is judged; Submit again clears the previous ones", async () => {
+  it("verdicts appear once every test is judged; Submit again clears the previous ones", async () => {
     useProgram.setState({ program: { ...fizzbuzz().solution, main: [print(str("1"))] } });
     await useTests.getState().submit();
     useTests.getState().select(2);
@@ -81,13 +81,13 @@ describe("tests store (U-80, C-10, C-11, C-12)", () => {
     expect(useTests.getState().results).toHaveLength(3);
   });
 
-  it("U-81: an accepted submission leaves the first chip selected", async () => {
+  it("an accepted submission leaves the first chip selected", async () => {
     useProgram.setState({ program: fizzbuzz().solution });
     await useTests.getState().submit();
     expect(useTests.getState().selected).toBe(0);
   });
 
-  it("U-80, C-17: a submission is recorded; an accepted one solves the problem for good", async () => {
+  it("a submission is recorded; an accepted one solves the problem for good", async () => {
     useProgress.setState({ entries: {} });
     useProgram.setState({ program: { ...fizzbuzz().solution, main: [print(str("nope"))] } });
     await useTests.getState().submit();
@@ -100,7 +100,7 @@ describe("tests store (U-80, C-10, C-11, C-12)", () => {
     expect(useProgress.getState().entries.fizzbuzz?.status).toBe("solved");
   });
 
-  it("C-11: a runtime error is reported in the row", async () => {
+  it("a runtime error is reported in the row", async () => {
     const div = bin("/", num(1), num(0));
     useProgram.setState({ program: { ...fizzbuzz().solution, main: [assign("x", div)] } });
     await useTests.getState().submit();
@@ -110,7 +110,7 @@ describe("tests store (U-80, C-10, C-11, C-12)", () => {
     });
   });
 
-  it("U-124: a change of the program during a submission abandons it; nothing is recorded", async () => {
+  it("a change of the program during a submission abandons it; nothing is recorded", async () => {
     useProgress.setState({ entries: {} });
     useProgram.setState({ program: fizzbuzz().solution });
     const judging = useTests.getState().submit();
@@ -120,13 +120,13 @@ describe("tests store (U-80, C-10, C-11, C-12)", () => {
     expect(useProgress.getState().entries).toEqual({});
   });
 
-  it("U-60: a program with a diagnostic is not judged, as Run does not start", async () => {
+  it("a program with a diagnostic is not judged, as Run does not start", async () => {
     useProgram.setState({ program: { ...fizzbuzz().solution, main: [print(ast.empty())] } });
     await useTests.getState().submit();
     expect(useTests.getState()).toMatchObject({ results: [], running: false });
   });
 
-  it("U-86: a program of no challenge is not judged; a change of the program clears the results", async () => {
+  it("a program of no challenge is not judged; a change of the program clears the results", async () => {
     useProgram.setState({ program: program([print(str("x"))]) });
     await useTests.getState().submit();
     expect(useTests.getState().results).toEqual([]);
