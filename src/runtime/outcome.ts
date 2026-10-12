@@ -11,13 +11,12 @@ export type Outcome = {
   draws: number[];
 };
 
-/** Calls `next()` up to `limit` times; returns the `Done` when the run finishes within the batch. */
-export function advance(runner: Runner, limit: number): Done | undefined {
-  for (let i = 0; i < limit; i += 1) {
+/** Calls `next()` until the run ends, at the latest at the step limit. */
+export function finish(runner: Runner): Done {
+  for (;;) {
     const next = runner.next();
     if (next.type === "done" || next.type === "error") return next;
   }
-  return undefined;
 }
 
 /** The main-level variables as Data: what the judge compares and the `Result` rows show. */
