@@ -51,10 +51,10 @@ export function defineBuiltin(def: BuiltinDef): NodeDef {
       args: def.params.filter((param) => !param.optional).map(() => emptyExpr()),
     }),
     *run(node, ctx) {
+      // Validation reports a wrong count before any run, as it does for a program function.
       const expected = expectedArgs(def.params, node.args.length);
-      if (expected !== undefined) {
-        ctx.fail(node.id, "E_ARITY", { name: def.name, expected, got: node.args.length });
-      }
+      if (expected !== undefined)
+        throw new Error(`${def.name} takes ${expected} arguments, given ${node.args.length}`);
       const values: Value[] = [];
       for (const arg of node.args) values.push(yield* ctx.eval(arg));
       return def.evaluate(values, node, ctx);

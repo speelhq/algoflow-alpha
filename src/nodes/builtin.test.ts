@@ -16,9 +16,6 @@ const ctx = {
   *eval() {
     return one;
   },
-  fail(_id: string, code: string) {
-    throw new Error(code);
-  },
 } as unknown as RunContext;
 
 function call(argc: number): Extract<Expr, { kind: "call" }> {
@@ -53,8 +50,8 @@ describe("builtin argument counts (N-17)", () => {
   it("the runner takes every count the parameters take, the rule validation applies", () => {
     expect(run(1)).toEqual(one);
     expect(run(2)).toEqual(one);
-    expect(() => run(0)).toThrow("E_ARITY");
-    expect(() => run(3)).toThrow("E_ARITY");
+    expect(() => run(0)).toThrow("probe takes 1 arguments, given 0");
+    expect(() => run(3)).toThrow("probe takes 2 arguments, given 3");
   });
 
   it("N-18: a new builtin holds one empty argument per parameter not marked optional", () => {

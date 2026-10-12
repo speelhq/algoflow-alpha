@@ -287,14 +287,6 @@ describe("the semantics table of language.md", () => {
 });
 
 describe("R-09 codes reachable with basic and control blocks", () => {
-  it("E_ARITY for a builtin called with the wrong number of arguments", () => {
-    const e = call("min", num(1));
-    expect(evalExpr(e).done).toMatchObject({
-      type: "error",
-      error: { nodeId: e.id, code: "E_ARITY", params: { name: "min", expected: 2, got: 1 } },
-    });
-  });
-
   it("R-34 E_VALUE and E_NUMBER_TEXT carry the registry key of the failing expression as op", () => {
     expect(evalExpr(neg(v("xs")), { xs: [] }).done).toMatchObject({
       type: "error",

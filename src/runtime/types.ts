@@ -25,7 +25,6 @@ export const RUNTIME_CODES = [
   "E_EMPTY_RANGE",
   "E_DIV_ZERO",
   "E_POP_EMPTY",
-  "E_ARITY",
   "E_RECURSION",
   "E_STEP_LIMIT",
 ] as const;
