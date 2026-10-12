@@ -1,11 +1,11 @@
-// U-39: every node maps to the statement that contains it.
+// Every node maps to the statement that contains it.
 import { describe, expect, it } from "vitest";
 import { ast, program, tid } from "@/nodes/testing";
 import { bodyStmts, conditionOf, diamondConditions, ownerStmts, paramArg } from "./walk";
 
 const { assign, num, bin, v, if_, for_, while_, print, ret, call } = ast;
 
-describe("paramArg (N-01)", () => {
+describe("paramArg", () => {
   it("finds the argument a builtin's parameter takes, with its position", () => {
     const a = v("a");
     const b = num(2);
@@ -18,7 +18,7 @@ describe("paramArg (N-01)", () => {
   });
 });
 
-describe("ownerStmts (U-39)", () => {
+describe("ownerStmts", () => {
   it("maps expressions to their statement and statements and functions to themselves", () => {
     const cond = bin("==", v("n"), num(1));
     const inner = print(v("n"));
@@ -37,7 +37,7 @@ describe("ownerStmts (U-39)", () => {
   });
 });
 
-describe("conditionOf and diamondConditions (U-108)", () => {
+describe("conditionOf and diamondConditions", () => {
   it("give the condition a branch or a checked loop asks, by its declared slot, and nothing else", () => {
     const asked = v("ok");
     const branch = if_(asked, []);
@@ -57,7 +57,7 @@ describe("conditionOf and diamondConditions (U-108)", () => {
   });
 });
 
-describe("bodyStmts (U-109)", () => {
+describe("bodyStmts", () => {
   it("lists every statement inside a statement's regions, at any depth, and skips plain statements", () => {
     const hit = print(v("i"));
     const miss = print(num(0));

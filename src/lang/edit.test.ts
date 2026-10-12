@@ -1,4 +1,4 @@
-// L-56: each edit of L-50 does what it says, leaves the input untouched, and preserves L-04.
+// Each edit does what it says, leaves the input untouched, and keeps node ids unique.
 import { describe, expect, it } from "vitest";
 import { ast, program, withInputs } from "@/nodes/testing";
 import {
@@ -41,8 +41,8 @@ function sample(): { p: Program; a: Stmt; loop: Stmt; inner: Stmt; b: Stmt } {
   return { p: program([a, loop, b]), a, loop, inner, b };
 }
 
-describe("edit (L-50)", () => {
-  it("L-51: every edit keeps the ids unique, also when what it adds reuses ids of the program", () => {
+describe("edit", () => {
+  it("every edit keeps the ids unique, also when what it adds reuses ids of the program", () => {
     const { p: base, a, loop, inner, b } = sample();
     const start = addFunction(base, "f", ["a"]);
     const fn = start.functions[0]!;
@@ -76,7 +76,7 @@ describe("edit (L-50)", () => {
     expect(next.main).toHaveLength(2);
   });
 
-  it("insertStmt places a statement at a Place (L-54) and re-ids a colliding statement (L-51)", () => {
+  it("insertStmt places a statement at a Place and re-ids a colliding statement", () => {
     const { p, a, loop } = sample();
     const next = insertStmt(p, print(str("hi")), { parent: loop.id, slot: "body", index: 0 });
     expect(lines(next)).toEqual([
@@ -133,7 +133,7 @@ describe("edit (L-50)", () => {
     expect(() => setSlot(p, a.id, "value", "x")).toThrow(/no settable slot/);
   });
 
-  it("L-58: setStmtName stores one trimmed line and removes an empty name", () => {
+  it("setStmtName stores one trimmed line and removes an empty name", () => {
     const { p, loop } = sample();
     const named = setStmtName(p, loop.id, "  Count  to\n three ");
     expect(locateStmt(named, loop.id)?.stmt.name).toBe("Count to three");
@@ -156,7 +156,7 @@ describe("edit (L-50)", () => {
     expect(unparse((reused.main[0] as Extract<Stmt, { kind: "assign" }>).value)).toBe("x + i");
   });
 
-  it("setExpr keeps the ids of the expression it wraps (L-51)", () => {
+  it("setExpr keeps the ids of the expression it wraps", () => {
     const { p, a } = sample();
     const value = (a as Extract<Stmt, { kind: "assign" }>).value;
     const wrapped = bin("+", value, ast.empty());
@@ -232,7 +232,7 @@ describe("edit (L-50)", () => {
     expect(() => removeFunction(p, "nope00000000")).toThrow(/no function/);
   });
 
-  it("hoistAssign inserts `name = <default of the same type>` before the frame (L-41, L-44, L-61)", () => {
+  it("hoistAssign inserts `name = <default of the same type>` before the frame", () => {
     const frame = if_(v("c"), [assign("x", num(1))], [assign("s", str("a"))]);
     const { program: p, inputs } = withInputs({ c: 1 }, [frame, print(v("x"))]);
     expect(validate(p).map((d) => d.code)).toEqual(["E_DECLARE_FIRST"]);

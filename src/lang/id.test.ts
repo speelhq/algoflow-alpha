@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { isNodeId, newId } from "./id";
 
-describe("NodeId (language.md, Program, L-04)", () => {
+describe("NodeId (language.md, Program)", () => {
   it("is 12 characters from the nanoid alphabet", () => {
     for (let i = 0; i < 100; i += 1) expect(isNodeId(newId())).toBe(true);
   });

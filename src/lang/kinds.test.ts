@@ -1,4 +1,4 @@
-// L-59, L-65, L-66, N-12: kinds known before the program runs.
+// Kinds known before the program runs.
 import { describe, expect, it } from "vitest";
 import { ast, program, tid } from "@/nodes/testing";
 import { isParseError, parse } from "@/python/parse";
@@ -22,8 +22,8 @@ const known = new Map<string, Kind>([
 ]);
 const kind = (python: string) => exprKind(expr(python), known);
 
-describe("kinds (L-59, L-65, L-66, N-12)", () => {
-  it("N-12: literals, unary operators, and the builtins give their kinds", () => {
+describe("kinds", () => {
+  it("literals, unary operators, and the builtins give their kinds", () => {
     expect(["1", "2.5", '"a"', "True", "None"].map(kind)).toEqual([
       "number",
       "number",
@@ -47,7 +47,7 @@ describe("kinds (L-59, L-65, L-66, N-12)", () => {
     expect(kind("f(1)")).toBeUndefined();
   });
 
-  it("N-12: binop by its operator and, where they settle it, its inputs", () => {
+  it("binop by its operator and, where they settle it, its inputs", () => {
     expect(["n < 1", "s == n", "n in xs"].map(kind)).toEqual([
       "truefalse",
       "truefalse",
@@ -76,7 +76,7 @@ describe("kinds (L-59, L-65, L-66, N-12)", () => {
     );
   });
 
-  it("L-66: an input's declared kind, else its first assignment's, else its loop's; a parameter has none", () => {
+  it("an input's declared kind, else its first assignment's, else its loop's; a parameter has none", () => {
     const p = program(
       [
         assign("total", num(0)),

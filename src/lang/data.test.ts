@@ -7,8 +7,8 @@ function roundTrip(data: Data): Data {
   return toData(toValue(data, heap), heap);
 }
 
-describe("L-06 toValue / toData", () => {
-  it("keeps int and float distinct (L-07)", () => {
+describe("toValue / toData", () => {
+  it("keeps int and float distinct", () => {
     const heap: Heap = new Map();
     expect(toValue(2, heap)).toEqual({ t: "int", v: 2 });
     expect(toValue(2.5, heap)).toEqual({ t: "float", v: 2.5 });
@@ -18,7 +18,7 @@ describe("L-06 toValue / toData", () => {
     expect(roundTrip({ $float: 2 })).toEqual({ $float: 2 });
   });
 
-  it("L-68, L-70: an integral Data number is an int within the range; beyond it, no value", () => {
+  it("an integral Data number is an int within the range; beyond it, no value", () => {
     const heap: Heap = new Map();
     expect(toValue(2 ** 53 - 1, heap)).toEqual({ t: "int", v: 2 ** 53 - 1 });
     expect(toValue(-(2 ** 53 - 1), heap)).toEqual({ t: "int", v: -(2 ** 53 - 1) });
@@ -57,12 +57,12 @@ describe("L-06 toValue / toData", () => {
     expect(dataKey("a")).toBe("a");
   });
 
-  it("L-76: an object is no value, while no block constructs one", () => {
+  it("an object is no value, while no block constructs one", () => {
     expect(() => toValue({ $cls: "P", x: 1 }, new Map())).toThrow("no object");
   });
 });
 
-describe("C-10 dataEquals", () => {
+describe("dataEquals", () => {
   it("compares ints exactly and floats within 1e-6", () => {
     expect(dataEquals(55, 55)).toBe(true);
     expect(dataEquals(55, 56)).toBe(false);
@@ -97,7 +97,7 @@ describe("inputValue", () => {
   });
 });
 
-describe("dataError (L-70)", () => {
+describe("dataError", () => {
   it("accepts canonical Data", () => {
     for (const data of [
       0,
@@ -133,7 +133,7 @@ describe("dataError (L-70)", () => {
     expect(dataError(undefined)).toMatchObject({ message: "expected Data" });
   });
 
-  it("L-76: names an object (`$cls`) where it is, while no block constructs one", () => {
+  it("names an object (`$cls`) where it is, while no block constructs one", () => {
     expect(dataError([{ $cls: "Node", next: null }])).toEqual({
       at: '[0]["$cls"]',
       message: "expected no object: no block constructs one",

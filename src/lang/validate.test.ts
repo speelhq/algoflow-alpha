@@ -1,4 +1,4 @@
-// L-56: every validation code has a failing and a passing case; L-40, L-41, L-42.
+// Every validation code has a failing and a passing case; scope.
 import { describe, expect, it } from "vitest";
 import { ast, program, runAll } from "@/nodes/testing";
 import type { Diagnostic, Program, Stmt } from "./types";
@@ -30,7 +30,7 @@ describe("validate (language.md, Validation)", () => {
     expect(validate(program([assign("x", num(1)), print(bin("+", v("x"), num(1)))]))).toEqual([]);
   });
 
-  it("E_UNDEFINED: a name that is not visible (L-40)", () => {
+  it("E_UNDEFINED: a name that is not visible", () => {
     const stmt = print(v("x"));
     expect(validate(program([stmt]))).toEqual([
       { nodeId: stmt.id, code: "E_UNDEFINED", params: { name: "x" } },
@@ -39,7 +39,7 @@ describe("validate (language.md, Validation)", () => {
     expect(codes(program([assign("x", bin("+", v("x"), num(1)))]))).toEqual(["E_UNDEFINED"]);
   });
 
-  it("E_DECLARE_FIRST: first assigned inside a frame and read after it (L-41), with the hoist fix", () => {
+  it("E_DECLARE_FIRST: first assigned inside a frame and read after it, with the hoist fix", () => {
     const frame = if_(v("c"), [assign("x", num(1))]);
     const use = print(v("x"));
     expect(validate(withInput([frame, use]))).toEqual([
@@ -81,12 +81,12 @@ describe("validate (language.md, Validation)", () => {
     expect(codes(program([for_("random_int", num(0), num(1), [])]))).toEqual(["E_DUPLICATE_NAME"]);
   });
 
-  it("L-40: a for variable stays visible after its loop; a while body cannot define its condition", () => {
+  it("a for variable stays visible after its loop; a while body cannot define its condition", () => {
     expect(codes(program([for_("i", num(0), num(3), []), print(v("i"))]))).toEqual([]);
     expect(codes(program([while_(v("k"), [assign("k", num(0))])]))).toEqual(["E_UNDEFINED"]);
   });
 
-  it("L-42: functions see only their parameters and body", () => {
+  it("functions see only their parameters and body", () => {
     const fn = {
       id: "f0000000000f",
       name: "twice",
@@ -98,7 +98,7 @@ describe("validate (language.md, Validation)", () => {
     expect(codes(program([assign("g", num(1))], { functions: [leaky] }))).toEqual(["E_UNDEFINED"]);
   });
 
-  it("E_BAD_NAME: L-01 pattern, L-03 reserved words", () => {
+  it("E_BAD_NAME: the name pattern, the reserved words", () => {
     for (const bad of ["Foo", "2x", "for", "len", "my-var", ""]) {
       const p = program([assign(bad, num(1))]);
       expect(codes(p), bad).toContain(bad === "" ? "E_EMPTY_SLOT" : "E_BAD_NAME");
@@ -107,11 +107,11 @@ describe("validate (language.md, Validation)", () => {
     const fn = { id: "f0000000000f", name: "Twice", params: [], body: [] };
     const p = program([], { functions: [fn] });
     expect(validate(p)).toEqual([{ nodeId: fn.id, code: "E_BAD_NAME", params: { name: "Twice" } }]);
-    // Validation is memoized per Program object (edits are pure, L-50): validate a new object.
+    // Validation is memoized per Program object (edits are pure): validate a new object.
     expect(validate({ ...p, functions: [{ ...fn, name: "twice" }] })).toEqual([]);
   });
 
-  it("E_DUPLICATE_NAME: functions and inputs share one namespace (L-05)", () => {
+  it("E_DUPLICATE_NAME: functions and inputs share one namespace", () => {
     const a = { id: "f0000000000a", name: "f", params: [], body: [] };
     const b = { id: "f0000000000b", name: "f", params: [], body: [] };
     expect(validate(program([], { functions: [a, b] }))).toEqual([
@@ -168,7 +168,7 @@ describe("validate (language.md, Validation)", () => {
     expect(codes(program([exprStmt(call("f"))], { functions: [fn] }))).toEqual([]);
   });
 
-  it("E_EMPTY_SLOT: a required slot left empty, naming the slot (L-09)", () => {
+  it("E_EMPTY_SLOT: a required slot left empty, naming the slot", () => {
     const value = assign("x", empty());
     expect(validate(program([value]))).toEqual([
       { nodeId: value.id, code: "E_EMPTY_SLOT", params: { slot: "value" } },
@@ -197,7 +197,7 @@ describe("validate (language.md, Validation)", () => {
     expect(codes(program([assign("x", bin("+", num(1), num(2))), print()]))).toEqual([]);
   });
 
-  it("E_DUPLICATE_ID: the second occurrence of an id is reported (L-04)", () => {
+  it("E_DUPLICATE_ID: the second occurrence of an id is reported", () => {
     const a = assign("x", num(1));
     const b = { ...assign("y", num(2)), id: a.id };
     expect(validate(program([a, b]))).toEqual([
@@ -211,7 +211,7 @@ describe("validate (language.md, Validation)", () => {
     expect(result.map((d) => d.code)).toEqual(["E_UNDEFINED", "E_BREAK_OUTSIDE", "E_BAD_NAME"]);
   });
 
-  it("L-75: a statement's name changes neither validation nor execution", () => {
+  it("a statement's name changes neither validation nor execution", () => {
     const steps = [assign("x", num(1)), print(v("x")), print(v("y"))];
     const named = steps.map((stmt) => ({ ...stmt, name: "a step" }));
     expect(validate(program(named))).toEqual(validate(program(steps)));
@@ -222,7 +222,7 @@ describe("validate (language.md, Validation)", () => {
   });
 });
 
-describe("firstAssignments (N-02 templateCreate, L-40/L-43)", () => {
+describe("firstAssignments (templateCreate, scope)", () => {
   it("marks the first assign of a name, not later ones, inputs, params, or loop variables", () => {
     const create = assign("x", num(1));
     const set = assign("x", num(2));

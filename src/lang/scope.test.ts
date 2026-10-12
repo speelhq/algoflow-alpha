@@ -1,4 +1,4 @@
-// L-40, L-41, L-43: what is visible where; N-01 `loop` and `requires` places; U-52 Variables.
+// What is visible where; the places `loop` and `requires` allow; the value list's Variables.
 import { describe, expect, it } from "vitest";
 import { ast, program } from "@/nodes/testing";
 import { assignedValue, placeContext, visibleAt } from "./scope";
@@ -17,7 +17,7 @@ describe("scope", () => {
     expect(assignedValue(for_("i", num(0), num(3), []))).toBeUndefined();
   });
 
-  it("L-40, U-52: names assigned before a statement are visible, the latest first", () => {
+  it("names assigned before a statement are visible, the latest first", () => {
     const a = assign("a", num(1));
     const b = assign("b", num(2));
     const again = assign("a", num(3));
@@ -29,7 +29,7 @@ describe("scope", () => {
     expect(visibleAt(p, "nope00000000")).toBeUndefined();
   });
 
-  it("L-43: a loop variable is visible in the body and after the loop, not in its own bounds", () => {
+  it("a loop variable is visible in the body and after the loop, not in its own bounds", () => {
     const inner = print(v("i"));
     const loop = for_("i", num(0), v("n"), [inner]);
     const after = print(v("i"));
@@ -39,7 +39,7 @@ describe("scope", () => {
     expect(visibleAt(p, after.id)).toEqual(["i", "n"]);
   });
 
-  it("L-41: a name first assigned inside a frame is not visible after it", () => {
+  it("a name first assigned inside a frame is not visible after it", () => {
     const inside = assign("y", num(1));
     const branch = if_(v("c"), [inside]);
     const after = print(v("y"));
@@ -47,7 +47,7 @@ describe("scope", () => {
     expect(visibleAt(p, after.id)).toEqual(["c"]);
   });
 
-  it("L-42: a function sees its parameters", () => {
+  it("a function sees its parameters", () => {
     const body = ret(v("x"));
     const p = program([], {
       functions: [{ id: "fn0000000001", name: "f", params: ["x", "y"], body: [body] }],
@@ -55,7 +55,7 @@ describe("scope", () => {
     expect(visibleAt(p, body.id)).toEqual(["y", "x"]);
   });
 
-  it("N-01: a place is in a loop under a loop's body at any depth, and in a function under one", () => {
+  it("a place is in a loop under a loop's body at any depth, and in a function under one", () => {
     const branch = if_(v("c"), []);
     const loop = while_(v("c"), [branch]);
     const p = program([loop], {

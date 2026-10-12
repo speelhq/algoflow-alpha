@@ -1,5 +1,5 @@
-// L-56: import validates and migrates by version (L-53); L-71: it refuses a literal field its
-// block would not make; L-76: it refuses a class and an object input.
+// Import validates and migrates by version; it refuses a literal field its block would not make,
+// a class, and an object input.
 import { describe, expect, it } from "vitest";
 import { ast, program } from "@/nodes/testing";
 import { MigrateError, migrate } from "./migrate";
@@ -10,7 +10,7 @@ function json(value: unknown): unknown {
   return JSON.parse(JSON.stringify(value));
 }
 
-describe("migrate (L-53)", () => {
+describe("migrate", () => {
   it("accepts a version 1 program unchanged", () => {
     const p = program(
       [assign("x", num(1)), for_("i", num(0), num(3), [print(bin("+", v("x"), v("i")))])],
@@ -91,7 +91,7 @@ describe("migrate (L-53)", () => {
     expect(() => migrate(stored)).toThrow(/^main\[0\]\.body\[0\]\.kind: unknown kind "comment"/);
   });
 
-  it("L-58, L-74: stores a statement's name as an edit does and rejects one that is not one line of text", () => {
+  it("stores a statement's name as an edit does and rejects one that is not one line of text", () => {
     const named = { ...assign("x", num(1)), name: "Start at one" };
     expect(migrate(json(program([named])))).toEqual(program([named]));
     const broken = json(program([{ ...named, name: "two\nlines" }]));
@@ -135,7 +135,7 @@ describe("migrate (L-53)", () => {
     expect(() => migrate(badTarget)).toThrow(/^main\[0\]\.target\.index: expected an expression/);
   });
 
-  it("L-71: refuses a literal field its block would not make, at its path", () => {
+  it("refuses a literal field its block would not make, at its path", () => {
     const valueOf = (expr: unknown) => json(program([assign("x", expr as never)]));
     const at = (fields: Record<string, unknown>, of: unknown) => {
       const p = valueOf(of) as { main: Array<{ value: Record<string, unknown> }> };
@@ -165,7 +165,7 @@ describe("migrate (L-53)", () => {
     expect(at({ value: "yes" }, bool(true))).toThrow(/value\.value: expected true or false/);
   });
 
-  it("L-76: refuses a class and an input of the kind object, while no block constructs one", () => {
+  it("refuses a class and an input of the kind object, while no block constructs one", () => {
     const cls = { id: "c0000000000c", name: "C", fields: [] };
     expect(() => migrate({ ...program([]), classes: [cls] })).toThrow(
       "classes[0]: expected no class: no block constructs an object",
