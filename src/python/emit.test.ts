@@ -1,4 +1,3 @@
-// E-01, E-02, E-03, E-04, E-05, E-06 and E-10.
 import { describe, expect, it } from "vitest";
 import { ast, program, withInputs } from "@/nodes/testing";
 import { dataToPython, emit, unparse } from "./emit";
@@ -13,7 +12,7 @@ const SOH = String.fromCharCode(1);
 const DEL = String.fromCharCode(127);
 
 describe("emit (emitter.md)", () => {
-  it("E-01: 1-based inclusive lines; a frame maps to its header; else: is unmapped", () => {
+  it("1-based inclusive lines; a frame maps to its header; else: is unmapped", () => {
     const inner = assign("x", num(1));
     const frame = if_(bin("<", v("a"), v("b")), [inner], [assign("x", num(2))]);
     const after = print(v("x"));
@@ -25,7 +24,7 @@ describe("emit (emitter.md)", () => {
     expect(Object.values(map).some((m) => m.start === 3)).toBe(false);
   });
 
-  it("E-02: sections separated by one blank line, two around functions", () => {
+  it("sections separated by one blank line, two around functions", () => {
     const prog = program([assign("d", call("random_int", num(1), num(6)))], {
       inputs: [{ name: "n", kind: "number" }],
       functions: [
@@ -55,7 +54,7 @@ describe("emit (emitter.md)", () => {
     expect(map["f0000000000f"]).toEqual({ start: 4, end: 4 });
   });
 
-  it("E-11: a named statement is preceded by its name as a comment, where its map entry starts", () => {
+  it("a named statement is preceded by its name as a comment, where its map entry starts", () => {
     const inner = { ...print(v("i")), name: "Show it" };
     const loop = { ...for_("i", num(0), num(3), [inner]), name: "Count to three" };
     const { code, map } = emit(program([loop]), {});
@@ -64,7 +63,7 @@ describe("emit (emitter.md)", () => {
     expect(map[inner.id]).toEqual({ start: 3, end: 4 });
   });
 
-  it("E-03: inputs are emitted as assignments of their values, in declaration order", () => {
+  it("inputs are emitted as assignments of their values, in declaration order", () => {
     const made = withInputs(
       {
         nums: [5, 3, 1],
@@ -83,14 +82,14 @@ describe("emit (emitter.md)", () => {
     expect(dataToPython(1e-7)).toBe("1e-07");
   });
 
-  it("E-03: an int input is its digits, a float input its repr", () => {
+  it("an int input is its digits, a float input its repr", () => {
     expect(dataToPython(2 ** 53 - 1)).toBe("9007199254740991");
     expect(dataToPython(12)).toBe("12");
     expect(dataToPython({ $float: 2 })).toBe("2.0");
     expect(dataToPython({ "$int:-3": "a" })).toBe('{-3: "a"}');
   });
 
-  it("E-04: 4-space indentation, no trailing whitespace, one trailing newline", () => {
+  it("4-space indentation, no trailing whitespace, one trailing newline", () => {
     const { code } = emit(
       program([for_("i", num(0), num(3), [while_(v("ok"), [print(v("i"))])])]),
       {},
@@ -100,7 +99,7 @@ describe("emit (emitter.md)", () => {
     expect(code.split("\n").some((line) => /\s$/.test(line))).toBe(false);
   });
 
-  it("E-06: string escapes, including control characters CPython would reject raw", () => {
+  it("string escapes, including control characters CPython would reject raw", () => {
     expect(pyString('a"b\\c\nd\te')).toBe('"a\\"b\\\\c\\nd\\te"');
     expect(pyString(`a${CR}b${SOH}c${DEL}`)).toBe('"a\\rb\\x01c\\x7f"');
     expect(unparse(str("plain"))).toBe('"plain"');
@@ -115,7 +114,7 @@ describe("emit (emitter.md)", () => {
   });
 });
 
-describe("E-10: 200-expression fixture (E-05)", () => {
+describe("200-expression fixture", () => {
   it("has at least 200 cases", () => {
     expect(EXPRESSION_FIXTURE.length).toBeGreaterThanOrEqual(200);
   });

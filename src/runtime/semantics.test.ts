@@ -1,5 +1,5 @@
-// R-21: the rules under Values and the run of language.md, the R-09 codes the runtime itself
-// raises, and the R-03/R-08/R-10/R-35 event rules.
+// What the runtime itself decides: the int range and the sign of zero, the rules under Values and
+// the run of language.md, the params a runtime error carries, and the event rules.
 import { describe, expect, it } from "vitest";
 import { ast, evalExpr, eventTypes, program, runAll, varData, withInputs } from "@/nodes/testing";
 import { run, STEP_LIMIT } from "./run";
@@ -25,8 +25,8 @@ const {
   if_,
 } = ast;
 
-describe("the rules under Values and the run (language.md)", () => {
-  it("L-68, L-69 an int result outside the int range becomes float", () => {
+describe("values and the run", () => {
+  it("an int result outside the int range becomes float", () => {
     expect(evalExpr(bin("+", num(9007199254740990), num(1))).value).toEqual({
       t: "int",
       v: 2 ** 53 - 1,
@@ -51,7 +51,7 @@ describe("the rules under Values and the run (language.md)", () => {
     ).toEqual(["-0.0", "0.0"]);
   });
 
-  it("R-15 a bool is still no number for arithmetic and ordering", () => {
+  it("a bool is no number for arithmetic and ordering", () => {
     for (const op of ["+", "<"] as const) {
       expect(evalExpr(bin(op, bool(true), num(1))).done).toMatchObject({
         type: "error",
@@ -60,7 +60,7 @@ describe("the rules under Values and the run (language.md)", () => {
     }
   });
 
-  it('L-18 false values: 0, 0.0, "", [], {}, None, False', () => {
+  it('false values: 0, 0.0, "", [], {}, None, False', () => {
     const falsy = [num(0), float(0), str(""), none(), bool(false)];
     for (const value of falsy) expect(evalExpr(not(value)).data).toBe(true);
     expect(evalExpr(not(v("xs")), { xs: [] }).data).toBe(true);
@@ -69,7 +69,7 @@ describe("the rules under Values and the run (language.md)", () => {
     expect(evalExpr(not(v("xs")), { xs: [0] }).data).toBe(false);
   });
 
-  it("L-20 a list index is int, negative from the end, else E_INDEX (write path)", () => {
+  it("a list index is int, negative from the end, else E_INDEX (write path)", () => {
     const write = (index: number) => {
       const stmt = assignTo({ kind: "index", list: v("xs"), index: num(index) }, num(0));
       const made = withInputs({ xs: [1, 2] }, [stmt]);
@@ -82,7 +82,7 @@ describe("the rules under Values and the run (language.md)", () => {
     });
   });
 
-  it("L-21 dict keys are int or str, else E_TYPE (write path)", () => {
+  it("dict keys are int or str, else E_TYPE (write path)", () => {
     const write = (key: ReturnType<typeof num>) => {
       const made = withInputs({ d: {} }, [assignTo({ kind: "key", dict: v("d"), key }, num(0))]);
       return runAll(made.program, made.inputs);
@@ -92,7 +92,7 @@ describe("the rules under Values and the run (language.md)", () => {
     expect(write(float(1.5)).done).toMatchObject({ type: "error", error: { code: "E_TYPE" } });
   });
 
-  it("L-24 assignment copies the reference", () => {
+  it("assignment copies the reference", () => {
     const made = withInputs({ xs: [1] }, [
       assign("ys", v("xs")),
       assignTo({ kind: "index", list: v("ys"), index: num(0) }, num(9)),
@@ -101,7 +101,7 @@ describe("the rules under Values and the run (language.md)", () => {
     expect(varData(result, "xs")).toEqual([9]);
   });
 
-  it("L-31 a run stops with E_STEP_LIMIT after 1,000,000 events", () => {
+  it("a run stops with E_STEP_LIMIT after 1,000,000 events", () => {
     const runner = run(program([while_(bool(true), [])]), {}, 1);
     let last;
     for (let i = 0; i < STEP_LIMIT + 5; i += 1) {
@@ -116,8 +116,8 @@ describe("the rules under Values and the run (language.md)", () => {
   });
 });
 
-describe("R-09 codes the runtime raises", () => {
-  it("R-34 E_VALUE and E_NUMBER_TEXT carry the registry key of the failing expression as op", () => {
+describe("the params a runtime error carries", () => {
+  it("E_VALUE and E_NUMBER_TEXT carry the registry key of the failing expression as op", () => {
     expect(evalExpr(neg(v("xs")), { xs: [] }).done).toMatchObject({
       type: "error",
       error: { code: "E_VALUE", params: { op: "unop", type: "list" } },
@@ -136,14 +136,14 @@ describe("R-09 codes the runtime raises", () => {
   });
 });
 
-describe("R-03, R-08, R-10, R-35 event rules", () => {
-  it("R-03 per statement: enter, expression events, then the effect", () => {
+describe("event rules", () => {
+  it("per statement: enter, expression events, then the effect", () => {
     const stmt = assign("ok", bin("and", bin("<", num(1), num(2)), bin("<", num(2), num(3))));
     const result = runAll(program([stmt]));
     expect(eventTypes(result.events)).toEqual(["enter", "compare", "compare", "write"]);
   });
 
-  it("R-35 a condition ends in one compare of its whole self", () => {
+  it("a condition ends in one compare of its whole self", () => {
     const compared = bin("<", num(1), num(2));
     const plain = runAll(program([if_(compared, [])]));
     expect(plain.events.filter((e) => e.type === "compare")).toEqual([
@@ -158,7 +158,7 @@ describe("R-03, R-08, R-10, R-35 event rules", () => {
     ]);
   });
 
-  it("R-35 a condition whose call reaches the same diamond still ends in its own compare", () => {
+  it("a condition whose call reaches the same diamond still ends in its own compare", () => {
     // def g(n): if n > 0 and g(n - 1): pass
     const cond = bin("and", bin(">", v("n"), num(0)), call("g", bin("-", v("n"), num(1))));
     const g = { id: "f0000000000f", name: "g", params: ["n"], body: [if_(cond, [])] };
@@ -169,21 +169,21 @@ describe("R-03, R-08, R-10, R-35 event rules", () => {
     ]);
   });
 
-  it("R-08 steps counts all events and loops counts loop events", () => {
+  it("steps counts all events and loops counts loop events", () => {
     const result = runAll(
       program([for_("i", num(0), num(3), [exprStmt(bin("<", v("i"), num(1)))])]),
     );
     expect(result.done).toEqual({ type: "done", steps: 1 + 3 * 3, loops: 3 });
   });
 
-  it("R-10 the same program, inputs, and seed produce the same event sequence", () => {
+  it("the same program, inputs, and seed produce the same event sequence", () => {
     const prog = program([
       for_("i", num(0), num(5), [assign("x", call("random_int", num(0), num(9)))]),
     ]);
     expect(runAll(prog, {}, 3).events).toEqual(runAll(prog, {}, 3).events);
   });
 
-  it("R-01 state() exposes the main frame and heap; stdout() the printed lines", () => {
+  it("state() exposes the main frame and heap; stdout() the printed lines", () => {
     const result = runAll(program([assign("x", num(1)), print(v("x"))]));
     expect(result.state.frames).toHaveLength(1);
     expect(result.state.frames[0]?.fn).toBe("main");
@@ -191,7 +191,7 @@ describe("R-03, R-08, R-10, R-35 event rules", () => {
   });
 });
 
-describe("L-29 text forms", () => {
+describe("text forms", () => {
   it("floatRepr follows Python repr", () => {
     expect(floatRepr(2)).toBe("2.0");
     expect(floatRepr(0.1)).toBe("0.1");

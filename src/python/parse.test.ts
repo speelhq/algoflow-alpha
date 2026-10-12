@@ -1,4 +1,3 @@
-// G-01, G-02, G-03, G-04, G-06, G-07, and G-08.
 import { describe, expect, it } from "vitest";
 import type { Expr } from "@/lang/types";
 import { NODES } from "@/nodes/registry";
@@ -21,7 +20,7 @@ function err(text: string, scope: ParseScope = NO_DEFINITIONS): ParseError {
   return result;
 }
 
-describe("parse (G-01)", () => {
+describe("parse", () => {
   it("parses literals with raw number text and decoded strings", () => {
     expect(ok("1e3")).toMatchObject({ kind: "num", value: 1000, float: true, raw: "1e3" });
     expect(ok("42")).toMatchObject({ kind: "num", value: 42, float: false, raw: "42" });
@@ -73,21 +72,21 @@ describe("parse (G-01)", () => {
     expect(ok('"a\\x41\\x01"')).toMatchObject({ kind: "str", value: "aA" });
   });
 
-  it("G-07: an int literal outside the int range is a syntax error at its token", () => {
+  it("an int literal outside the int range is a syntax error at its token", () => {
     expect(ok("9007199254740991")).toMatchObject({ kind: "num", value: 2 ** 53 - 1, float: false });
     expect(err("1 + 9007199254740992")).toEqual({ code: "E_PARSE_SYNTAX", position: 4 });
     expect(err("-9007199254740992")).toEqual({ code: "E_PARSE_SYNTAX", position: 1 });
     expect(ok("9007199254740993.0")).toMatchObject({ kind: "num", float: true });
   });
 
-  it("gives every node an id and no mark of how it was made (G-01)", () => {
+  it("gives every node an id and no mark of how it was made", () => {
     const expr = ok("a + b");
     expect(expr.id).toHaveLength(12);
     expect(Object.keys(expr).toSorted()).toEqual(["id", "kind", "left", "op", "right"]);
   });
 });
 
-describe("G-02 / G-03 call resolution", () => {
+describe("call resolution", () => {
   it("resolves a builtin or a user function by name, else E_UNKNOWN_CALL", () => {
     const scope = { functions: ["fib"] };
     expect(ok("abs(x)", scope)).toMatchObject({ kind: "call", fn: "abs" });
@@ -107,7 +106,7 @@ describe("G-02 / G-03 call resolution", () => {
     expect(unparse(ok("random.randint(1, 6)"))).toBe("random.randint(1, 6)");
   });
 
-  it("G-03: an unknown method → E_UNKNOWN_CALL at the method name", () => {
+  it("an unknown method → E_UNKNOWN_CALL at the method name", () => {
     expect(err("xs.frobnicate(1)")).toEqual({
       code: "E_UNKNOWN_CALL",
       position: 3,
@@ -120,7 +119,7 @@ describe("G-02 / G-03 call resolution", () => {
   });
 });
 
-describe("G-04 errors carry a position", () => {
+describe("errors carry a position", () => {
   it("chained comparison → E_PARSE_CHAIN at the second operator", () => {
     expect(err("a < b < c")).toEqual({ code: "E_PARSE_CHAIN", position: 6 });
     expect(err("1 == 2 == 3")).toEqual({ code: "E_PARSE_CHAIN", position: 7 });
@@ -141,7 +140,7 @@ describe("G-04 errors carry a position", () => {
   });
 });
 
-// ---------------------------------------------------------------- G-06 property test
+// ---------------------------------------------------------------- property test
 
 const BUILTINS = [...NODES.values()].filter((def) => def.key.startsWith("call:"));
 const NAMES = ["a", "b", "c", "n", "total", "xs"];
@@ -213,7 +212,7 @@ function withoutIds(value: unknown): unknown {
   );
 }
 
-describe("G-06, G-08: parse(unparse(e)) is e apart from ids", () => {
+describe("parse(unparse(e)) is e apart from ids", () => {
   it("holds for 1,000 generated expressions, so the text is a fixed point", () => {
     const next = generator(20260903);
     for (let i = 0; i < 1000; i += 1) {

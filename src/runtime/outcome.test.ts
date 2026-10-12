@@ -1,4 +1,3 @@
-// R-22 on `finish`; C-10 on `outcomeOf`.
 import { describe, expect, it } from "vitest";
 import { ast, program } from "@/nodes/testing";
 import { finish, outcomeOf } from "./outcome";
@@ -13,7 +12,7 @@ describe("finish and outcomeOf", () => {
     expect(done).toEqual({ type: "done", steps: 2, loops: 0 });
   });
 
-  it("R-22: next() after the end returns the same Done, after done and after an error", () => {
+  it("next() after the end returns the same Done, after done and after an error", () => {
     const finished = run(program([assign("x", num(2))]), {}, 1);
     const done = finish(finished);
     expect(finished.next()).toBe(done);
