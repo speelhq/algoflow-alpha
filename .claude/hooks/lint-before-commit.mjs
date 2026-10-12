@@ -1,4 +1,4 @@
-// PreToolUse (Bash|PowerShell): run `pnpm lint` before any `git commit`, `git -C <dir> commit`
+// PreToolUse (Bash): run `pnpm lint` before any `git commit`, `git -C <dir> commit`
 // included and `git commit-tree` not; deny the commit on failure.
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
@@ -24,7 +24,6 @@ if (!existsSync(join(root, "package.json"))) {
 const result = spawnSync("pnpm", ["lint"], {
   cwd: root,
   encoding: "utf8",
-  shell: process.platform === "win32",
 });
 if (result.status === 0) process.exit(0);
 

@@ -23,7 +23,7 @@ const USAGE = /(?<![\w.$])t\(\s*(["'])([^"'`]+)\1/g;
 
 export function usagesIn(file: string, root: string): Usage[] {
   const text = readFileSync(file, "utf8");
-  const rel = relative(root, file).replaceAll("\\", "/");
+  const rel = relative(root, file);
   const starts = lineStarts(text);
   return [...text.matchAll(USAGE)].map((match) => ({
     file: rel,

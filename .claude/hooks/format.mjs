@@ -16,13 +16,12 @@ try {
 const file = input.tool_response?.filePath || input.tool_input?.file_path;
 if (!file) process.exit(0);
 
-const rel = relative(root, file).split("\\").join("/");
+const rel = relative(root, file);
 if (rel === "" || rel.split("/")[0] === ".." || isAbsolute(rel)) process.exit(0);
 if (!existsSync(join(root, "package.json"))) process.exit(0);
 
 spawnSync("pnpm", ["exec", "oxfmt", "--no-error-on-unmatched-pattern", rel], {
   cwd: root,
   stdio: ["ignore", "inherit", "inherit"],
-  shell: process.platform === "win32",
 });
 process.exit(0);
