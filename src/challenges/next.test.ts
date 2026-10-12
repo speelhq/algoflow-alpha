@@ -1,4 +1,4 @@
-// U-99: `Start` / `Continue` / no button; U-83: `Next problem →` and `Plan complete`.
+// `Start` / `Continue` / no button; `Next problem →` and `Plan complete`.
 import { describe, expect, it, vi } from "vitest";
 import { nextProblem, planAction, type Status } from "./next";
 
@@ -13,7 +13,7 @@ function statuses(entries: Record<string, "attempted" | "solved">): Status {
   return (id) => entries[id];
 }
 
-describe("planAction (U-99)", () => {
+describe("planAction", () => {
   it("offers Start on the first problem while no problem has an entry", () => {
     expect(planAction(course, statuses({}))).toEqual({ kind: "start", id: "tutorial" });
   });
@@ -34,7 +34,7 @@ describe("planAction (U-99)", () => {
   });
 });
 
-describe("nextProblem (U-83)", () => {
+describe("nextProblem", () => {
   it("leads to the next unsolved problem of the plan", () => {
     const status = statuses({ tutorial: "solved", "sum-to-n": "solved", fizzbuzz: "solved" });
     expect(nextProblem("sum-to-n", status)).toEqual({ kind: "next", id: "max-of-three" });

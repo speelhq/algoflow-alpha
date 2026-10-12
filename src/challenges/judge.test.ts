@@ -1,4 +1,4 @@
-// C-10: equality per expectation kind; C-11: a runtime error fails the test.
+// Equality per expectation kind; a runtime error fails the test.
 import { describe, expect, it } from "vitest";
 import { ast, program } from "@/nodes/testing";
 import { finish, outcomeOf, type Outcome } from "@/runtime/outcome";
@@ -16,7 +16,7 @@ function outcome(p: Program, inputs = {}): Outcome {
 
 const test = (expected: Test["expect"], inputs = {}): Test => ({ inputs, expect: expected });
 
-describe("judge (C-10)", () => {
+describe("judge", () => {
   it("passes when every expected variable and stdout line matches", () => {
     const out = outcome(program([assign("total", num(55)), print(str("done"))]));
     expect(judge(test({ variables: { total: 55 }, stdout: ["done"] }), out)).toEqual({
@@ -56,7 +56,7 @@ describe("judge (C-10)", () => {
     });
   });
 
-  it("C-11: a runtime error fails the test with the error", () => {
+  it("a runtime error fails the test with the error", () => {
     const div = bin("/", num(1), num(0));
     const out = outcome(program([assign("x", div)]));
     expect(judge(test({ variables: { x: 1 } }), out)).toEqual({

@@ -1,4 +1,4 @@
-// C-13, U-32: the chosen case gives the values of a program's inputs; C-01, R-36: its seed.
+// The chosen case gives the values of a program's inputs, and its seed.
 import { describe, expect, it } from "vitest";
 import { program } from "@/nodes/testing";
 import { caseInputs, caseOf } from "./cases";
@@ -23,7 +23,7 @@ describe("the chosen case", () => {
   });
 });
 
-describe("the seed of a run (C-01, R-36)", () => {
+describe("the seed of a run", () => {
   it("is the test's own, else 1, and 1 for a run with no test", () => {
     const test = { inputs: {}, expect: { stdout: [] } };
     expect(seedOf({ ...test, seed: 7 })).toBe(7);

@@ -1,8 +1,8 @@
-// C-14: every challenge file is bundled; C-16: the list follows the plans.
+// Every challenge file is bundled; the list follows the plans.
 import { describe, expect, it, vi } from "vitest";
 import { CHALLENGES, challengesOf, getChallenge, PLANS, planOf } from "./index";
 
-describe("challenge bundle (C-14, C-16)", () => {
+describe("challenge bundle", () => {
   it("loads every challenges/*.json with id, tests, and solution; plans.json is not one", () => {
     expect(CHALLENGES).not.toHaveLength(0);
     for (const challenge of CHALLENGES) {
@@ -14,7 +14,7 @@ describe("challenge bundle (C-14, C-16)", () => {
     expect(CHALLENGES.some((c) => c.id === "plans")).toBe(false);
   });
 
-  it("C-16: lists each plan's members in its order, the plans in theirs", () => {
+  it("lists each plan's members in its order, the plans in theirs", () => {
     expect(CHALLENGES.map((c) => c.id)).toEqual(PLANS.flatMap((plan) => plan.problems));
     for (const plan of PLANS) expect(challengesOf(plan).map((c) => c.id)).toEqual(plan.problems);
   });

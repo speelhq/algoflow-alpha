@@ -10,7 +10,7 @@ import {
   type MessageKey,
 } from "./t";
 
-describe("t (U-71, U-73)", () => {
+describe("t", () => {
   afterEach(() => {
     setLocale("en");
     vi.restoreAllMocks();
@@ -21,7 +21,7 @@ describe("t (U-71, U-73)", () => {
     expect(t("node.for.label")).toBe("For loop");
   });
 
-  it("U-125: writes a number as the locale does, as the step limit's message shows it", () => {
+  it("writes a number as the locale does, as the step limit's message shows it", () => {
     expect(formatNumber(1_000_000)).toBe("1,000,000");
     expect(t("run.endless", { limit: formatNumber(1_000_000) })).toContain(
       "stopped after 1,000,000 steps",
@@ -37,7 +37,7 @@ describe("t (U-71, U-73)", () => {
     expect(interpolate("{toString} {constructor}", {})).toBe("{toString} {constructor}");
   });
 
-  it("U-107: a message writes its op parameter as the label of that block", () => {
+  it("a message writes its op parameter as the label of that block", () => {
     expect(errorText({ code: "E_VALUE", params: { op: "call:abs", type: "str" } })).toBe(
       "Absolute value cannot be used on str",
     );

@@ -1,8 +1,8 @@
-// U-23: the rows of one case; U-81: the first difference and the step Watch this case opens at.
+// The rows of one case; the first difference and the step Watch this case opens at.
 import { describe, expect, it } from "vitest";
 import { firstDifference, resultRows, watchStep } from "./rows";
 
-describe("resultRows (U-23)", () => {
+describe("resultRows", () => {
   it("aligns Output and Expected line by line, with a blank cell where one side has no line", () => {
     const short = resultRows({ stdout: ["1", "2", "Fizz"] }, { stdout: ["1", "2"], vars: {} });
     expect(short.output).toEqual([
@@ -21,7 +21,7 @@ describe("resultRows (U-23)", () => {
     );
     expect(rows.variables).toEqual([
       { name: "total", expected: 55, differs: true },
-      { name: "ratio", expected: 0.5, actual: 0.5000000004, differs: false }, // C-10: within 1e-6
+      { name: "ratio", expected: 0.5, actual: 0.5000000004, differs: false }, // within 1e-6
       { name: "best", expected: null, actual: null, differs: false },
     ]);
     expect(rows.output).toEqual([]);
@@ -34,7 +34,7 @@ describe("resultRows (U-23)", () => {
   });
 });
 
-describe("firstDifference and watchStep (U-23, U-81)", () => {
+describe("firstDifference and watchStep", () => {
   it("the first output row that differs, or else the first variable row that differs", () => {
     const both = resultRows(
       { stdout: ["1", "2"], variables: { a: 1, b: 2 } },
