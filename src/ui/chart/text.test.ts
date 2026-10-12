@@ -1,8 +1,9 @@
-// N-08, N-09, U-33, U-51: node text as the chart writes it.
+// N-08, N-09, U-33, U-51: node text as the chart writes it; U-117: a value as the blocks write it.
 import { describe, expect, it } from "vitest";
 import type { Expr } from "@/lang/types";
-import { ast, program } from "@/nodes/testing";
+import { ast, program, withInputs } from "@/nodes/testing";
 import { isParseError, parse } from "@/python/parse";
+import { run } from "@/runtime/run";
 import {
   capitalise,
   drawn,
@@ -16,6 +17,7 @@ import {
   sentence,
   sentenceParts,
   templatePieces,
+  valueText,
 } from "./text";
 
 const { assign, num, str, bool, bin, neg, not, v, print, for_, if_, call, ret, empty } = ast;
@@ -164,5 +166,15 @@ describe("diamonds and generated nodes (U-33, N-09)", () => {
       { text: "n", variable: true },
       { text: " = 15" },
     ]);
+  });
+});
+
+describe("valueText (U-117)", () => {
+  it("writes containers with the same words inside", () => {
+    const made = withInputs({ d: { a: [true, null, "x", { $float: 2 }], "$int:3": 1 } }, []);
+    const runner = run(made.program, made.inputs, 1);
+    const { frames, heap } = runner.state();
+    const value = frames[0]?.vars.get("d");
+    expect(value && valueText(value, heap)).toBe('{"a": [true, none, "x", 2.0], 3: 1}');
   });
 });

@@ -7,7 +7,6 @@ import type { Data, Program } from "@/lang/types";
 import { ast, program, tid, withInputs } from "@/nodes/testing";
 import { run } from "@/runtime/run";
 import type { Event } from "@/runtime/types";
-import { valueText } from "@/ui/chart/text";
 import {
   narrate,
   narrateDifference,
@@ -231,13 +230,5 @@ describe("narrate (U-63)", () => {
       error: true,
     });
     expect(at({ step: 0, lastEvent: null, state: null })).toBeNull();
-  });
-
-  it("U-117 valueText writes containers with the same words inside", () => {
-    const made = withInputs({ d: { a: [true, null, "x", { $float: 2 }], "$int:3": 1 } }, []);
-    const runner = run(made.program, made.inputs, 1);
-    const { frames, heap } = runner.state();
-    const value = frames[0]?.vars.get("d");
-    expect(value && valueText(value, heap)).toBe('{"a": [true, none, "x", 2.0], 3: 1}');
   });
 });
