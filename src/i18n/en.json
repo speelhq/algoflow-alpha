@@ -6,8 +6,7 @@
     "nav": {
       "label": "Pages",
       "problems": "Problems",
-      "playground": "Playground",
-      "modules": "Modules"
+      "playground": "Playground"
     },
     "help": {
       "open": "Help",
@@ -163,10 +162,6 @@
     "export": "Export",
     "titleLabel": "Program title",
     "rows": "Playground programs"
-  },
-  "modules": {
-    "title": "Modules",
-    "stub": "Your modules will be listed here."
   },
   "node": {
     "empty": {
@@ -390,8 +385,6 @@
     "yes": "Yes",
     "no": "No",
     "path": "Chart path",
-    "charts": "Charts",
-    "chartsGlyph": "▾",
     "inputGlyph": "▾",
     "zoomInGlyph": "+",
     "zoomOutGlyph": "−",

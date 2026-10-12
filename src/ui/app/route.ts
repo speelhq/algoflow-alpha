@@ -1,4 +1,4 @@
-// The six pages and their hash routes; a hash that names nothing, a problem id with no
+// The four pages and their hash routes; a hash that names nothing, a problem id with no
 // challenge, or a Playground id the Playground does not list, shows the Problems page. A route
 // that names a program opens it before React draws its page, so no page ever draws with the
 // program of the page before.
@@ -11,9 +11,7 @@ export type Route =
   | { page: "problems" }
   | { page: "problem"; id: string }
   | { page: "playground" }
-  | { page: "program"; id: string }
-  | { page: "modules" }
-  | { page: "module"; name: string };
+  | { page: "program"; id: string };
 
 const PROBLEMS: Route = { page: "problems" };
 
@@ -36,9 +34,7 @@ export function parseRoute(hash: string): Route {
     if (second === undefined) return { page: "playground" };
     return param === undefined ? PROBLEMS : { page: "program", id: param };
   }
-  if (first === "modules" && second === undefined) return { page: "modules" };
   if (first === "p" && param !== undefined) return { page: "problem", id: param };
-  if (first === "m" && param !== undefined) return { page: "module", name: param };
   return PROBLEMS;
 }
 
@@ -60,10 +56,6 @@ export function routeHash(route: Route): string {
       return "#/play";
     case "program":
       return `#/play/${encodeURIComponent(route.id)}`;
-    case "modules":
-      return "#/modules";
-    case "module":
-      return `#/m/${encodeURIComponent(route.name)}`;
   }
 }
 

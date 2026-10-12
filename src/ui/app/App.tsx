@@ -4,7 +4,6 @@ import { PlaygroundPage } from "@/ui/playground/PlaygroundPage";
 import { ProgramPage } from "@/ui/playground/ProgramPage";
 import { ProblemPage } from "@/ui/problem/ProblemPage";
 import { ProblemsPage } from "@/ui/problems/ProblemsPage";
-import { StubPage } from "@/ui/stubs/StubPage";
 import { useRoute, type Route } from "./route";
 
 // Desktop browsers at 1280 px or more; narrower viewports show app.desktopOnly and no editor.
@@ -28,7 +27,7 @@ export function App() {
   );
 }
 
-/** One page per route; the Modules page is a stub. */
+/** One page per route. */
 function Page({ route }: { route: Route }) {
   switch (route.page) {
     case "problems":
@@ -39,8 +38,5 @@ function Page({ route }: { route: Route }) {
       return <PlaygroundPage />;
     case "program":
       return <ProgramPage key={route.id} />;
-    case "modules":
-    case "module":
-      return <StubPage />;
   }
 }

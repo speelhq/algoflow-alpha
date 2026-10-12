@@ -97,16 +97,13 @@ test.describe("header, Help, and routes (U-01, U-02, U-04, U-06, U-07)", () => {
     await expect(help).toHaveCount(0);
   });
 
-  test("the header tabs lead to the Playground and the Modules stub", async ({ page }) => {
+  test("the header tabs lead to the Playground and back to Problems", async ({ page }) => {
     await page.goto("/#/");
     await page.getByRole("link", { name: "Playground" }).click();
     await expect(page.getByTestId("playground")).toBeVisible();
     await expect(page).toHaveTitle("Playground — AlgoFlow");
-    await page.getByRole("link", { name: "Modules" }).click();
-    await expect(page.getByTestId("modules")).toBeVisible();
-    await expect(page).toHaveTitle("Modules — AlgoFlow");
-    await page.goto("/#/m/heap");
-    await expect(page.getByTestId("modules")).toBeVisible();
+    await page.getByRole("link", { name: "Problems" }).click();
+    await expect(page.getByTestId("problems")).toBeVisible();
     // U-07: a Playground program the Playground does not list.
     await page.goto("/#/play/abc");
     await expect(page.getByTestId("problems")).toBeVisible();
