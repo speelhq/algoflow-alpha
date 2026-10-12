@@ -1,4 +1,4 @@
-// The commit-message check (CONTRIBUTING, Commits and pull requests).
+// The commit-message check (CLAUDE.md, Issues and commits).
 import { describe, expect, it } from "vitest";
 import { commitProblems, scopesOf } from "./lib/commits";
 

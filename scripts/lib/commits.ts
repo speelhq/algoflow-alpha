@@ -1,4 +1,4 @@
-// The rules a commit message follows (CONTRIBUTING, Commits and pull requests), for the commits
+// The rules a commit message follows (CLAUDE.md, Issues and commits), for the commits
 // of a pull request.
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
