@@ -1,193 +1,99 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-# AlgoFlow
-
-Block-based algorithm learning tool (browser only; English UI, Japanese added last)
-whose blocks are a fixed Python subset; functions and classes can be moved into
-modules and reused across programs (`docs/spec/08-modules.md`). Specs in
-`docs/spec/` are normative; every statement has an id like `L-20`, never
-renumbered (00-conventions). Read
-`docs/spec/00-conventions.md`
-first, then the file for the
-area you change. Tests name the ids they verify; code comments and commit
-messages cite none. If a task conflicts with a spec, stop and report the conflict.
+@ARCHITECTURE.md
 
 ## Commands
 
 ```
 pnpm dev · pnpm test [path] · pnpm lint · pnpm format · pnpm build
-pnpm check [challenge.json]   # schema, interpreter, CPython, i18n
-pnpm test:e2e                 # after build
-gh issue list --milestone <M-xx> · gh pr list · gh pr checks <n>
+pnpm check [challenge.json]   # schema, interpreter, CPython 3.12+ (python3 or $PYTHON), i18n
+pnpm commits <base>..<head>   # each commit's message, as CI checks a pull request
+pnpm test:e2e · pnpm screenshots   # after build; screenshots rewrites e2e/screenshots/
 ```
 
-Run `pnpm lint` and the relevant `pnpm test <path>` after each set of edits.
-`pnpm check` needs CPython 3.12 or later, run as `python3` from PATH or as
-named by the `PYTHON` variable.
-
-## Fixed choices
-
-- TypeScript 7 (its Go compiler is the `tsc` binary), Oxlint with
-  `oxlint-tsgolint`, and Oxfmt; never add ESLint, Prettier, or TypeScript
-  earlier than 7.
-- shadcn/ui on Base UI (not Radix); dnd-kit; Zustand; no graph/flow/editor libraries.
-- `src/lang`, `src/runtime`, `src/python`, and `src/nodes` import only each
-  other: through `@/` across folders and `./` within one, never `../`; tests
-  may add `vitest` and `@/i18n` (an oxlint rule).
-- One block per file in `src/nodes/`; nothing else branches on block kind or name.
-- Every user-visible string comes from `src/i18n/en.json` (and `ja.json` once it exists).
-- `int` and `float` are distinct values; lists, dicts, and objects reside on the heap.
-
-## Architecture
-
-Data flows one way, and nothing below `src/store` depends on React:
-
-- `src/lang` — the `Program` AST (`types.ts`), `validate()` → `Diagnostic[]` run
-  after every edit and before every run, pure edit functions returning a new
-  `Program` (`edit.ts`), and `Data` ⇄ `Value`/heap conversion (`data.ts`).
-- `src/nodes` — one `NodeDef` per block owning its slots, `create()`, `run`
-  (interpreter behaviour), `python()` (exact emitted text), and `chart` (N-09).
-  `index.ts` is the only registry; the interpreter, the emitter, the chart,
-  the block menu, and the node editor dispatch through it (N-01).
-- `src/runtime` — `run(program, inputs, seed)` returns a `Runner`; each `next()`
-  yields one `Event` (`enter`, `read`, `write`, `swap`, `compare`, `loop`, `call`,
-  `return`, `print`). Events are the contract the UI consumes for highlights and
-  step counts. Randomness is mulberry32 seeded per run, so the same
-  program, inputs and seed replay identically (R-10).
-- `src/python` — `emit()` produces the Python file plus a NodeId → line map;
-  `parse()` turns typed expression text back into `Expr`; `unparse(parse(s))` is a
-  fixed point (G-05). Emitted Python is the behavioural reference, not the interpreter.
-- `src/challenges` — the schema, the judge shared with `scripts/check.ts`
-  (C-10), and the `Result` rows (U-23, U-81).
-- `src/store` — Zustand stores: `program` (the program, its undo history,
-  and its persistence, L-50..L-55), `editor` (the hovered and the selected
-  node, U-25, U-35), `run` (the pre-running, timer-driven driver, R-11),
-  `tests` (submission verdicts), `progress` (per-problem status under
-  `algoflow:progress`), `layout` (panel width, collapse, and playback speed
-  under `algoflow:layout`).
-- `src/ui/primitives` — shadcn components generated on Base UI (`pnpm dlx shadcn add …`);
-  `src/lib/utils.ts` holds `cn()`. Everything else under `src/ui/` is hand-written.
-  A generated file is regenerated, never edited, except that `shadcn add`
-  writes `import { cn } from "cn"` and adds an npm package `cn`: correct the
-  import to `@/lib/utils` and revert `package.json` and the lockfile.
-- `src/ui` — React. The chart is an SVG flowchart with computed layout
-  (`src/ui/chart/layout.ts`, U-30, N-09); node text and narration are plain
-  strings from `src/ui/chart/text.ts` and `src/ui/run/narrate.ts`; variable
-  views are chosen by value type only (V-01), never by block or challenge.
-- `challenges/<id>.json` — inputs, ≥3 tests (one with `edge: true`), 3 hints, solution.
-  `scripts/check.ts` runs every solution in the interpreter and in CPython (with a
-  shim replaying `draws()`) and compares both (R-20). "Recorded" expectations are
-  captured once from the solution and inserted into the file (C-20).
-
-Work proceeds by GitHub milestone: its description states the goal, the
-exit criterion, and, until `/milestone <M-xx>` splits it into task issues,
-the scope (a paragraph starting `Scope:`). Milestone work runs through `/milestone`, which holds its
-start, its reviews, and its pull request. The spec states what must be,
-never when.
-
-## Verification
-
-Each block: codegen test with exact text and interpreter test (N-10).
-Each error code: a test. `pnpm check` passes before a milestone closes.
-Report command output, not summaries of it.
-
-## Working style
-
-Targeted edits over rewrites. Stay within the task; list unrelated findings
-as follow-ups. Batch independent reads. One line before starting; a
-standalone recap at the end (changed files, evidence, remaining work).
-A turn does not end on a plan, a question, or a status report while the
-session's next step is an edit, a test run, a commit, or an issue; it ends
-on a conflict with the spec, or on a step that needs the user's permission
-(`git push`, `rm`), and then names what is ready and what waits.
-When compacting keep: changed files, current milestone exit criteria, test
-commands, decisions not yet in `docs/spec/`.
+Run `pnpm lint` and the relevant `pnpm test <path>` after each set of edits;
+`pnpm check` passes on every pull request. Report output, not a summary.
 
 ## Sources of truth
 
-- `docs/spec/` states what must be; the code states what is; the open GitHub
-  milestone, its issues, and the open pull requests determine what is next. There
-  is no handoff file. `docs/decisions.md` holds the reasons, in one section
-  per spec file; the spec states facts, never history.
-- `docs/design/` holds the design artboards; read the artboard before
-  building its screen. `docs/design/README.md` names them and lists where
-  the spec deviates; the spec takes precedence.
-- `gh issue create --body` applies no template: copy the sections of
-  `.github/ISSUE_TEMPLATE/<kind>.md` into the body, and set its label with
-  `--label` and the milestone with `--milestone`. A problem's title states
-  the problem as a fact; a task's title names the work. Every finding not
-  fixed where it was found becomes an issue.
+`docs/spec/` states what must be (its `README.md` says how it is written);
+the code states what is; the open milestone, its issues, and the open pull
+requests say what is next. No handoff file: it would repeat them and drift.
+Before changing an area, read the spec its file in `.claude/rules/` names.
 
-When you make a choice the spec does not cover, add the fact as a new id in the spec file for that area and the reason
-to `docs/decisions.md`, in a commit before the code. After changing a spec
-statement, search `docs/decisions.md` for its id and update, in the same
-commit, every entry that no longer matches it. An entry records why
-something was chosen, never how far the work has got.
+## Judgement
 
-## Commits and pull requests
+A plan and every judgement are made from files the session reads itself.
+An agent may locate code, run a reproduction, or report review candidates
+(`/issue`, Review); nothing it returns is used before the session checks it
+against the files. An agent reads excerpts, and its summary looks like
+a reading of the whole code.
 
-Branch from `main` per pull request. Commit one vertical slice at a time, at
-the moment `pnpm lint && pnpm test` passes: a node plus its i18n keys and
-both tests, a challenge, a view. Commit cross-cutting type, event, or spec
-changes separately, before the code that uses them.
+Where the spec or an artboard has a better option, propose it: the current
+choice and its reason, the alternative, and why it is better; nothing is
+built on a proposal before the developer decides. A task that conflicts
+with the spec stops and reports the conflict with a proposal, which spares
+the developer from finding the better option alone.
 
-Conventional Commits, imperative subject under 50 chars, scope from src/
-(lang, nodes, runtime, python, ui, challenges, i18n; `docs` and `ci` for
-those). A body only when the reason is not evident from the subject. No
-trailers. Never mention
-Claude, the session, or the prompt.
+A finding, from a review or noticed in passing, is fixed in the change,
+dropped with its reason, or filed as an issue; until then it is a task of
+the session. A fault the change introduced is fixed in that change, or the
+change waits for the decision its fix needs. A finding kept only in a
+conversation is lost, and a change that defers its own fault ships it.
 
-A milestone is one pull request from `main`; pull requests are never stacked,
-and only a part that does not depend on the rest gets its own pull request
-from `main`. `main` takes rebase merges only, after CI. The body follows
-`.github/pull_request_template.md`: What / Why (spec ids and milestone) /
-Closes (`Closes #n` per issue resolved) / Verification (the command output,
-pasted) / Screenshots (when a screen changes) / Notes (deviations, and the
-issue of every review finding not resolved here).
+A change takes none of these shapes: an optional parameter or default that
+silently changes a result; hidden state or a side map; a second copy of a
+rule or a lookup; a helper kept on an old model to spare test changes; a
+branch left for a removed case; positional coupling; a renamed concept left
+under its old name; a fix at a symptom whose structural cause it leaves,
+unless it records where and why that structure is changed. Each hides
+a rule or a value where the next reader does not look.
+
+## Working style
+
+Targeted edits over rewrites. Stay within the task; settle each finding as
+Judgement states. Batch independent reads. One line before starting; a
+standalone recap at the end (changed files, evidence, remaining work). A
+turn does not end on a plan, a question, or a status report while the next
+step is an edit, a test run, or a commit; it ends on a proposal, a conflict
+with the spec, or a step that needs the user's permission (`git push`,
+`rm`, a GitHub write), and names what is ready and what waits. When
+compacting keep: changed files, the current issue and its Done when, open
+findings and proposals, test commands, decisions not yet in `docs/spec/`.
+
+Skills: `/issue`, `/milestone`, `/add-node`, `/add-challenge`.
+
+## Issues and commits
+
+One issue is one pull request from `main`, of at most about 1,500 changed
+lines, that leaves `main` releasable; a larger one is split first. An
+issue is filed from its kind's template in `.github/ISSUE_TEMPLATE/`
+(`.claude/rules/github.md`).
+
+Commit one vertical slice at a time, when `pnpm lint && pnpm test` passes;
+a cross-cutting type, event, or spec change goes first, alone. Conventional
+Commits, an imperative subject under 50 characters, scope a folder of
+`src/` or `scripts`, `docs`, `ci`; a body only when the reason is not
+evident; no trailers; never mention Claude, the session, or the prompt (CI
+runs `pnpm commits`). Before a push the unpushed commits are made final: a
+fix of an earlier one is folded into it (`git commit --fixup <sha>`, then
+`GIT_SEQUENCE_EDITOR=: git rebase -i --autosquash --keep-base origin/main`),
+and a commit a later one withdraws is dropped with it. A pushed commit is
+rewritten only to rebase onto `main`, with `git push --force-with-lease`.
+`main` takes rebase merges only, after CI, so every commit lands on
+`main`, where one that a later one undoes misleads `git blame` and
+`git bisect`.
 
 ## Tooling notes
 
-- oxlint: a store's state type declares its actions as function properties
-  (`seek: (step) => …`), never as method signatures (`unbound-method`);
-  `jsx-a11y` rejects mouse and click handlers on `li`/`tr`/`ol` (use one
-  delegated listener with `data-*`); `react/set-state-in-effect` rejects
-  `setState` inside effects (adjust state during render); `no-base-to-string`
-  rejects `String(unknown)`; `no-await-in-loop` is a warning the batch loops
-  accept.
-- Hooks: a PostToolUse hook runs oxfmt on every written file under `src/`
-  and `challenges/` but not `scripts/` (run `pnpm exec oxfmt scripts`
-  manually; `pnpm lint` does not check formatting); re-read a file before a
-  follow-up Edit. A PreToolUse hook runs `pnpm lint` before `git commit`.
-- oxfmt keeps a JSON object on one line only if it already was: edit
-  challenge files by line, never by `JSON.stringify`.
-- Vitest fake timers give a timeout created during a tick a delay of 1 ms,
-  so an R-11 batch loop needs `advanceTimersByTimeAsync(1)` per batch
-  (`settle()` in `src/store/run.test.ts`). Stores that persist need
-  `// @vitest-environment jsdom`.
-- `MessageKey` is derived from `en.json`, so a removed key fails type-check;
-  `scripts/i18n.ts` flags unknown literal keys only, never unused or
-  template-literal ones.
-- `validate()`, `firstAssignments()`, and `nodesById()` are memoized per
-  `Program` object: never mutate a `Program` in place.
+- `pnpm lint` fails on a warning: fix it, turn its rule off in
+  `.oxlintrc.json` beside the reason, or exempt one line with
+  `// oxlint-disable-next-line <rule> -- <reason>`. `no-base-to-string`
+  rejects `String(unknown)`.
+- Hooks: oxfmt runs on every file written inside the repository (it skips
+  `docs/`; format a file written by a script with `pnpm format`), so re-read
+  a file before a follow-up Edit; `pnpm lint` runs before `git commit`. In
+  Markdown oxfmt unindents a list item's line that continues a code span:
+  keep each code span on one line.
 - Multi-line edit scripts: write them to the scratchpad and run the file;
   a heredoc passed to the Bash tool turns `\\` into `\`.
-- The end-to-end suite runs against `dist/`, so build first. A chart can be
-  inspected without a screen: write `layout()`'s result as SVG from a
-  temporary Vitest file and capture a screenshot with Playwright.
-
-## Spec index
-
-| File                          | Ids              |
-| ----------------------------- | ---------------- |
-| `docs/spec/00-conventions.md` | terms, id scheme |
-| `docs/spec/01-scope.md`       | S                |
-| `docs/spec/02-language.md`    | L                |
-| `docs/spec/03-nodes.md`       | N                |
-| `docs/spec/04-runtime.md`     | R, E, G          |
-| `docs/spec/05-ui.md`          | U, V             |
-| `docs/spec/06-challenges.md`  | C                |
-| `docs/spec/08-modules.md`     | D                |
-
-Skills: `/milestone`, `/add-node`, `/add-challenge`.

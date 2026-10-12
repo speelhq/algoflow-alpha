@@ -1,75 +1,71 @@
 ---
 name: milestone
-description: Run one GitHub milestone (M-xx) from its scope to one pull request against main - task issues, spec-first commits, both reviews, filed findings. Use when asked to start, continue, or finish a milestone.
-argument-hint: <M-xx>
+description: Plan or close one release milestone (vX.Y.Z) - split its Scope into issues and check its artboards, or confirm its exit criterion on main, tag it, and publish the release. Use when asked to plan, start, or finish a release or milestone.
+argument-hint: <vX.Y.Z> [close]
 ---
 
-Run milestone $ARGUMENTS. A milestone is one pull request from `main`.
-When a session ends before that pull request, push the branch (ask first);
-the next `/milestone $ARGUMENTS` continues it.
+Plan the release $ARGUMENTS, or close it when the arguments end in `close`.
+The work on each of its issues runs through `/issue <n>`, one pull request
+per issue (`CLAUDE.md`, Issues and commits).
 
-Quote every `gh api` path: PowerShell reads an unquoted `{owner}` as a
-script block.
+A milestone is a release named `vX.Y.Z`. Its description states the goal,
+the exit criterion, and, until the plan below splits it into issues, the
+scope (a paragraph starting `Scope:`), which the split replaces with a
+pointer to the issues. A release closes when its exit criterion holds on
+`main`, which is then tagged `vX.Y.Z` with a GitHub release. Issues
+written months ahead would describe screens whose artboards are not
+settled, and replacing the paragraph keeps the scope in one place and marks
+the split.
 
-## 1. Read the scope
+Plan and judge from the files this session reads itself (`CLAUDE.md`,
+Judgement).
 
-1. `gh api "repos/{owner}/{repo}/milestones?state=all" --jq '.[] | select(.title == "$ARGUMENTS")'`:
-   its description states the goal and the exit criterion, and a `Scope`
-   paragraph while the scope is not yet split.
-2. `gh issue list --milestone "$ARGUMENTS" --state all --limit 200`, then
-   `gh issue view <n>` for every open one.
-3. While the description has a paragraph starting `Scope:`, split it before anything
-   else: one task issue per part a person can see working, with the
-   sections of `.github/ISSUE_TEMPLATE/task.md`, the spec ids of the part
-   under Spec, and its share of the exit criterion under Done when. Check
-   that every item of `Scope` is in exactly one issue, then replace the
-   paragraph with `Split into the task issues of this milestone.`
-   (`gh api -X PATCH "repos/{owner}/{repo}/milestones/<number>" -f description=…`).
-4. Read every spec statement the open issues cite, the `docs/decisions.md`
-   entries that name those ids, and, for a screen, its artboard in
-   `docs/design/` (README first).
-5. Read the descriptions of the later open milestones: statements in their
-   scope are not yet due and are left alone.
-6. The artboards are drawn before a milestone starts: every screen, and every
-   state of one (an open menu, a card, a dialog), that the milestone builds
-   has its artboard in `docs/design/`. When one has none, or an open issue
-   says an artboard is missing, stop and report it to the user before
-   building anything.
+Each GitHub write (an issue, a milestone change, a tag, a release) waits for
+approval (`CLAUDE.md`, Working style). Read and write GitHub with whichever
+tool the session has (`gh` or the GitHub tools); a milestone write that no
+tool of the session can make is the developer's, in the GitHub UI, and the
+session gives the text to write.
 
-## 2. Build
+## Plan
 
-1. Continue the milestone's branch when one exists
-   (`git branch -a -i --list "*$ARGUMENTS*"` after
-   `git fetch`); otherwise `git switch -c <m-xx>-<slug> origin/main`.
-2. Settle each `decision` issue first: the spec statement and its
-   `docs/decisions.md` entry in one commit, before any code.
-3. Work through the task issues. A choice the spec does not cover is a new
-   id with its reason, committed before the code. Commit each vertical
-   slice when `pnpm lint && pnpm test` passes.
-4. A screen's states are saved by `e2e/screenshots.spec.ts` (U-91); look at
-   each image beside its artboard before committing it. The code follows the
-   artboard; a difference the code cannot follow, or a state the artboard
-   does not draw, is reported to the user and not built. A session never
-   draws or changes an artboard.
+1. Read the milestone: its description states the goal and the exit
+   criterion, and a `Scope` paragraph while the scope is not yet split.
+2. List the milestone's issues, open and closed, and read every open one.
+   Read the descriptions of the later open milestones: their scope is not
+   yet due.
+3. Read `docs/spec/README.md`, the whole spec file of every statement the
+   scope and the open issues quote, and, for a screen,
+   `docs/design/README.md` and its artboard.
+4. Every screen, and every state of one (an open menu, a card, a dialog),
+   that the release builds has its artboard in `docs/design/`; each missing
+   one is filed as a `decision` issue of this release, as
+   `docs/design/README.md` states. A better option than the spec or an
+   artboard is proposed (`CLAUDE.md`, Judgement) before any issue that
+   depends on it is worked.
+5. While the description has a paragraph starting `Scope:`, split it: one
+   issue per part a person can see working, each sized for one pull request
+   (`CLAUDE.md`, Issues and commits), with the sections of
+   `.github/ISSUE_TEMPLATE/task.md` (or `challenge.md` for problems), the
+   part's statements quoted under Spec, and its share of the exit criterion
+   under Done when; a choice the scope needs first is a `decision` issue.
+   Check that every item of `Scope` is in exactly one issue, then replace the
+   paragraph with `Split into the issues of this milestone.`
+6. Recap: the issues in the order to work them, the decisions they wait on,
+   and the open proposals.
 
-## 3. Review
+## Close
 
-1. `/code-review` on the branch; fix each finding or file it.
-2. A subagent reviews `git diff origin/main...HEAD` against `docs/spec` and
-   reports only (a) a violation of an id and (b) behaviour no id requires,
-   each with id, file:line, and a concrete scenario. Give it the later
-   milestones' scope so it does not report what is not yet due. Fix each
-   finding, the spec first when the spec was wrong, or file it.
-3. A filed finding is an issue with its template's sections, its label, and
-   the milestone that first needs it.
-
-## 4. Finish
-
-1. Run and keep the output: `pnpm lint`, `pnpm test`, `pnpm check`,
-   `pnpm build`, `pnpm test:e2e`.
-2. Ask before `git push`. Open one pull request against `main` with
-   `.github/pull_request_template.md`: Why names $ARGUMENTS and the ids;
-   Closes lists every issue the branch resolves; Notes lists deviations and
-   the issue of every finding not fixed here.
-3. Recap: the pull request, the exit criterion with its evidence, the issues
-   filed, and what the user does next (merge, then close the milestone).
+1. Every issue of the milestone is closed; an open one stops the close until
+   the user moves it to a later release or it is closed. With a clean
+   working tree, `git fetch origin main` and
+   `git switch --detach origin/main`; note the commit
+   (`git rev-parse HEAD`). Run `pnpm install --frozen-lockfile`,
+   `pnpm lint`, `pnpm test`, `pnpm check`, `pnpm build`, and
+   `pnpm test:e2e` there, and walk the exit criterion in the running
+   application; keep the output.
+2. After approval, tag that same commit
+   (`git tag -a <vX.Y.Z> <commit> -m "<vX.Y.Z>"`, then
+   `git push origin <vX.Y.Z>`); publish a GitHub release of the tag, titled
+   `<vX.Y.Z>`, listing the closed issues; close the milestone.
+3. Recap: the tag, the release, the exit criterion with its evidence, and
+   the issues left for later releases.

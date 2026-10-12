@@ -4,7 +4,7 @@
 
 ## Why
 
-<!-- The spec ids and the milestone. -->
+<!-- The spec statements, quoted with their file and heading; the issue; and the milestone. -->
 
 ## Closes
 
@@ -20,4 +20,4 @@
 
 ## Notes
 
-<!-- Deviations from the spec and their ids. For every review finding this pull request does not resolve, the issue (#n). -->
+<!-- Deviations from the spec, with the sentence each concerns; proposals still open; for each review finding left for later, the issue (#n). Otherwise `None`. -->

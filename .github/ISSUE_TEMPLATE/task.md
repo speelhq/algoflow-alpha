@@ -5,7 +5,7 @@ about: Work to do rather than a problem to decide or fix
 
 ## Summary
 
-<!-- One paragraph: the work and why it is needed. No spec ids. -->
+<!-- One paragraph: the work and why it is needed, in words. -->
 
 ## Steps
 
@@ -13,8 +13,8 @@ about: Work to do rather than a problem to decide or fix
 
 ## Spec
 
-<!-- Each statement the work satisfies, written as a sentence and ending in its
-     id. `None` with a reason when no statement applies. -->
+<!-- Each statement the work satisfies, quoted, with its file and heading.
+     `None` with a reason when no statement applies. -->
 
 ## Done when
 

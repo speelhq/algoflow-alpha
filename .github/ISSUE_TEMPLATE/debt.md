@@ -7,7 +7,7 @@ labels: debt
 ## Summary
 
 <!-- One paragraph: which fact is duplicated, and what a change to it costs
-     today. No spec ids. -->
+     today, in words. -->
 
 ## Copies
 
@@ -16,8 +16,8 @@ labels: debt
 
 ## Spec
 
-<!-- Each statement the copies implement, written as a sentence and ending in
-     its id. `None` with a reason when the fact is not in the spec. -->
+<!-- Each statement the copies implement, quoted, with its file and heading.
+     `None` with a reason when the fact is not in the spec. -->
 
 ## Done when
 

@@ -7,7 +7,7 @@ labels: perf
 ## Summary
 
 <!-- One paragraph: which operation may be too slow or too large, and under
-     what conditions. No spec ids. -->
+     what conditions, in words. -->
 
 ## Cost
 
@@ -18,8 +18,8 @@ labels: perf
 
 ## Spec
 
-<!-- Each statement that the operation implements, written as a sentence and
-     ending in its id. -->
+<!-- Each statement that the operation implements, quoted, with its file
+     and heading. -->
 
 ## Done when
 

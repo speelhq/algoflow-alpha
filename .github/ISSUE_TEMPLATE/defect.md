@@ -6,7 +6,7 @@ labels: defect
 
 ## Summary
 
-<!-- One paragraph: what the program does that it should not. No spec ids. -->
+<!-- One paragraph: what the program does that it should not, in words. -->
 
 ## Observed
 
@@ -21,7 +21,7 @@ labels: defect
 
 ## Spec
 
-<!-- Each statement that applies, written as a sentence and ending in its id,
+<!-- Each statement that applies, quoted, with its file and heading,
      narrowed to the clause that applies. -->
 
 ## Done when
