@@ -1,5 +1,5 @@
 // L-56: import validates and migrates by version (L-53); L-71: it refuses a literal field its
-// block would not make and a field default that is not canonical Data.
+// block would not make; L-76: it refuses a class and an object input.
 import { describe, expect, it } from "vitest";
 import { ast, program } from "@/nodes/testing";
 import { MigrateError, migrate } from "./migrate";
@@ -27,7 +27,7 @@ describe("migrate (L-53)", () => {
     expect(() => migrate(valued)).toThrow(/^inputs\[0\]: expected \{ name, kind \}/);
     const unknown = { ...program([]), inputs: [{ name: "n", kind: "word" }] };
     expect(() => migrate(unknown)).toThrow(
-      "inputs[0]: expected { name, kind }, a kind of number, text, truefalse, none, list, dict, object",
+      "inputs[0]: expected { name, kind }, a kind of number, text, truefalse, none, list, dict",
     );
     expect(() => migrate({ ...program([]), inputs: [{ kind: "list" }] })).toThrow(
       /^inputs\[0\]: expected \{ name, kind \}/,
@@ -120,9 +120,6 @@ describe("migrate (L-53)", () => {
     expect(() => migrate(shortId)).toThrow(/^main\[0\]\.id: expected a 12-character node id/);
     const p = program([]);
     expect(() =>
-      migrate({ ...p, classes: [{ id: "c0000000000c", name: "C", fields: [null] }] }),
-    ).toThrow(/^classes\[0\]\.fields\[0\]/);
-    expect(() =>
       migrate({ ...p, functions: [{ id: "f0000000000f", name: "f", params: [null], body: [] }] }),
     ).toThrow(/^functions\[0\]\.params\[0\]/);
     const badTarget = json(program([assign("x", num(1))])) as {
@@ -134,8 +131,6 @@ describe("migrate (L-53)", () => {
     expect(() => migrate(badTarget)).toThrow(/^main\[0\]\.target: expected a target/);
     badTarget.main[0]!.target = { kind: "var", name: 3 };
     expect(() => migrate(badTarget)).toThrow(/^main\[0\]\.target\.name: expected a name/);
-    badTarget.main[0]!.target = { kind: "field", obj: v("o"), field: 5 };
-    expect(() => migrate(badTarget)).toThrow(/^main\[0\]\.target\.field: expected a name/);
     badTarget.main[0]!.target = { kind: "index", list: v("xs") };
     expect(() => migrate(badTarget)).toThrow(/^main\[0\]\.target\.index: expected an expression/);
   });
@@ -170,17 +165,12 @@ describe("migrate (L-53)", () => {
     expect(at({ value: "yes" }, bool(true))).toThrow(/value\.value: expected true or false/);
   });
 
-  it("L-71: refuses a class field default that is not canonical Data, at its path", () => {
-    const withDefault = (value: unknown) => ({
-      ...program([]),
-      classes: [{ id: "c0000000000c", name: "C", fields: [{ name: "n", default: value }] }],
-    });
-    expect(() => migrate(withDefault(2 ** 53 - 1))).not.toThrow();
-    expect(() => migrate(withDefault(2 ** 60))).toThrow(
-      /^classes\[0\]\.fields\[0\]\.default: expected an integer within the int range/,
+  it("L-76: refuses a class and an input of the kind object, while no block constructs one", () => {
+    const cls = { id: "c0000000000c", name: "C", fields: [] };
+    expect(() => migrate({ ...program([]), classes: [cls] })).toThrow(
+      "classes[0]: expected no class: no block constructs an object",
     );
-    expect(() => migrate(withDefault({ $float: "1" }))).toThrow(
-      /^classes\[0\]\.fields\[0\]\.default: expected \{ \$float: n \}/,
-    );
+    const object = { ...program([]), inputs: [{ name: "p", kind: "object" }] };
+    expect(() => migrate(object)).toThrow(/^inputs\[0\]: expected \{ name, kind \}/);
   });
 });

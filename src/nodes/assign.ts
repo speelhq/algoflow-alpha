@@ -1,7 +1,7 @@
 // The `assign` block: `<target> = <value>` and its `write` event; a target may be an
-// item, an entry, or a field.
+// item or an entry.
 import { newId } from "@/lang/id";
-import { asDict, asList, asObject, dictKeyOf, listIndex } from "@/runtime/access";
+import { asDict, asList, dictKeyOf, listIndex } from "@/runtime/access";
 import { defineStmt } from "./types";
 import { emptyExpr } from "./empty";
 
@@ -43,20 +43,6 @@ export const assign = defineStmt<"assign">({
         const encoded = dictKeyOf(key, node.id, ctx);
         dict.entries.set(encoded, value);
         yield { type: "write", nodeId: node.id, ref: { heap: dict.ref, key: encoded }, value };
-        return undefined;
-      }
-      case "field": {
-        const obj = asObject(yield* ctx.eval(target.obj), node.id, ctx, target.field);
-        if (!obj.fields.has(target.field)) {
-          return ctx.fail(node.id, "E_FIELD", { cls: obj.cls, field: target.field });
-        }
-        obj.fields.set(target.field, value);
-        yield {
-          type: "write",
-          nodeId: node.id,
-          ref: { heap: obj.ref, field: target.field },
-          value,
-        };
         return undefined;
       }
     }

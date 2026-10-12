@@ -21,7 +21,7 @@ export type SlotRole = "expr" | "exprs" | "id" | "body" | "target" | "text";
 export type Callee = {
   name: Id;
   argc: number;
-  family: "builtin" | "function" | "class" | "method";
+  family: "builtin" | "function" | "method";
 };
 
 /** A stored literal field its block would not write, and why. */

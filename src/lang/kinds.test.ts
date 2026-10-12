@@ -8,7 +8,7 @@ import type { Expr, Kind } from "./types";
 const { assign, num, str, v, for_, print } = ast;
 
 function expr(python: string): Expr {
-  const parsed = parse(python, { classes: [], functions: ["f"] });
+  const parsed = parse(python, { functions: ["f"] });
   if (isParseError(parsed)) throw new Error(python);
   return parsed;
 }
@@ -91,7 +91,6 @@ describe("kinds (L-59, L-65, L-66, N-12)", () => {
         inputs: [
           { name: "n", kind: "number" },
           { name: "words", kind: "list" },
-          { name: "point", kind: "object" },
           { name: "counts", kind: "dict" },
         ],
         functions: [{ id: "fun000000001", name: "f", params: ["x"], body: [print(v("x"))] }],
@@ -100,7 +99,6 @@ describe("kinds (L-59, L-65, L-66, N-12)", () => {
     expect(Object.fromEntries(variableKinds(p, "main"))).toEqual({
       n: "number",
       words: "list",
-      point: "object",
       counts: "dict",
       total: "number",
       i: "number",

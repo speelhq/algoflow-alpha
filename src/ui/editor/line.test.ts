@@ -36,7 +36,7 @@ const ctx: LineContext = {
     ["ok", "truefalse"],
     ["nums", "list"],
   ]),
-  scope: { classes: [], functions: ["twice"] },
+  scope: { functions: ["twice"] },
   functions: [{ name: "twice", params: ["x"] }],
 };
 
@@ -308,7 +308,7 @@ describe("Backspace and moving (U-54, U-53)", () => {
     const three = { name: "three", params: ["a", "b", "c"] };
     const wide: LineContext = {
       ...ctx,
-      scope: { classes: [], functions: ["twice", "three"] },
+      scope: { functions: ["twice", "three"] },
       functions: [...ctx.functions, three],
     };
     const placed = choose(empty(), { kind: "function", fn: three }, wide).line;

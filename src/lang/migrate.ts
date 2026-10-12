@@ -1,8 +1,7 @@
 // Import validates and migrates by `version`. Only version 1 exists. It refuses what no edit
 // could make: a wrong shape, an unknown kind, a bad id, a literal field its block would not
-// write, a field default that is not canonical Data. What editing reaches is validate()'s job.
+// write, a class, which no registered block constructs. What editing reaches is validate()'s job.
 import { getNode, hasNode, keyOf } from "@/nodes/registry";
-import { dataError } from "./data";
 import { stmtName } from "./edit";
 import { isNodeId } from "./id";
 import { KINDS, type Expr, type InputDecl, type Program, type Target } from "./types";
@@ -137,20 +136,9 @@ function checkV1(json: Record<string, unknown>): Program {
       );
     }
   });
-  expectArray(json.classes, "classes").forEach((cls, i) => {
-    if (!isRecord(cls) || typeof cls.name !== "string" || !Array.isArray(cls.fields)) {
-      throw new MigrateError(`classes[${i}]`, "expected { id, name, fields }");
-    }
-    expectNodeId(cls.id, `classes[${i}].id`);
-    cls.fields.forEach((field, j) => {
-      const at = `classes[${i}].fields[${j}]`;
-      if (!isRecord(field) || typeof field.name !== "string" || !("default" in field)) {
-        throw new MigrateError(at, "expected { name, default }");
-      }
-      const fault = dataError(field.default);
-      if (fault) throw new MigrateError(`${at}.default${fault.at}`, fault.message);
-    });
-  });
+  if (expectArray(json.classes, "classes").length > 0) {
+    throw new MigrateError("classes[0]", "expected no class: no block constructs an object");
+  }
   expectArray(json.functions, "functions").forEach((fn, i) => {
     if (!isRecord(fn) || typeof fn.name !== "string" || !Array.isArray(fn.params)) {
       throw new MigrateError(`functions[${i}]`, "expected { id, name, params, body }");

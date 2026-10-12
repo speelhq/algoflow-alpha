@@ -3,18 +3,7 @@
 import { getNode, keyOf } from "@/nodes/registry";
 import { newId } from "./id";
 import { assignedValue, declaredBy } from "./scope";
-import type {
-  ClassDef,
-  Expr,
-  Field,
-  FunctionDef,
-  Id,
-  NodeId,
-  Place,
-  Program,
-  Stmt,
-  Target,
-} from "./types";
+import type { Expr, FunctionDef, Id, NodeId, Place, Program, Stmt, Target } from "./types";
 import {
   allExprs,
   isExpr,
@@ -299,7 +288,7 @@ export function setStmtName(program: Program, id: NodeId, name: string): Program
   return next;
 }
 
-/** Renames a variable, function, or class everywhere it occurs (`id` slots, targets, declarations). */
+/** Renames a variable or function everywhere it occurs (`id` slots, targets, declarations). */
 export function renameName(program: Program, from: Id, to: Id): Program {
   const next = clone(program);
   const swap = (name: string) => (name === from ? to : name);
@@ -308,7 +297,6 @@ export function renameName(program: Program, from: Id, to: Id): Program {
     fn.name = swap(fn.name);
     fn.params = fn.params.map(swap);
   }
-  for (const cls of next.classes) cls.name = swap(cls.name);
   const renameIdSlots = (node: Stmt | Expr) => {
     const bag = node as unknown as Bag;
     for (const slot of getNode(keyOf(node)).slots) {
@@ -328,7 +316,7 @@ export function renameName(program: Program, from: Id, to: Id): Program {
   return next;
 }
 
-// ---------------------------------------------------------------- functions and classes
+// ---------------------------------------------------------------- functions
 
 export function addFunction(program: Program, name: Id, params: Id[] = []): Program {
   const next = clone(program);
@@ -345,36 +333,12 @@ export function removeFunction(program: Program, id: NodeId): Program {
   return next;
 }
 
-export function addClass(program: Program, name: Id): Program {
-  const next = clone(program);
-  const cls: ClassDef = { id: newId(), name, fields: [] };
-  next.classes.push(cls);
-  return next;
-}
-
-export function removeClass(program: Program, id: NodeId): Program {
-  const next = clone(program);
-  const index = next.classes.findIndex((cls) => cls.id === id);
-  if (index < 0) throw new EditError(`no class ${id}`);
-  next.classes.splice(index, 1);
-  return next;
-}
-
 /** Replaces the ordered parameters of a function. */
 export function setParams(program: Program, id: NodeId, params: Id[]): Program {
   const next = clone(program);
   const fn = next.functions.find((f) => f.id === id);
   if (!fn) throw new EditError(`no function ${id}`);
   fn.params = [...params];
-  return next;
-}
-
-/** Replaces the ordered field table of a class. */
-export function setFields(program: Program, id: NodeId, fields: Field[]): Program {
-  const next = clone(program);
-  const cls = next.classes.find((c) => c.id === id);
-  if (!cls) throw new EditError(`no class ${id}`);
-  cls.fields = clone(fields);
   return next;
 }
 

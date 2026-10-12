@@ -414,8 +414,7 @@
       "control": "Control",
       "list": "List",
       "function": "Function",
-      "dict": "Dict",
-      "class": "Class"
+      "dict": "Dict"
     },
     "requires": {
       "loop": "only inside a loop",
@@ -463,8 +462,7 @@
       "truefalse": "true/false",
       "none": "none",
       "list": "list",
-      "dict": "dict",
-      "object": "object"
+      "dict": "dict"
     },
     "explain": {
       "variable": "A {kind} variable. It is first set in: {statement}.",
@@ -518,10 +516,8 @@
       "ref": {
         "index": "item {index} of {name}",
         "key": "{name} at {key}",
-        "field": "{field} of {name}",
         "list": "a list",
-        "dict": "a dict",
-        "object": "an object"
+        "dict": "a dict"
       }
     }
   },
@@ -535,13 +531,11 @@
     "E_ARITY": "{name} needs {expected} values (got {got})",
     "E_UNKNOWN_CALL": "{name} was not found",
     "E_EMPTY_SLOT": "{slot} is empty",
-    "E_DEFAULT": "The default of {field} must be a number, text, true/false, an empty list, or an empty dict",
     "E_DUPLICATE_ID": "Two blocks share the same id",
     "E_PARSE_SYNTAX": "Syntax error at character {position}",
     "E_PARSE_CHAIN": "Write a < b < c as a < b and b < c",
     "E_INDEX": "Item {index} does not exist (length {length})",
     "E_KEY": "Key {key} does not exist",
-    "E_FIELD": "{cls} has no field {field}",
     "E_TYPE": "{left} and {right} cannot be used in this operation",
     "E_VALUE": "{op} cannot be used on {type}",
     "E_NUMBER_TEXT": "{op} cannot read the text \"{text}\"",

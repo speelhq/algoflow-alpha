@@ -25,7 +25,7 @@ describe("emit (emitter.md)", () => {
     expect(Object.values(map).some((m) => m.start === 3)).toBe(false);
   });
 
-  it("E-02: sections separated by one blank line, two around classes and functions", () => {
+  it("E-02: sections separated by one blank line, two around functions", () => {
     const prog = program([assign("d", call("random_int", num(1), num(6)))], {
       inputs: [{ name: "n", kind: "number" }],
       functions: [
@@ -37,33 +37,10 @@ describe("emit (emitter.md)", () => {
         },
       ],
     });
-    prog.classes = [
-      {
-        id: "c0000000000c",
-        name: "Value",
-        fields: [
-          { name: "data", default: { $float: 0 } },
-          { name: "grad", default: { $float: 0 } },
-          { name: "prev", default: [] },
-          { name: "op", default: "" },
-        ],
-      },
-    ];
     const { code, map } = emit(prog, { n: 3 });
     expect(code).toBe(
       [
         "import random",
-        "",
-        "",
-        "class Value:",
-        '    def __init__(self, data=0.0, grad=0.0, prev=None, op=""):',
-        "        self.data = data",
-        "        self.grad = grad",
-        "        self.prev = [] if prev is None else prev",
-        "        self.op = op",
-        "",
-        "    def __repr__(self):",
-        '        return f"Value(data={self.data!r}, grad={self.grad!r}, prev={self.prev!r}, op={self.op!r})"',
         "",
         "",
         "def twice(x):",
@@ -75,8 +52,7 @@ describe("emit (emitter.md)", () => {
         "",
       ].join("\n"),
     );
-    expect(map["c0000000000c"]).toEqual({ start: 4, end: 4 });
-    expect(map["f0000000000f"]).toEqual({ start: 15, end: 15 });
+    expect(map["f0000000000f"]).toEqual({ start: 4, end: 4 });
   });
 
   it("E-11: a named statement is preceded by its name as a comment, where its map entry starts", () => {

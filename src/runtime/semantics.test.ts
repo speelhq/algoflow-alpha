@@ -149,15 +149,12 @@ describe("the semantics table of language.md", () => {
     });
   });
 
-  it("L-16 == compares numbers by value, strings by value, lists and dicts structurally, objects by identity", () => {
+  it("L-16 == compares numbers by value, strings by value, lists and dicts structurally", () => {
     expect(evalExpr(bin("==", num(1), float(1))).data).toBe(true);
     expect(evalExpr(bin("==", str("a"), str("a"))).data).toBe(true);
     expect(evalExpr(bin("==", v("p"), v("q")), { p: [1, [2]], q: [1, [2]] }).data).toBe(true);
     expect(evalExpr(bin("==", v("p"), v("q")), { p: { a: 1 }, q: { a: 1 } }).data).toBe(true);
     expect(evalExpr(bin("==", v("p"), v("q")), { p: { a: 1 }, q: { a: 2 } }).data).toBe(false);
-    const objects = { p: { $cls: "P", x: 1 }, q: { $cls: "P", x: 1 } };
-    expect(evalExpr(bin("==", v("p"), v("q")), objects).data).toBe(false);
-    expect(evalExpr(bin("==", v("p"), v("p")), objects).data).toBe(true);
     expect(evalExpr(bin("==", num(1), str("1"))).data).toBe(false);
   });
 
@@ -228,30 +225,6 @@ describe("the semantics table of language.md", () => {
     expect(write(float(1.5)).done).toMatchObject({ type: "error", error: { code: "E_TYPE" } });
   });
 
-  it("L-23 setting a field the class does not have → E_FIELD", () => {
-    const stmt = assignTo({ kind: "field", obj: v("p"), field: "nope" }, num(0));
-    const made = withInputs({ p: { $cls: "P", x: 1 } }, [stmt]);
-    const result = runAll(made.program, made.inputs);
-    expect(result.done).toMatchObject({
-      type: "error",
-      error: { nodeId: stmt.id, code: "E_FIELD", params: { cls: "P", field: "nope" } },
-    });
-    const set = assignTo({ kind: "field", obj: v("p"), field: "x" }, num(2));
-    const fine = withInputs({ p: { $cls: "P", x: 1 } }, [set]);
-    const ok = runAll(fine.program, fine.inputs);
-    expect(varData(ok, "p")).toEqual({ $cls: "P", $id: 1, x: 2 });
-  });
-
-  it("L-64 a field of a value that is no object → E_FIELD with its type name (n.x, n = 3)", () => {
-    const stmt = assignTo({ kind: "field", obj: v("n"), field: "x" }, num(0));
-    const made = withInputs({ n: 3 }, [stmt]);
-    const result = runAll(made.program, made.inputs);
-    expect(result.done).toMatchObject({
-      type: "error",
-      error: { nodeId: stmt.id, code: "E_FIELD", params: { cls: "int", field: "x" } },
-    });
-  });
-
   it("L-24 assignment copies the reference", () => {
     const made = withInputs({ xs: [1] }, [
       assign("ys", v("xs")),
@@ -279,29 +252,17 @@ describe("the semantics table of language.md", () => {
     });
   });
 
-  it("L-29 print uses Python str(): True, None, 2.0, [1, 2], {'a': 1}, Value(data=2.0, grad=0.0, prev=[], op='')", () => {
-    const inputs = {
-      xs: [1, 2],
-      d: { a: 1 },
-      val: { $cls: "Value", data: { $float: 2 }, grad: { $float: 0 }, prev: [], op: "" },
-    };
+  it("L-29 print uses Python str(): True, None, 2.0, [1, 2], {'a': 1}", () => {
+    const inputs = { xs: [1, 2], d: { a: 1 } };
     const made = withInputs(inputs, [
       print(bool(true)),
       print(none()),
       print(float(2)),
       print(v("xs")),
       print(v("d")),
-      print(v("val")),
     ]);
     const result = runAll(made.program, made.inputs);
-    expect(result.stdout).toEqual([
-      "True",
-      "None",
-      "2.0",
-      "[1, 2]",
-      "{'a': 1}",
-      "Value(data=2.0, grad=0.0, prev=[], op='')",
-    ]);
+    expect(result.stdout).toEqual(["True", "None", "2.0", "[1, 2]", "{'a': 1}"]);
   });
 
   it("L-31 a run stops with E_STEP_LIMIT after 1,000,000 events", () => {
@@ -349,10 +310,6 @@ describe("R-09 codes reachable with basic and control blocks", () => {
     expect(evalExpr(bin("-", v("xs"), num(1)), { xs: [] }).done).toMatchObject({
       type: "error",
       error: { params: { left: "list", right: "int" } },
-    });
-    expect(evalExpr(bin("+", v("p"), num(1)), { p: { $cls: "P", x: 1 } }).done).toMatchObject({
-      type: "error",
-      error: { params: { left: "P", right: "int" } },
     });
   });
 });

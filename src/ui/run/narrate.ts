@@ -25,27 +25,21 @@ function nameOf(ref: number, frame: Frame | undefined, heap: Heap): string {
   for (const [name, value] of frame?.vars ?? []) {
     if ("ref" in value && value.ref === ref) return name;
   }
-  const kind = heap.get(ref)?.kind;
-  if (kind === "dict") return t("run.narrate.ref.dict");
-  return t(kind === "obj" ? "run.narrate.ref.object" : "run.narrate.ref.list");
+  return t(heap.get(ref)?.kind === "dict" ? "run.narrate.ref.dict" : "run.narrate.ref.list");
 }
 
 function refText(ref: Ref, frame: Frame | undefined, heap: Heap): string {
   if ("var" in ref) return ref.var;
   const name = nameOf(ref.heap, frame, heap);
   if ("index" in ref) return t("run.narrate.ref.index", { index: ref.index, name });
-  if ("key" in ref) {
-    return t("run.narrate.ref.key", { name, key: valueText(keyValue(ref.key), heap) });
-  }
-  return t("run.narrate.ref.field", { name, field: ref.field });
+  return t("run.narrate.ref.key", { name, key: valueText(keyValue(ref.key), heap) });
 }
 
 function valueAt(ref: Ref, frame: Frame | undefined, heap: Heap): Value | undefined {
   if ("var" in ref) return frame?.vars.get(ref.var);
   const entry = heap.get(ref.heap);
   if ("index" in ref) return entry?.kind === "list" ? entry.items[ref.index] : undefined;
-  if ("key" in ref) return entry?.kind === "dict" ? entry.entries.get(ref.key) : undefined;
-  return entry?.kind === "obj" ? entry.fields.get(ref.field) : undefined;
+  return entry?.kind === "dict" ? entry.entries.get(ref.key) : undefined;
 }
 
 /**

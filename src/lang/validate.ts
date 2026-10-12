@@ -4,10 +4,8 @@
 import { builtinKey, getNode, hasNode, keyOf } from "@/nodes/registry";
 import { expectedArgs, type NodeDef, type Slot } from "@/nodes/types";
 import {
-  CLASS_NAME_PATTERN,
   NAME_PATTERN,
   RESERVED,
-  type Data,
   type Diagnostic,
   type Expr,
   type Id,
@@ -15,7 +13,6 @@ import {
   type Program,
   type Stmt,
 } from "./types";
-import { isEmptyContainer, isFloatData } from "./data";
 import { declaredBy } from "./scope";
 import { childSlots, isEmptyExpr, programIds, regionsOf, stmtExprs, variableOf } from "./walk";
 
@@ -25,18 +22,9 @@ export function isValidName(name: string): boolean {
   return NAME_PATTERN.test(name) && !RESERVED.has(name);
 }
 
-export function isValidClassName(name: string): boolean {
-  return CLASS_NAME_PATTERN.test(name) && !RESERVED.has(name);
-}
-
 /** A builtin call key (`abs`, `random_int`, …) may not be redefined. */
 function isBuiltinName(name: string): boolean {
   return hasNode(builtinKey(name));
-}
-
-/** A field default is a number, a text, a boolean, none, or an empty list or dict. */
-function isValidDefault(data: Data): boolean {
-  return data === null || typeof data !== "object" || isFloatData(data) || isEmptyContainer(data);
 }
 
 type Scope = { loop: number; inFunction: boolean };
@@ -45,9 +33,9 @@ class Collector {
   readonly diagnostics: Diagnostic[] = [];
   /** Statements whose var target is the first assignment of that name in its region (`templateCreate`). */
   readonly firstAssigns = new Set<NodeId>();
-  /** Functions and classes whose own name a diagnostic refuses: no call can name them. */
+  /** Functions whose own name a diagnostic refuses: no call can name them. */
   readonly refusedDefinitions = new Set<NodeId>();
-  /** Functions and classes: names a variable may not shadow (they would call a different thing in CPython). */
+  /** Functions: names a variable may not shadow (they would call a different thing in CPython). */
   private readonly callables = new Set<Id>();
 
   constructor(private readonly program: Program) {}
@@ -73,7 +61,7 @@ class Collector {
 
   // ------------------------------------------------------------ declarations
 
-  /** Reports the name of a function or class; the definition is then one no call can name. */
+  /** Reports the name of a function; the definition is then one no call can name. */
   private refuseName(nodeId: NodeId, code: "E_BAD_NAME" | "E_DUPLICATE_NAME", name: Id): void {
     this.report(nodeId, code, { name });
     this.refusedDefinitions.add(nodeId);
@@ -95,17 +83,6 @@ class Collector {
         params.add(param);
       }
       claim(fn.name, fn.id);
-    }
-    for (const cls of this.program.classes) {
-      if (!isValidClassName(cls.name)) this.refuseName(cls.id, "E_BAD_NAME", cls.name);
-      claim(cls.name, cls.id);
-      const fields = new Set<Id>();
-      for (const field of cls.fields) {
-        if (!isValidName(field.name)) this.report(cls.id, "E_BAD_NAME", { name: field.name });
-        if (fields.has(field.name)) this.report(cls.id, "E_DUPLICATE_NAME", { name: field.name });
-        fields.add(field.name);
-        if (!isValidDefault(field.default)) this.report(cls.id, "E_DEFAULT", { field: field.name });
-      }
     }
   }
 
@@ -233,18 +210,6 @@ class Collector {
           }
           break;
         }
-        case "class": {
-          const cls = this.program.classes.find((c) => c.name === callee.name);
-          if (!cls) this.report(stmt.id, "E_UNKNOWN_CALL", { name: callee.name });
-          else if (callee.argc > cls.fields.length) {
-            this.report(stmt.id, "E_ARITY", {
-              name: callee.name,
-              expected: cls.fields.length,
-              got: callee.argc,
-            });
-          }
-          break;
-        }
       }
     }
   }
@@ -314,7 +279,7 @@ export function firstAssignments(program: Program): Set<NodeId> {
   return analyze(program).firstAssigns;
 }
 
-/** Ids of the functions and classes whose own name a diagnostic refuses: no call can name them. */
+/** Ids of the functions whose own name a diagnostic refuses: no call can name them. */
 export function refusedDefinitions(program: Program): ReadonlySet<NodeId> {
   return analyze(program).refusedDefinitions;
 }

@@ -15,8 +15,8 @@ export const randomInt = defineBuiltin({
   evaluate([a = { t: "none" }, b = { t: "none" }], node, ctx) {
     if (a.t !== "int" || b.t !== "int") {
       return ctx.fail(node.id, "E_TYPE", {
-        left: typeName(a, ctx.heap),
-        right: typeName(b, ctx.heap),
+        left: typeName(a),
+        right: typeName(b),
       });
     }
     // CPython raises ValueError("empty range") when a > b.

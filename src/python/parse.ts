@@ -6,17 +6,14 @@ import { dataToPython } from "./emit";
 import { NUMBER, numberLiteral } from "./number";
 import { BINOPS, PRECEDENCE, binopsAt, isBinOp, isComparison } from "./precedence";
 
-export type ParseScope = { classes: Id[]; functions: Id[] };
+export type ParseScope = { functions: Id[] };
 
-/** The scope of a text that names no class or function of a program: a number, a value, a sign. */
-export const NO_DEFINITIONS: ParseScope = { classes: [], functions: [] };
+/** The scope of a text that names no function of a program: a number, a value, a sign. */
+export const NO_DEFINITIONS: ParseScope = { functions: [] };
 
-/** The names a call in `program` may take: its classes and its functions. */
+/** The names a call in `program` may take: its functions. */
 export function parseScope(program: Program): ParseScope {
-  return {
-    classes: program.classes.map((cls) => cls.name),
-    functions: program.functions.map((fn) => fn.name),
-  };
+  return { functions: program.functions.map((fn) => fn.name) };
 }
 export const PARSE_CODES = ["E_PARSE_SYNTAX", "E_PARSE_CHAIN", "E_UNKNOWN_CALL"] as const;
 export type ParseError = {
@@ -285,13 +282,11 @@ class Parser {
         this.take();
         const name = this.take();
         if (name.type !== "name") fail("E_PARSE_SYNTAX", name.pos);
-        if (this.isOp("(")) {
-          this.take();
-          const args = this.args(")");
-          expr = this.resolveMethod(expr, name, args);
-        } else {
-          expr = this.node(name.pos, { id: newId(), kind: "field", obj: expr, field: name.text });
-        }
+        // A field read has no block: no registered block constructs an object.
+        if (!this.isOp("(")) fail("E_PARSE_SYNTAX", name.pos);
+        this.take();
+        const args = this.args(")");
+        expr = this.resolveMethod(expr, name, args);
       } else if (this.isOp("(")) {
         const open = this.take();
         if (expr.kind !== "var") fail("E_PARSE_SYNTAX", open.pos);
@@ -304,9 +299,6 @@ class Parser {
   }
 
   private resolveCall(name: string, position: number, args: Expr[]): Expr {
-    if (this.scope.classes.includes(name)) {
-      return this.node(position, { id: newId(), kind: "new", cls: name, args });
-    }
     if (hasNode(builtinKey(name))) return { id: newId(), kind: "call", fn: name, args };
     if (this.scope.functions.includes(name)) {
       return this.node(position, { id: newId(), kind: "call", fn: name, args });

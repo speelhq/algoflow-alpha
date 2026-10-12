@@ -32,8 +32,8 @@ export const forStmt = defineStmt<"for">({
     const stop = yield* ctx.eval(node.stop);
     if (start.t !== "int" || stop.t !== "int") {
       return ctx.fail(node.id, "E_TYPE", {
-        left: typeName(start, ctx.heap),
-        right: typeName(stop, ctx.heap),
+        left: typeName(start),
+        right: typeName(stop),
       });
     }
     for (let i = start.v; i < stop.v; i += 1) {

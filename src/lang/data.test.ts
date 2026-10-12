@@ -51,27 +51,8 @@ describe("L-06 toValue / toData", () => {
     expect(roundTrip({ a: 1, "$int:3": "x" })).toEqual({ a: 1, "$int:3": "x" });
   });
 
-  it("numbers objects by first reach and repeats the same $id", () => {
-    const heap: Heap = new Map();
-    const a = toValue({ $cls: "Value", data: { $float: 2 }, prev: [] }, heap);
-    const aRef = a.t === "obj" ? a.ref : -1;
-    const holder = toValue([], heap);
-    const items = heap.get(holder.t === "list" ? holder.ref : -1);
-    if (items?.kind === "list") items.items.push(a, a);
-    expect(toData(holder, heap)).toEqual([
-      { $cls: "Value", $id: 1, data: { $float: 2 }, prev: [] },
-      { $cls: "Value", $id: 1, data: { $float: 2 }, prev: [] },
-    ]);
-    expect(aRef).toBe(2);
-  });
-});
-
-describe("toValue as it stands", () => {
-  it("drops $id when reading an object expectation", () => {
-    const heap: Heap = new Map();
-    const value = toValue({ $cls: "P", $id: 7, x: 1 }, heap);
-    const entry = heap.get(value.t === "obj" ? value.ref : -1);
-    expect(entry?.kind === "obj" && [...entry.fields.keys()]).toEqual(["x"]);
+  it("L-76: an object is no value, while no block constructs one", () => {
+    expect(() => toValue({ $cls: "P", x: 1 }, new Map())).toThrow("no object");
   });
 });
 
@@ -99,12 +80,6 @@ describe("C-10 dataEquals", () => {
     expect(dataEquals({ a: 1 }, { a: 1, b: 2 })).toBe(false);
     expect(dataEquals([], {})).toBe(false);
   });
-
-  it("compares objects by class, field set, and values, ignoring identity", () => {
-    expect(dataEquals({ $cls: "V", $id: 1, x: 1 }, { $cls: "V", $id: 9, x: 1 })).toBe(true);
-    expect(dataEquals({ $cls: "V", x: 1 }, { $cls: "W", x: 1 })).toBe(false);
-    expect(dataEquals({ $cls: "V", x: 1 }, { $cls: "V", x: 1, y: 2 })).toBe(false);
-  });
 });
 
 describe("inputValue", () => {
@@ -129,7 +104,6 @@ describe("dataError (L-70)", () => {
       null,
       [1, [2.5]],
       { "$int:-3": "a", b: [] },
-      { $cls: "Node", $id: 1, next: null },
     ]) {
       expect(dataError(data), JSON.stringify(data)).toBeUndefined();
     }
@@ -147,10 +121,15 @@ describe("dataError (L-70)", () => {
     expect(dataError({ "$int:9007199254740992": 1 })).toMatchObject({
       at: '["$int:9007199254740992"]',
     });
-    expect(dataError({ $cls: "Node", next: [Infinity] })).toMatchObject({ at: ".next[0]" });
-    expect(dataError({ $cls: 3 })).toMatchObject({ at: ".$cls" });
-    expect(dataError({ $cls: "Node", $id: "1" })).toMatchObject({ at: ".$id" });
+    expect(dataError({ a: [Infinity] })).toMatchObject({ at: '["a"][0]' });
     expect(dataError(Number.NaN)).toMatchObject({ message: "expected a finite number" });
     expect(dataError(undefined)).toMatchObject({ message: "expected Data" });
+  });
+
+  it("L-76: names an object (`$cls`) where it is, while no block constructs one", () => {
+    expect(dataError([{ $cls: "Node", next: null }])).toEqual({
+      at: '[0]["$cls"]',
+      message: "expected no object: no block constructs one",
+    });
   });
 });

@@ -147,8 +147,6 @@ function copyEntry(entry: HeapEntry): HeapEntry {
       return { kind: "list", items: [...entry.items] };
     case "dict":
       return { kind: "dict", entries: new Map(entry.entries) };
-    case "obj":
-      return { kind: "obj", cls: entry.cls, fields: new Map(entry.fields) };
   }
 }
 

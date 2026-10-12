@@ -22,7 +22,7 @@ function conditionIn(chart: ChartShape): string | undefined {
 
 describe("registry (N-01, N-02, N-09, N-16)", () => {
   it("N-01: the categories are in menu order", () => {
-    expect(CATEGORIES).toEqual(["basic", "control", "list", "function", "dict", "class"]);
+    expect(CATEGORIES).toEqual(["basic", "control", "list", "function", "dict"]);
   });
 
   it("N-01: only an expression has a text slot", () => {
@@ -67,7 +67,7 @@ describe("registry (N-01, N-02, N-09, N-16)", () => {
   });
 
   it("N-11: expression blocks declare the value list's entries in the table's order", () => {
-    const any = "number,text,truefalse,none,list,dict,object";
+    const any = "number,text,truefalse,none,list,dict";
     const rows = [...NODES.values()].flatMap((def) =>
       (def.menu ?? []).map((entry) =>
         [

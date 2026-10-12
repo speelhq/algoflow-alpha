@@ -6,7 +6,7 @@ import { dataKind } from "@/lang/kinds";
 import { isInputDecl, migrate } from "@/lang/migrate";
 import { isRecord } from "@/lang/record";
 import type { Data, Kind } from "@/lang/types";
-import { isValidClassName, isValidName, validate } from "@/lang/validate";
+import { isValidName, validate } from "@/lang/validate";
 import { isParseError, parseData } from "@/python/parse";
 
 export function isLocalized(value: unknown, requireJa: boolean): value is Localized {
@@ -16,9 +16,6 @@ export function isLocalized(value: unknown, requireJa: boolean): value is Locali
 }
 
 const isName = (value: unknown): value is string => typeof value === "string" && isValidName(value);
-/** A name `defines` may list: a function's or a class's. */
-const isDefinable = (value: unknown): value is string =>
-  typeof value === "string" && (isValidName(value) || isValidClassName(value));
 
 function sameData(a: unknown, b: unknown): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
@@ -72,9 +69,9 @@ export function checkChallengeSchema(
   if (json.module !== undefined && !isName(json.module))
     problems.push("module must be a valid name");
   const defines: string[] = [];
-  if (Array.isArray(json.defines) && json.defines.every(isDefinable)) defines.push(...json.defines);
-  else if (json.defines !== undefined)
-    problems.push("defines must be an array of function or class names");
+  // A class name is refused: no registered block constructs an object.
+  if (Array.isArray(json.defines) && json.defines.every(isName)) defines.push(...json.defines);
+  else if (json.defines !== undefined) problems.push("defines must be an array of function names");
 
   const inputs = Array.isArray(json.inputs) ? json.inputs : [];
   if (!Array.isArray(json.inputs)) problems.push("inputs must be an array");
@@ -147,7 +144,7 @@ export function checkChallengeSchema(
       problems.push(`solution.challengeId must be "${fileId}"`);
     for (const d of validate(program))
       problems.push(`solution: ${d.code} at ${d.nodeId} ${JSON.stringify(d.params)}`);
-    const own = new Set([...program.functions, ...program.classes].map((def) => def.name));
+    const own = new Set(program.functions.map((def) => def.name));
     for (const name of defines)
       if (!own.has(name)) problems.push(`solution does not define "${name}"`);
   } catch (error) {

@@ -82,23 +82,23 @@ describe("checkChallengeSchema (C-01, C-03)", () => {
     ]);
   });
 
-  it("C-01, C-21: module is a name, and defines lists names the solution itself defines", () => {
+  it("C-01, C-21, L-76: module is a name, and defines lists functions the solution itself defines", () => {
     const c = valid() as unknown as Record<string, unknown>;
     c.module = "Heap";
     c.defines = ["twice", 3];
     expect(checkChallengeSchema(c, "demo").problems).toEqual([
       "module must be a valid name",
-      "defines must be an array of function or class names",
+      "defines must be an array of function names",
     ]);
     c.module = "heap";
     c.defines = ["twice", "Pair"];
     expect(checkChallengeSchema(c, "demo").problems).toEqual([
-      'solution does not define "twice"',
-      'solution does not define "Pair"',
+      "defines must be an array of function names",
     ]);
+    c.defines = ["twice"];
+    expect(checkChallengeSchema(c, "demo").problems).toEqual(['solution does not define "twice"']);
     const twice = { id: "f0000000000f", name: "twice", params: ["x"], body: [ret(v("x"))] };
-    const pair = { id: "c0000000000c", name: "Pair", fields: [] };
-    c.solution = { ...valid().solution, functions: [twice], classes: [pair] };
+    c.solution = { ...valid().solution, functions: [twice] };
     expect(checkChallengeSchema(c, "demo").problems).toEqual([]);
   });
 
@@ -141,6 +141,14 @@ describe("checkChallengeSchema (C-01, C-03)", () => {
     expect(checkChallengeSchema(undeclared, "demo").problems).toEqual(
       expect.arrayContaining(["inputs[0] must be { name, kind }"]),
     );
+  });
+
+  it("L-76: an object in a test is refused at its path, while no block constructs one", () => {
+    const c = valid();
+    (c.tests[0]!.expect.variables as Record<string, unknown>).total = { $cls: "Pair", a: 1 };
+    expect(checkChallengeSchema(c, "demo").problems).toEqual([
+      'tests[0].expect.variables.total["$cls"]: expected no object: no block constructs one',
+    ]);
   });
 
   it("runs validate() on the solution and reports diagnostics", () => {

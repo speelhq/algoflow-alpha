@@ -45,10 +45,8 @@ export function entryOf(heap: Heap, ref: number): HeapEntry {
   return entry;
 }
 
-export function typeName(value: Value, heap: Heap): string {
-  if (value.t !== "obj") return value.t;
-  const entry = entryOf(heap, value.ref);
-  return entry.kind === "obj" ? entry.cls : "obj";
+export function typeName(value: Value): string {
+  return value.t;
 }
 
 export function truthy(value: Value, heap: Heap): boolean {
@@ -70,8 +68,6 @@ export function truthy(value: Value, heap: Heap): boolean {
       const entry = entryOf(heap, value.ref);
       return entry.kind === "dict" && entry.entries.size > 0;
     }
-    case "obj":
-      return true;
   }
 }
 
@@ -111,8 +107,6 @@ export function equals(a: Value, b: Value, heap: Heap): boolean {
       return a.v === (b as typeof a).v;
     case "none":
       return true;
-    case "obj":
-      return a.ref === (b as typeof a).ref;
     case "list": {
       const x = entryOf(heap, a.ref);
       const y = entryOf(heap, (b as typeof a).ref);
@@ -199,8 +193,8 @@ function scalarRepr(value: Value): string {
 }
 
 /**
- * A value as Python's `repr()` lays it out, `[a, b]`, `{k: v}`, `Cls(f=v)`, with every
- * scalar, dict keys included, written by `scalar`: `repr()` and the blocks' text differ only there.
+ * A value as Python's `repr()` lays it out, `[a, b]`, `{k: v}`, with every scalar, dict keys
+ * included, written by `scalar`: `repr()` and the blocks' text differ only there.
  */
 export function writeValue(value: Value, heap: Heap, scalar: (value: Value) => string): string {
   const write = (item: Value) => writeValue(item, heap, scalar);
@@ -216,12 +210,6 @@ export function writeValue(value: Value, heap: Heap, scalar: (value: Value) => s
         ([key, item]) => `${scalar(keyValue(key))}: ${write(item)}`,
       );
       return `{${parts.join(", ")}}`;
-    }
-    case "obj": {
-      const entry = entryOf(heap, value.ref);
-      if (entry.kind !== "obj") return "<obj>";
-      const fields = [...entry.fields].map(([name, field]) => `${name}=${write(field)}`);
-      return `${entry.cls}(${fields.join(", ")})`;
     }
     default:
       return scalar(value);

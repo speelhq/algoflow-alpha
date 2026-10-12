@@ -13,8 +13,7 @@ export function dataKind(data: Data): Kind {
   if (typeof data === "boolean") return "truefalse";
   if (data === null) return "none";
   if (Array.isArray(data)) return "list";
-  if ("$float" in data) return "number";
-  return "$cls" in data ? "object" : "dict";
+  return "$float" in data ? "number" : "dict";
 }
 
 export type Kinds = ReadonlyMap<Id, Kind>;

@@ -88,10 +88,8 @@ describe("parse (G-01)", () => {
 });
 
 describe("G-02 / G-03 call resolution", () => {
-  it("resolves a class, a builtin, or a user function by name, else E_UNKNOWN_CALL", () => {
-    const scope = { classes: ["Value"], functions: ["fib"] };
-    // `new` has no registered block, so a constructor call is refused at its name.
-    expect(err("Value(1, 2)", scope)).toEqual({ code: "E_PARSE_SYNTAX", position: 0 });
+  it("resolves a builtin or a user function by name, else E_UNKNOWN_CALL", () => {
+    const scope = { functions: ["fib"] };
     expect(ok("abs(x)", scope)).toMatchObject({ kind: "call", fn: "abs" });
     expect(ok("fib(n)", scope)).toMatchObject({ kind: "call", fn: "fib" });
     expect(err("nope(1)", scope)).toEqual({
@@ -102,7 +100,6 @@ describe("G-02 / G-03 call resolution", () => {
     expect(err("1 + nope(1)", scope)).toMatchObject({ code: "E_UNKNOWN_CALL", position: 4 });
     // The name's token, whatever stands between it and the bracket.
     expect(err("1 + nope (1)", scope)).toMatchObject({ code: "E_UNKNOWN_CALL", position: 4 });
-    expect(err("1 + Value (1)", scope)).toEqual({ code: "E_PARSE_SYNTAX", position: 4 });
   });
 
   it("accepts the Python aliases of builtins", () => {

@@ -1,7 +1,7 @@
 // L-56: every validation code has a failing and a passing case; L-40, L-41, L-42.
 import { describe, expect, it } from "vitest";
 import { ast, program, runAll } from "@/nodes/testing";
-import type { Diagnostic, Field, Program, Stmt } from "./types";
+import type { Diagnostic, Program, Stmt } from "./types";
 import { firstAssignments, validate } from "./validate";
 
 const {
@@ -98,23 +98,20 @@ describe("validate (language.md, Validation)", () => {
     expect(codes(program([assign("g", num(1))], { functions: [leaky] }))).toEqual(["E_UNDEFINED"]);
   });
 
-  it("E_BAD_NAME: L-01 pattern, L-02 class pattern, L-03 reserved words", () => {
+  it("E_BAD_NAME: L-01 pattern, L-03 reserved words", () => {
     for (const bad of ["Foo", "2x", "for", "len", "my-var", ""]) {
       const p = program([assign(bad, num(1))]);
       expect(codes(p), bad).toContain(bad === "" ? "E_EMPTY_SLOT" : "E_BAD_NAME");
     }
     expect(codes(program([assign("total_2", num(1))]))).toEqual([]);
-    const cls = { id: "c0000000000c", name: "value", fields: [] };
-    const p = program([]);
-    p.classes = [cls];
-    expect(validate(p)).toEqual([
-      { nodeId: cls.id, code: "E_BAD_NAME", params: { name: "value" } },
-    ]);
+    const fn = { id: "f0000000000f", name: "Twice", params: [], body: [] };
+    const p = program([], { functions: [fn] });
+    expect(validate(p)).toEqual([{ nodeId: fn.id, code: "E_BAD_NAME", params: { name: "Twice" } }]);
     // Validation is memoized per Program object (edits are pure, L-50): validate a new object.
-    expect(validate({ ...p, classes: [{ ...cls, name: "Value" }] })).toEqual([]);
+    expect(validate({ ...p, functions: [{ ...fn, name: "twice" }] })).toEqual([]);
   });
 
-  it("E_DUPLICATE_NAME: functions, classes, and inputs share one namespace (L-05)", () => {
+  it("E_DUPLICATE_NAME: functions and inputs share one namespace (L-05)", () => {
     const a = { id: "f0000000000a", name: "f", params: [], body: [] };
     const b = { id: "f0000000000b", name: "f", params: [], body: [] };
     expect(validate(program([], { functions: [a, b] }))).toEqual([
@@ -151,7 +148,7 @@ describe("validate (language.md, Validation)", () => {
     ).toEqual([]);
   });
 
-  it("E_ARITY: builtins, user functions, and constructors", () => {
+  it("E_ARITY: builtins and user functions", () => {
     const stmt = assign("m", call("min", num(1)));
     expect(validate(program([stmt]))).toEqual([
       { nodeId: stmt.id, code: "E_ARITY", params: { name: "min", expected: 2, got: 1 } },
@@ -159,7 +156,6 @@ describe("validate (language.md, Validation)", () => {
     const fn = { id: "f0000000000f", name: "f", params: ["a", "b"], body: [] };
     expect(codes(program([exprStmt(call("f", num(1)))], { functions: [fn] }))).toEqual(["E_ARITY"]);
     expect(codes(program([exprStmt(call("f", num(1), num(2)))], { functions: [fn] }))).toEqual([]);
-    // constructors (`new`) and methods have no registered block to call here
   });
 
   it("E_UNKNOWN_CALL: unknown function", () => {
@@ -199,34 +195,6 @@ describe("validate (language.md, Validation)", () => {
       expect.objectContaining({ code: "E_EMPTY_SLOT", params: { slot: "args" } }),
     ]);
     expect(codes(program([assign("x", bin("+", num(1), num(2))), print()]))).toEqual([]);
-  });
-
-  it("E_DEFAULT: a field default must be a scalar, [], or {} (L-30)", () => {
-    const p = program([]);
-    p.classes = [
-      {
-        id: "c0000000000c",
-        name: "P",
-        fields: [
-          { name: "xs", default: [1] },
-          { name: "d", default: { a: 1 } },
-        ],
-      },
-    ];
-    expect(validate(p)).toEqual([
-      { nodeId: "c0000000000c", code: "E_DEFAULT", params: { field: "xs" } },
-      { nodeId: "c0000000000c", code: "E_DEFAULT", params: { field: "d" } },
-    ]);
-    const fields: Field[] = [
-      { name: "xs", default: [] },
-      { name: "d", default: {} },
-      { name: "n", default: 0 },
-      { name: "s", default: "" },
-      { name: "b", default: false },
-      { name: "z", default: null },
-      { name: "f", default: { $float: 2 } },
-    ];
-    expect(validate({ ...p, classes: [{ id: "c0000000000c", name: "P", fields }] })).toEqual([]);
   });
 
   it("E_DUPLICATE_ID: the second occurrence of an id is reported (L-04)", () => {

@@ -76,7 +76,7 @@ export function run(program: Program, inputs: Readonly<Record<Id, Data>>, seed: 
     },
     // The operation is named by the expression's registry key; a message writes its label.
     valueError(node, value) {
-      return ctx.fail(node.id, "E_VALUE", { op: keyOf(node), type: typeName(value, heap) });
+      return ctx.fail(node.id, "E_VALUE", { op: keyOf(node), type: typeName(value) });
     },
     textError(node, text) {
       return ctx.fail(node.id, "E_NUMBER_TEXT", { op: keyOf(node), text });

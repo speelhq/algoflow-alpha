@@ -11,14 +11,13 @@ export type Program = {
   title: string;
   challengeId?: string;
   inputs: InputDecl[]; // empty in a Playground program
-  classes: ClassDef[];
+  /** Empty: no registered block constructs an object, so `migrate()` refuses a class. */
+  classes: [];
   functions: FunctionDef[];
   main: Stmt[];
 };
 /** An input of the program: its name and kind; its value comes from the chosen case. */
 export type InputDecl = { name: Id; kind: Kind };
-export type ClassDef = { id: NodeId; name: Id; fields: Field[] };
-export type Field = { name: Id; default: Data };
 export type FunctionDef = { id: NodeId; name: Id; params: Id[]; body: Stmt[] };
 
 // ---------------------------------------------------------------- Data (JSON form)
@@ -30,9 +29,6 @@ export type Data =
   | boolean
   | null
   | Data[]
-  // An object: an expectation, a module case, an argument; `$id`, a number, is the same on
-  // every reference to one object.
-  | { $cls: string; [field: string]: Data }
   | { [key: string]: Data }; // dict; int keys are written "$int:3"
 
 // ---------------------------------------------------------------- Run-time values
@@ -44,13 +40,11 @@ export type Value =
   | { t: "bool"; v: boolean }
   | { t: "none" }
   | { t: "list"; ref: HeapId }
-  | { t: "dict"; ref: HeapId }
-  | { t: "obj"; ref: HeapId };
+  | { t: "dict"; ref: HeapId };
 export type HeapId = number;
 export type HeapEntry =
   | { kind: "list"; items: Value[] }
-  | { kind: "dict"; entries: Map<string, Value> } // "i:3" for int 3, "s:ab" for str "ab"
-  | { kind: "obj"; cls: Id; fields: Map<Id, Value> };
+  | { kind: "dict"; entries: Map<string, Value> }; // "i:3" for int 3, "s:ab" for str "ab"
 export type Heap = Map<HeapId, HeapEntry>;
 
 // ---------------------------------------------------------------- Statements
@@ -72,11 +66,10 @@ export type Stmt =
   | (S & { kind: "swap"; list: Expr; i: Expr; j: Expr });
 export type StmtKind = Stmt["kind"];
 
-export type Target = VarTarget | IndexTarget | KeyTarget | FieldTarget;
+export type Target = VarTarget | IndexTarget | KeyTarget;
 export type VarTarget = { kind: "var"; name: Id };
 export type IndexTarget = { kind: "index"; list: Expr; index: Expr };
 export type KeyTarget = { kind: "key"; dict: Expr; key: Expr };
-export type FieldTarget = { kind: "field"; obj: Expr; field: Id };
 
 // ---------------------------------------------------------------- Expressions
 
@@ -92,10 +85,8 @@ export type Expr =
   | (E & { kind: "unop"; op: "neg" | "not"; operand: Expr })
   | (E & { kind: "index"; list: Expr; index: Expr })
   | (E & { kind: "key"; dict: Expr; key: Expr })
-  | (E & { kind: "field"; obj: Expr; field: Id })
   | (E & { kind: "list"; items: Expr[] })
   | (E & { kind: "dict"; entries: Array<{ key: Expr; value: Expr }> })
-  | (E & { kind: "new"; cls: Id; args: Expr[] })
   | (E & { kind: "call"; fn: Id; args: Expr[] })
   | (E & { kind: "method"; obj: Expr; name: Id; args: Expr[] });
 export type ExprKind = Expr["kind"];
@@ -120,21 +111,12 @@ export type BinOp =
 export type Node = Stmt | Expr;
 
 /** What is known of a value before the program runs. */
-export type Kind = "number" | "text" | "truefalse" | "none" | "list" | "dict" | "object";
-export const KINDS: readonly Kind[] = [
-  "number",
-  "text",
-  "truefalse",
-  "none",
-  "list",
-  "dict",
-  "object",
-];
+export type Kind = "number" | "text" | "truefalse" | "none" | "list" | "dict";
+export const KINDS: readonly Kind[] = ["number", "text", "truefalse", "none", "list", "dict"];
 
 // ---------------------------------------------------------------- Names
 
 export const NAME_PATTERN = /^[a-z_][a-z0-9_]*$/;
-export const CLASS_NAME_PATTERN = /^[A-Z][A-Za-z0-9]*$/;
 /** Python's keywords. */
 export const PYTHON_KEYWORDS: ReadonlySet<string> = new Set(
   `False None True and as assert async await break class continue def del elif
@@ -160,7 +142,6 @@ export const DIAGNOSTIC_CODES = [
   "E_ARITY",
   "E_UNKNOWN_CALL",
   "E_EMPTY_SLOT",
-  "E_DEFAULT",
   "E_DUPLICATE_ID",
 ] as const;
 export type DiagnosticCode = (typeof DIAGNOSTIC_CODES)[number];
@@ -186,9 +167,6 @@ export type EditName =
   | "setStmtName"
   | "addFunction"
   | "removeFunction"
-  | "addClass"
-  | "removeClass"
-  | "setFields"
   | "setParams"
   | "hoistAssign";
 

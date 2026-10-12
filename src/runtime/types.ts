@@ -19,7 +19,6 @@ export const RUNTIME_CODES = [
   "E_UNDEFINED",
   "E_INDEX",
   "E_KEY",
-  "E_FIELD",
   "E_TYPE",
   "E_VALUE",
   "E_NUMBER_TEXT",
@@ -49,8 +48,4 @@ export type Event =
   | { type: "return"; nodeId: NodeId; fn: Id; value: Value }
   | { type: "print"; nodeId: NodeId; text: string };
 
-export type Ref =
-  | { var: Id }
-  | { heap: HeapId; index: number }
-  | { heap: HeapId; key: string }
-  | { heap: HeapId; field: Id };
+export type Ref = { var: Id } | { heap: HeapId; index: number } | { heap: HeapId; key: string };

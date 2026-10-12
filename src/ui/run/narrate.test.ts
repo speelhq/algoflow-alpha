@@ -155,24 +155,14 @@ describe("narrate (U-63)", () => {
     expect(say(narrate(item, ctx))).toBe("item 0 of nums is now none");
   });
 
-  it("U-119 a field and a dict's key are named as the chart writes them", () => {
-    const { program: p, inputs } = withInputs(
-      { node: { $cls: "Node", next: null }, counts: {} },
-      [],
-    );
+  it("U-119 a dict's key is named as the chart writes it", () => {
+    const { program: p, inputs } = withInputs({ counts: {} }, []);
     const state = run(p, inputs, 1).state();
     const ctx = { program: p, state, frame: 0, pass: null };
-    const field: Event = {
-      type: "write",
-      nodeId: "none",
-      ref: { heap: 1, field: "next" },
-      value: { t: "int", v: 3 },
-    };
-    expect(say(narrate(field, ctx))).toBe("next of node is now 3");
     const key: Event = {
       type: "write",
       nodeId: "none",
-      ref: { heap: 2, key: "s:a" },
+      ref: { heap: 1, key: "s:a" },
       value: { t: "int", v: 1 },
     };
     expect(say(narrate(key, ctx))).toBe('counts at "a" is now 1');

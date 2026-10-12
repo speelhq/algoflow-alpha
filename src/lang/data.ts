@@ -27,12 +27,6 @@ export function isFloatData(data: Data): data is number | { $float: number } {
   );
 }
 
-/** An empty list or dict: a field default the emitter makes fresh for every object. */
-export function isEmptyContainer(data: Data): boolean {
-  if (Array.isArray(data)) return data.length === 0;
-  return typeof data === "object" && data !== null && Object.keys(data).length === 0;
-}
-
 /** Why a number is not canonical: not finite, or an integer beyond the int range. */
 function numberError(n: number): string | undefined {
   if (!Number.isFinite(n)) return "expected a finite number";
@@ -41,8 +35,12 @@ function numberError(n: number): string | undefined {
     : undefined;
 }
 
-/** Why a dict key is not canonical: a `$int:` key that is no integer within the int range. */
+/**
+ * Why a dict key is not canonical: `$cls`, which marks an object no block constructs, or a
+ * `$int:` key that is no integer within the int range.
+ */
 function keyError(key: string): string | undefined {
+  if (key === "$cls") return "expected no object: no block constructs one";
   if (!key.startsWith(INT_KEY)) return undefined;
   const text = key.slice(INT_KEY.length);
   return /^-?(0|[1-9]\d*)$/.test(text) && fitsInt(Number(text))
@@ -73,18 +71,9 @@ function faultAt(json: unknown, at: string): DataFault | undefined {
       ? undefined
       : { at, message: "expected { $float: n }, n a finite number" };
   }
-  const object = "$cls" in json;
-  if (object && typeof json.$cls !== "string") {
-    return { at: `${at}.$cls`, message: "expected a name" };
-  }
-  const id = json.$id;
-  if (object && id !== undefined && !(typeof id === "number" && Number.isInteger(id) && id > 0)) {
-    return { at: `${at}.$id`, message: "expected a positive integer" };
-  }
   for (const [key, item] of Object.entries(json)) {
-    if (object && (key === "$cls" || key === "$id")) continue;
-    const message = object ? undefined : keyError(key);
-    const where = object ? `${at}.${key}` : `${at}[${JSON.stringify(key)}]`;
+    const message = keyError(key);
+    const where = `${at}[${JSON.stringify(key)}]`;
     if (message !== undefined) return { at: where, message };
     const fault = faultAt(item, where);
     if (fault) return fault;
@@ -95,10 +84,6 @@ function faultAt(json: unknown, at: string): DataFault | undefined {
 /** Where a JSON value fails to be canonical `Data`, and why; undefined when it is canonical. */
 export function dataError(json: unknown): DataFault | undefined {
   return faultAt(json, "");
-}
-
-function isObjectData(data: Data): data is { $cls: string; [field: string]: Data } {
-  return typeof data === "object" && data !== null && !Array.isArray(data) && "$cls" in data;
 }
 
 function alloc(heap: Heap, entry: HeapEntry): HeapId {
@@ -144,14 +129,6 @@ export function toValue(data: Data, heap: Heap): Value {
     return { t: "list", ref: alloc(heap, { kind: "list", items }) };
   }
   if (isFloatData(data)) return { t: "float", v: floatOf(data) };
-  if (isObjectData(data)) {
-    const fields = new Map<string, Value>();
-    for (const [name, field] of Object.entries(data)) {
-      if (name === "$cls" || name === "$id") continue;
-      fields.set(name, toValue(field, heap));
-    }
-    return { t: "obj", ref: alloc(heap, { kind: "obj", cls: data.$cls, fields }) };
-  }
   const entries = new Map<string, Value>();
   for (const [key, item] of Object.entries(data)) {
     const message = keyError(key);
@@ -162,13 +139,7 @@ export function toValue(data: Data, heap: Heap): Value {
   return { t: "dict", ref: alloc(heap, { kind: "dict", entries }) };
 }
 
-export type ToDataContext = { ids: Map<HeapId, number>; visiting: Set<HeapId> };
-
-export function toData(
-  value: Value,
-  heap: Heap,
-  ctx: ToDataContext = { ids: new Map(), visiting: new Set() },
-): Data {
+export function toData(value: Value, heap: Heap): Data {
   switch (value.t) {
     case "int":
       return value.v;
@@ -181,39 +152,20 @@ export function toData(
     case "none":
       return null;
     case "list":
-    case "dict":
-    case "obj": {
+    case "dict": {
       const entry = heap.get(value.ref);
       if (!entry) throw new Error(`toData: dangling heap ref ${value.ref}`);
-      return entryToData(value.ref, entry, heap, ctx);
+      return entryToData(entry, heap);
     }
   }
 }
 
-function entryToData(ref: HeapId, entry: HeapEntry, heap: Heap, ctx: ToDataContext): Data {
-  if (entry.kind === "list") return entry.items.map((item) => toData(item, heap, ctx));
-  if (entry.kind === "dict") {
-    const out: Record<string, Data> = {};
-    for (const [key, item] of entry.entries) {
-      out[key.startsWith("i:") ? `${INT_KEY}${key.slice(2)}` : key.slice(2)] = toData(
-        item,
-        heap,
-        ctx,
-      );
-    }
-    return out;
+function entryToData(entry: HeapEntry, heap: Heap): Data {
+  if (entry.kind === "list") return entry.items.map((item) => toData(item, heap));
+  const out: Record<string, Data> = {};
+  for (const [key, item] of entry.entries) {
+    out[key.startsWith("i:") ? `${INT_KEY}${key.slice(2)}` : key.slice(2)] = toData(item, heap);
   }
-  // Objects are numbered in first-reach order; a repeat carries the same $id.
-  let id = ctx.ids.get(ref);
-  if (id === undefined) {
-    id = ctx.ids.size + 1;
-    ctx.ids.set(ref, id);
-  }
-  const out: Record<string, Data> = { $cls: entry.cls, $id: id };
-  if (ctx.visiting.has(ref)) return out; // a cycle: reference only
-  ctx.visiting.add(ref);
-  for (const [name, field] of entry.fields) out[name] = toData(field, heap, ctx);
-  ctx.visiting.delete(ref);
   return out;
 }
 
@@ -224,7 +176,7 @@ export function floatOf(data: number | { $float: number }): number {
   return typeof data === "number" ? data : data.$float;
 }
 
-/** Test equality: ints exactly, floats within 1e-6, containers structurally, objects ignoring identity. */
+/** Test equality: ints exactly, floats within 1e-6, containers structurally. */
 export function dataEquals(expected: Data, actual: Data): boolean {
   if (isFloatData(expected) || isFloatData(actual)) {
     const e = typeof expected === "number" || isFloatData(expected) ? floatOf(expected) : NaN;
@@ -241,8 +193,8 @@ export function dataEquals(expected: Data, actual: Data): boolean {
       expected.every((item, i) => dataEquals(item, actual[i] ?? null))
     );
   }
-  const eKeys = Object.keys(expected).filter((k) => k !== "$id");
-  const aKeys = Object.keys(actual).filter((k) => k !== "$id");
+  const eKeys = Object.keys(expected);
+  const aKeys = Object.keys(actual);
   if (eKeys.length !== aKeys.length) return false;
   const actualRecord = actual as Record<string, Data>;
   return eKeys.every(

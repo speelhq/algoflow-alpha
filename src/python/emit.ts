@@ -1,16 +1,6 @@
 // Program → Python text plus the NodeId → line map. No third-party imports.
-import type {
-  ClassDef,
-  Data,
-  Expr,
-  FunctionDef,
-  Id,
-  NodeId,
-  Program,
-  Stmt,
-  Target,
-} from "@/lang/types";
-import { floatOf, inputValue, isEmptyContainer, isFloatData } from "@/lang/data";
+import type { Data, Expr, FunctionDef, Id, NodeId, Program, Stmt, Target } from "@/lang/types";
+import { floatOf, inputValue, isFloatData } from "@/lang/data";
 import { programExprs } from "@/lang/walk";
 import { getNode, keyOf } from "@/nodes/registry";
 import type { EmitContext, PyLine, Side } from "@/nodes/types";
@@ -31,7 +21,6 @@ export function dataToPython(data: Data): string {
   if (data === null) return "None";
   if (Array.isArray(data)) return `[${data.map(dataToPython).join(", ")}]`;
   if (isFloatData(data)) return floatRepr(floatOf(data));
-  if ("$cls" in data) throw new Error("objects cannot be emitted as input literals");
   const entries = Object.entries(data).map(
     ([key, value]) =>
       `${key.startsWith("$int:") ? key.slice(5) : pyString(key)}: ${dataToPython(value)}`,
@@ -47,7 +36,7 @@ function parenthesise(child: Expr, text: string, parent: number, side: Side): st
   return needsParens(own, parent, side) ? `(${text})` : text;
 }
 
-/** A target as `name`, `<list>[<index>]`, `<dict>[<key>]`, or `<obj>.<field>`, its parts by `write`. */
+/** A target as `name`, `<list>[<index>]`, or `<dict>[<key>]`, its parts by `write`. */
 export function writeTarget(target: Target, write: (expr: Expr) => string): string {
   const head = (expr: Expr) => parenthesise(expr, write(expr), PRECEDENCE.atom, "left");
   switch (target.kind) {
@@ -57,8 +46,6 @@ export function writeTarget(target: Target, write: (expr: Expr) => string): stri
       return `${head(target.list)}[${write(target.index)}]`;
     case "key":
       return `${head(target.dict)}[${write(target.key)}]`;
-    case "field":
-      return `${head(target.obj)}.${target.field}`;
   }
 }
 
@@ -129,27 +116,6 @@ class Writer {
     for (const stmt of stmts) this.stmt(stmt, indent);
   }
 
-  classDef(cls: ClassDef): void {
-    this.mark(cls.id);
-    this.line(`class ${cls.name}:`, 0);
-    const params = cls.fields.map((field) => {
-      const container = isEmptyContainer(field.default);
-      return `${field.name}=${container ? "None" : dataToPython(field.default)}`;
-    });
-    this.line(`def __init__(self${params.map((p) => `, ${p}`).join("")}):`, 1);
-    if (cls.fields.length === 0) this.line("pass", 2);
-    for (const field of cls.fields) {
-      const value = isEmptyContainer(field.default)
-        ? `${dataToPython(field.default)} if ${field.name} is None else ${field.name}`
-        : field.name;
-      this.line(`self.${field.name} = ${value}`, 2);
-    }
-    this.blank(1);
-    this.line("def __repr__(self):", 1);
-    const fields = cls.fields.map((field) => `${field.name}={self.${field.name}!r}`).join(", ");
-    this.line(`return f"${cls.name}(${fields})"`, 2);
-  }
-
   functionDef(fn: FunctionDef): void {
     this.mark(fn.id);
     this.line(`def ${fn.name}(${fn.params.join(", ")}):`, 0);
@@ -167,9 +133,9 @@ function importsOf(program: Program): string[] {
   return [...modules].toSorted();
 }
 
-type Section = { kind: "imports" | "class" | "function" | "main"; write: (w: Writer) => void };
+type Section = { kind: "imports" | "function" | "main"; write: (w: Writer) => void };
 
-/** One blank line between sections, two around classes and functions; `inputs` values the inputs. */
+/** One blank line between sections, two around functions; `inputs` values the inputs. */
 export function emit(program: Program, inputs: Readonly<Record<Id, Data>>): Emitted {
   const writer = new Writer();
   const sections: Section[] = [];
@@ -183,8 +149,6 @@ export function emit(program: Program, inputs: Readonly<Record<Id, Data>>): Emit
       },
     });
   }
-  for (const cls of program.classes)
-    sections.push({ kind: "class", write: (w) => w.classDef(cls) });
   for (const fn of program.functions) {
     sections.push({ kind: "function", write: (w) => w.functionDef(fn) });
   }
@@ -203,8 +167,8 @@ export function emit(program: Program, inputs: Readonly<Record<Id, Data>>): Emit
   sections.forEach((section, i) => {
     const previous = sections[i - 1];
     if (previous) {
-      const around = (kind: Section["kind"]) => kind === "class" || kind === "function";
-      writer.blank(around(previous.kind) || around(section.kind) ? 2 : 1);
+      const around = previous.kind === "function" || section.kind === "function";
+      writer.blank(around ? 2 : 1);
     }
     section.write(writer);
   });

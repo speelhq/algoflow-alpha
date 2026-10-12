@@ -38,8 +38,6 @@ def _print(*args, sep=" ", end="\\n", file=None, flush=False):
 builtins.print = _print
 _ns = {"__name__": "__main__"}
 exec(compile(__CODE__, "solution.py", "exec"), _ns)
-_ids = {}
-_open = set()
 def _to_data(v):
     if isinstance(v, bool) or isinstance(v, int) or isinstance(v, str) or v is None:
         return v
@@ -51,16 +49,7 @@ def _to_data(v):
         return [_to_data(x) for x in v]
     if isinstance(v, dict):
         return {("$int:%d" % k) if isinstance(k, int) and not isinstance(k, bool) else str(k): _to_data(x) for k, x in v.items()}
-    if id(v) not in _ids:
-        _ids[id(v)] = len(_ids) + 1
-    d = {"$cls": type(v).__name__, "$id": _ids[id(v)]}
-    if id(v) in _open:
-        return d
-    _open.add(id(v))
-    for k, x in vars(v).items():
-        d[k] = _to_data(x)
-    _open.discard(id(v))
-    return d
+    raise TypeError("no Data form for " + type(v).__name__)
 _vars = {name: _to_data(_ns[name]) for name in __NAMES__ if name in _ns}
 sys.stdout.write(json.dumps({"stdout": _lines, "vars": _vars}) + "\\n")
 `;

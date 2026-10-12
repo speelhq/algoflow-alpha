@@ -20,7 +20,6 @@ export const TARGET_PARTS: {
   var: { names: ["name"], exprs: [] },
   index: { names: [], exprs: ["list", "index"] },
   key: { names: [], exprs: ["dict", "key"] },
-  field: { names: ["field"], exprs: ["obj"] },
 };
 
 /** A target's expressions, in order, as the target holds them. */
@@ -143,11 +142,10 @@ export function* programExprs(program: Program): Generator<Expr, void, void> {
 
 /**
  * The statement that contains each node. Expressions map to their statement,
- * statements, functions, and classes to themselves.
+ * statements and functions to themselves.
  */
 export function ownerStmts(program: Program): Map<NodeId, NodeId> {
   const owners = new Map<NodeId, NodeId>();
-  for (const cls of program.classes) owners.set(cls.id, cls.id);
   for (const fn of program.functions) owners.set(fn.id, fn.id);
   for (const { stmt } of programStmts(program)) {
     owners.set(stmt.id, stmt.id);
@@ -213,9 +211,8 @@ export function nodesById(program: Program): Map<NodeId, Node> {
   return index;
 }
 
-/** Every NodeId in the program: classes, functions, statements, expressions. */
+/** Every NodeId in the program: functions, statements, expressions. */
 export function* programIds(program: Program): Generator<NodeId, void, void> {
-  for (const cls of program.classes) yield cls.id;
   for (const fn of program.functions) {
     yield fn.id;
     yield* idsUnder(fn.body);

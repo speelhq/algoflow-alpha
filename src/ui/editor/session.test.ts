@@ -23,7 +23,7 @@ const { assign, print, num, bin, v, empty } = ast;
 const ctx: LineContext = {
   variables: ["x", "total"],
   kinds: new Map<string, Kind>([["x", "number"]]),
-  scope: { classes: [], functions: [] },
+  scope: { functions: [] },
   functions: [],
 };
 
