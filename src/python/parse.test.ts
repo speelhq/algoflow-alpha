@@ -2,10 +2,10 @@
 import { describe, expect, it } from "vitest";
 import type { Expr } from "@/lang/types";
 import { NODES } from "@/nodes/registry";
-import { BINOPS } from "@/nodes/binop";
 import { mulberry32 } from "@/runtime/random";
 import { unparse } from "./emit";
 import { isParseError, NO_DEFINITIONS, parse, type ParseError, type ParseScope } from "./parse";
+import { BINOPS } from "./precedence";
 
 function ok(text: string, scope: ParseScope = NO_DEFINITIONS): Expr {
   const result = parse(text, scope);

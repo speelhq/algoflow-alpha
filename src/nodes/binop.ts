@@ -231,5 +231,3 @@ const CANVAS_OPS: Partial<Record<Binop["op"], string>> = {
   "<=": "≤",
   ">=": "≥",
 };
-
-export { BINOPS } from "@/python/precedence";

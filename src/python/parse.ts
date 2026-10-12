@@ -4,7 +4,7 @@ import type { BinOp, Data, Expr, Id, Program } from "@/lang/types";
 import { builtinKey, builtinOf, methodKey, NODES, hasNode, keyOf } from "@/nodes/registry";
 import { dataToPython } from "./emit";
 import { NUMBER, numberLiteral } from "./number";
-import { BINOPS, PRECEDENCE, binopsAt, isBinOp, isComparison } from "./precedence";
+import { BINOPS, PRECEDENCE, binopsAt, isBinOp } from "./precedence";
 
 export type ParseScope = { functions: Id[] };
 
@@ -385,5 +385,3 @@ export function parse(text: string, scope: ParseScope): Expr | ParseError {
 export function parseData(data: Data): Expr | ParseError {
   return parse(dataToPython(data), NO_DEFINITIONS);
 }
-
-export { isComparison };
