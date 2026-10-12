@@ -1,5 +1,5 @@
-// C-01, C-03: the schema checker; C-25, C-18: the plans checker; C-10, R-20: a test checked
-// against its expectation and against CPython, and the CPython script shape (no python run here).
+// The schema checker; the plans checker; a test checked against its expectation and against
+// CPython, and the CPython script shape (no python run here).
 import { describe, expect, it } from "vitest";
 import { ast, program } from "@/nodes/testing";
 import type { Challenge } from "@/challenges/types";
@@ -34,7 +34,7 @@ function valid() {
   };
 }
 
-describe("checkChallengeSchema (C-01, C-03)", () => {
+describe("checkChallengeSchema", () => {
   it("accepts a complete challenge", () => {
     expect(checkChallengeSchema(valid(), "demo").problems).toEqual([]);
   });
@@ -58,13 +58,13 @@ describe("checkChallengeSchema (C-01, C-03)", () => {
     );
   });
 
-  it("C-01: rejects a key the schema does not have, such as the removed starter", () => {
+  it("rejects a key the schema does not have, such as the removed starter", () => {
     const c = valid() as unknown as Record<string, unknown>;
     c.starter = c.solution;
     expect(checkChallengeSchema(c, "demo").problems).toEqual(['unknown key "starter"']);
   });
 
-  it("C-01: checks difficulty, topics (U-14), and takeaway", () => {
+  it("checks difficulty, topics, and takeaway", () => {
     const c = valid() as unknown as Record<string, unknown>;
     c.difficulty = "trivial";
     c.topics = [];
@@ -82,7 +82,7 @@ describe("checkChallengeSchema (C-01, C-03)", () => {
     ]);
   });
 
-  it("C-01, C-21, L-76: module is a name, and defines lists functions the solution itself defines", () => {
+  it("module is a name, and defines lists functions the solution itself defines", () => {
     const c = valid() as unknown as Record<string, unknown>;
     c.module = "Heap";
     c.defines = ["twice", 3];
@@ -115,7 +115,7 @@ describe("checkChallengeSchema (C-01, C-03)", () => {
     );
   });
 
-  it("C-01, L-70, C-28: inputs are declared with a kind, and every test's value has it, as canonical Data the blocks write", () => {
+  it("inputs are declared with a kind, and every test's value has it, as canonical Data the blocks write", () => {
     const c = valid();
     (c.tests[0]!.inputs as Record<string, unknown>).n = "one";
     expect(checkChallengeSchema(c, "demo").problems).toEqual([
@@ -143,7 +143,7 @@ describe("checkChallengeSchema (C-01, C-03)", () => {
     );
   });
 
-  it("L-76: an object in a test is refused at its path, while no block constructs one", () => {
+  it("an object in a test is refused at its path, while no block constructs one", () => {
     const c = valid();
     (c.tests[0]!.expect.variables as Record<string, unknown>).total = { $cls: "Pair", a: 1 };
     expect(checkChallengeSchema(c, "demo").problems).toEqual([
@@ -169,7 +169,7 @@ describe("checkChallengeSchema (C-01, C-03)", () => {
   });
 });
 
-describe("checkPlans (C-25, C-18)", () => {
+describe("checkPlans", () => {
   const known = new Set(["a", "b", "c"]);
   const plan = (id: string, problems: unknown[]) => ({
     id,
@@ -220,7 +220,7 @@ describe("checkPlans (C-25, C-18)", () => {
   });
 });
 
-describe("execute (C-10 view of a run)", () => {
+describe("execute (a run as the judge sees it)", () => {
   it("reports final main variables as Data, stdout, and draws", () => {
     const outcome = execute(
       program([assign("x", bin("*", v("n"), num(2))), print(v("x"))], {
@@ -238,7 +238,7 @@ describe("execute (C-10 view of a run)", () => {
   });
 });
 
-describe("checkTest (C-10, R-20)", () => {
+describe("checkTest", () => {
   const addOne = () => assign("total", bin("+", v("n"), num(1)));
   /** The demo challenge with `main` as its solution's. */
   const challenge = (main: Stmt[]): Challenge => {
@@ -299,7 +299,7 @@ describe("checkTest (C-10, R-20)", () => {
   });
 });
 
-describe("buildScript (R-20)", () => {
+describe("buildScript", () => {
   it("wraps the code with the random shim, stdout capture, and the JSON epilogue", () => {
     const script = buildScript("x = random.randint(1, 6)\nprint(x)\n", [4], ["x"]);
     expect(script).toContain("_draws = iter([4])");
@@ -312,7 +312,7 @@ describe("buildScript (R-20)", () => {
     expect(script).toContain('json.dumps({"stdout": _lines, "vars": _vars})');
   });
 
-  it("derives the random shims from the registry (N-05)", () => {
+  it("derives the random shims from the registry", () => {
     expect(randomShims()).toEqual(["randint"]);
   });
 });
