@@ -91,8 +91,6 @@ type Projection = {
   taken: Record<NodeId, true>;
   /** `loop` events per loop since its last `enter`. */
   passes: Map<NodeId, number>;
-  /** Fields whose published copy is stale. */
-  dirty: { stdout: boolean; verdicts: boolean; taken: boolean };
 };
 
 let runner: Runner | null = null;
@@ -123,7 +121,6 @@ function freshProjection(): Projection {
     verdicts: {},
     taken: {},
     passes: new Map(),
-    dirty: { stdout: true, verdicts: true, taken: true },
   };
 }
 
@@ -170,25 +167,15 @@ function apply(event: Event): void {
   p.step += 1;
   p.lastEvent = event;
   if (event.type === "enter") {
-    if (event.nodeId in p.verdicts) {
-      delete p.verdicts[event.nodeId];
-      p.dirty.verdicts = true;
-    }
+    delete p.verdicts[event.nodeId];
     p.taken[event.nodeId] = true;
-    p.dirty.taken = true;
     p.passes.delete(event.nodeId);
     for (const [loop, inside] of loops) {
-      if (loop in p.verdicts && loop !== event.nodeId && !inside.has(event.nodeId)) {
-        delete p.verdicts[loop];
-        p.dirty.verdicts = true;
-      }
+      if (loop !== event.nodeId && !inside.has(event.nodeId)) delete p.verdicts[loop];
     }
   } else if (event.type === "compare") {
     const owner = conditions.get(event.nodeId);
-    if (owner !== undefined) {
-      p.verdicts[owner] = event.result;
-      p.dirty.verdicts = true;
-    }
+    if (owner !== undefined) p.verdicts[owner] = event.result;
   } else if (event.type === "loop") {
     // A new pass clears every mark in the loop's body; the loop's own check passed.
     for (const id of bodies.get(event.nodeId) ?? []) {
@@ -196,10 +183,8 @@ function apply(event: Event): void {
       delete p.taken[id];
     }
     p.verdicts[event.nodeId] = true;
-    p.dirty.verdicts = true;
-    p.dirty.taken = true;
     p.passes.set(event.nodeId, (p.passes.get(event.nodeId) ?? 0) + 1);
-  } else if (event.type === "print") p.dirty.stdout = true;
+  }
 }
 
 /** The loops among the statements with bodies, found by the registry's `loop` flag. */
@@ -303,7 +288,6 @@ export const useRun = create<RunState>()((set, get) => {
    */
   const publish = (status: Status, busy: boolean) => {
     const p = projection;
-    const previous = get();
     const ended = runner !== null && atEnd();
     if (ended) clearTimer();
     const outcome = findings?.outcome ?? null;
@@ -321,14 +305,13 @@ export const useRun = create<RunState>()((set, get) => {
       activeId: focus === undefined ? null : (owners.get(focus) ?? focus),
       state,
       frame: state ? state.frames.length - 1 : 0,
-      stdout: p.dirty.stdout ? (runner?.stdout() ?? []) : previous.stdout,
-      verdicts: p.dirty.verdicts ? { ...p.verdicts } : previous.verdicts,
-      taken: p.dirty.taken ? { ...p.taken } : previous.taken,
+      stdout: runner?.stdout() ?? [],
+      verdicts: { ...p.verdicts },
+      taken: { ...p.taken },
       breakpoint,
       verdict: ended ? (findings?.verdict ?? null) : null,
       difference: watching ? (findings?.difference ?? null) : null,
     });
-    p.dirty = { stdout: false, verdicts: false, taken: false };
   };
 
   const running = () => runner !== null && !atEnd();
