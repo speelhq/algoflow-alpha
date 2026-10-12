@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // U-122: what the focused element owns; the keyboard table's Delete and Backspace stay in an open
-// editor; U-60, R-31: Ctrl/Cmd+Enter and the play button run, pause, play, and replay as one.
+// editor; U-60, R-30: Ctrl/Cmd+Enter and the play button run, pause, play, and replay as one.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ast, program } from "@/nodes/testing";
 import { useProgram } from "@/store/program";
@@ -46,7 +46,7 @@ describe("ownsKeys (U-122)", () => {
   });
 });
 
-describe("togglePlay (U-60, R-31)", () => {
+describe("togglePlay (U-60, R-30)", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     useProgram.setState({ program: program([for_("i", num(0), num(3), [print(v("i"))])]) });
@@ -72,10 +72,12 @@ describe("togglePlay (U-60, R-31)", () => {
     expect(useRun.getState()).toMatchObject({ status: "playing", step: 0 });
   });
 
-  it("R-31: during the pre-run it pauses, and the run opens paused", async () => {
+  it("R-30: during the pre-run it does nothing, and the run opens playing", async () => {
     togglePlay();
+    const again = vi.spyOn(useRun.getState(), "run");
     togglePlay();
+    expect(again).not.toHaveBeenCalled();
     await settle(new Promise((resolve) => setTimeout(resolve, 0)));
-    expect(useRun.getState()).toMatchObject({ status: "paused", step: 0, busy: false });
+    expect(useRun.getState()).toMatchObject({ status: "playing", step: 0, busy: false });
   });
 });

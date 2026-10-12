@@ -324,14 +324,13 @@ describe("run store (R-21)", () => {
     expect(run().step).toBe(1);
   });
 
-  it("R-31, R-30: Pause during the pre-run opens the run paused; Step and Play wait for a Seek in flight", async () => {
+  it("R-30: Step does nothing during the pre-run; Step and Play wait for a Seek in flight", async () => {
     useProgram.setState({ program: long() });
     const starting = run().run();
-    run().pause();
     run().stepOnce();
     await settle(starting);
-    expect(run()).toMatchObject({ status: "paused", busy: false, step: 0, total: LONG_TOTAL });
-    expect(vi.getTimerCount()).toBe(0);
+    expect(run()).toMatchObject({ status: "playing", busy: false, step: 0, total: LONG_TOTAL });
+    run().pause();
 
     const seeking = run().seek(LONG_TOTAL - 100);
     run().play();

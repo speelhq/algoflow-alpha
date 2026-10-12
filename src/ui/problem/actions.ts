@@ -39,14 +39,13 @@ function replay(): void {
 
 /**
  * The play button, also Ctrl/Cmd+Enter: `Run`, `Pause`, `Play`, or `Replay` at the run's last
- * step. During the pre-run, where the button is disabled, it pauses: the run opens paused.
+ * step; nothing during the pre-run, where the button is disabled.
  */
 export function togglePlay(): void {
   const run = useRun.getState();
   switch (run.status) {
     case "idle":
-      if (run.busy) run.pause();
-      else startRun();
+      if (!run.busy) startRun();
       return;
     case "playing":
       run.pause();

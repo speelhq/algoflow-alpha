@@ -113,8 +113,6 @@ let generation = 0;
 let target: number | null = null;
 /** The run was started by `Watch this case`. */
 let watching = false;
-/** Pause arrived during the pre-run: the run opens paused. */
-let openPaused = false;
 let tick: () => void = () => {};
 const NO_PRINTS: number[] = [];
 
@@ -389,7 +387,6 @@ export const useRun = create<RunState>()((set, get) => {
       if (!from) return;
       get().stop();
       const mine = generation;
-      openPaused = false;
       set({ busy: true });
       const made = await prerun(from, mine);
       if (!made) return;
@@ -403,10 +400,6 @@ export const useRun = create<RunState>()((set, get) => {
       watching = opts?.watch === true;
       if (watching) {
         if (await batched(made.difference.step, false, "paused")) publish("paused", false);
-        return;
-      }
-      if (openPaused) {
-        publish("paused", false);
         return;
       }
       if (!atEnd()) armTimer();
@@ -428,8 +421,6 @@ export const useRun = create<RunState>()((set, get) => {
     },
 
     pause() {
-      // During the pre-run there is nothing to pause yet: the run then opens paused.
-      if (runner === null && get().busy) openPaused = true;
       if (!running()) return;
       cancel();
       publish("paused", false);
