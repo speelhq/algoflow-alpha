@@ -248,6 +248,26 @@ export function setExpr(
   return next;
 }
 
+/** Inserts `expr` as item `index` of an `exprs` slot; the items from `index` on move one on. */
+export function insertItem(
+  program: Program,
+  id: NodeId,
+  slot: string,
+  index: number,
+  expr: Expr,
+): Program {
+  const next = clone(program);
+  const node = locateNode(next, id);
+  if (!node) throw new EditError(`no node ${id}`);
+  const spec = getNode(keyOf(node)).slots.find((s) => s.name === slot);
+  const items = (node as unknown as Bag)[slot];
+  if (spec?.role !== "exprs" || !Array.isArray(items) || index < 0 || index > items.length) {
+    throw new EditError(`node ${id} has no place ${index} in ${slot}`);
+  }
+  items.splice(index, 0, freshExpr(expr, next));
+  return next;
+}
+
 /** Removes item `index` of an `exprs` slot. */
 export function removeItem(program: Program, id: NodeId, slot: string, index: number): Program {
   const next = clone(program);

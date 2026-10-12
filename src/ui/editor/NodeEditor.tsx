@@ -8,7 +8,7 @@ import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNod
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 import { getChallenge } from "@/challenges";
 import { nodeText, t } from "@/i18n/t";
-import { duplicateStmt, removeItem, removeStmt, setExpr } from "@/lang/edit";
+import { duplicateStmt, insertItem, removeItem, removeStmt, setExpr } from "@/lang/edit";
 import { chartOf, variableKinds } from "@/lang/kinds";
 import { visibleAt } from "@/lang/scope";
 import type { Expr, Id, NodeId, Program, Stmt } from "@/lang/types";
@@ -135,21 +135,15 @@ function Body({ stmt, program, initial }: { stmt: Stmt; program: Program; initia
     const empty = emptyExpr();
     const itemsOf = (node: Stmt | undefined): unknown =>
       node ? (node as unknown as Record<string, unknown>)[slot] : undefined;
+    const list = def.slots.find((s) => s.name === slot)?.role === "exprs";
     const added = (p: Program): Program => {
+      if (!list) return setExpr(p, stmt.id, slot, empty);
       const items = itemsOf(nodesById(p).get(stmt.id) as Stmt | undefined);
-      if (at === null || !Array.isArray(items) || at >= items.length) {
-        return setExpr(p, stmt.id, slot, empty, at ?? undefined);
-      }
-      // The items from `at` on move one place on, and the new one takes `at`.
-      let next = p;
-      for (let j = items.length - 1; j >= at; j -= 1) {
-        next = setExpr(next, stmt.id, slot, items[j] as Expr, j + 1);
-      }
-      return setExpr(next, stmt.id, slot, empty, at);
+      const end = Array.isArray(items) ? items.length : 0;
+      return insertItem(p, stmt.id, slot, at ?? end, empty);
     };
     if (!apply(added)) return;
     const items = itemsOf(current());
-    const list = def.slots.find((s) => s.name === slot)?.role === "exprs";
     const index = Array.isArray(items)
       ? items.findIndex((item) => isExpr(item) && item.id === empty.id)
       : -1;

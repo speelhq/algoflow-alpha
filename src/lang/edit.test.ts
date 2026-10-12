@@ -6,6 +6,7 @@ import {
   addFunction,
   duplicateStmt,
   hoistAssign,
+  insertItem,
   insertStmt,
   locateStmt,
   moveStmt,
@@ -57,6 +58,7 @@ describe("edit (L-50)", () => {
       duplicateStmt: (p) => duplicateStmt(p, loop.id),
       setSlot: (p) => setSlot(p, a.id, "target", { kind: "index", list: value, index: value }),
       setExpr: (p) => setExpr(p, b.id, "args", value, 0),
+      insertItem: (p) => insertItem(p, b.id, "args", 0, value),
       removeItem: (p) => removeItem(p, b.id, "args", 0),
       renameName: (p) => renameName(p, "x", "total"),
       setStmtName: (p) => setStmtName(p, loop.id, "Count"),
@@ -170,6 +172,16 @@ describe("edit (L-50)", () => {
     expect(placed.id).toBe(wrapped.id);
     expect(placed.kind === "binop" && placed.left.id).toBe(value.id);
     expect(idsUnique(next)).toBe(true);
+  });
+
+  it("insertItem puts an item at an index of an exprs slot; other slots and places are refused", () => {
+    const b = print(num(1), num(3));
+    const p = program([b]);
+    expect(lines(insertItem(p, b.id, "args", 1, num(2)))).toEqual(["print(1, 2, 3)"]);
+    expect(lines(insertItem(p, b.id, "args", 2, num(4)))).toEqual(["print(1, 3, 4)"]);
+    expect(() => insertItem(p, b.id, "args", 3, num(4))).toThrow(/no place/);
+    const { p: q, a } = sample();
+    expect(() => insertItem(q, a.id, "value", 0, num(4))).toThrow(/no place/);
   });
 
   it("removeItem removes one item of an exprs slot; other slots are refused", () => {
