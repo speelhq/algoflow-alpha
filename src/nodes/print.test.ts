@@ -25,8 +25,11 @@ describe("print (nodes.md)", () => {
   });
 
   it("N-10: a list argument prints in repr form with single-quoted strings", () => {
-    const made = withInputs({ xs: [1, "a", { $float: 2 }] }, [print(v("xs"))]);
+    const made = withInputs({ xs: [1, "a", { $float: 2 }], d: { a: 1 } }, [
+      print(v("xs")),
+      print(v("d")),
+    ]);
     const result = runAll(made.program, made.inputs);
-    expect(result.stdout).toEqual(["[1, 'a', 2.0]"]);
+    expect(result.stdout).toEqual(["[1, 'a', 2.0]", "{'a': 1}"]);
   });
 });

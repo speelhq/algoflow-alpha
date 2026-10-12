@@ -24,6 +24,7 @@ describe("binop (nodes.md)", () => {
     expect(evalExpr(bin("//", num(7), num(2))).value).toEqual({ t: "int", v: 3 });
     expect(evalExpr(bin("/", num(4), num(2))).value).toEqual({ t: "float", v: 2 });
     expect(evalExpr(bin("+", num(1), float(2))).value).toEqual({ t: "float", v: 3 });
+    expect(evalExpr(bin("*", num(3), num(4))).value).toEqual({ t: "int", v: 12 });
     expect(evalExpr(bin("**", num(2), num(10))).value).toEqual({ t: "int", v: 1024 });
     expect(evalExpr(bin("**", num(2), neg(num(1)))).value).toEqual({ t: "float", v: 0.5 });
   });
@@ -34,6 +35,16 @@ describe("binop (nodes.md)", () => {
     expect(evalExpr(bin("%", num(7), neg(num(2)))).data).toBe(-1);
   });
 
+  it("`//` and `%` on floats follow CPython, the sign of zero included", () => {
+    expect(evalExpr(bin("%", num(1), float(0.1))).data).toBe(1 % 0.1); // 0.09999999999999995 in both engines
+    expect(evalExpr(bin("//", num(1), float(0.1))).data).toEqual({ $float: 9 });
+    expect(evalExpr(bin("%", float(-7.5), num(2))).data).toBe(0.5);
+    expect(evalExpr(bin("//", float(-7.5), num(2))).data).toEqual({ $float: -4 });
+    const negativeZero = evalExpr(bin("%", float(4), neg(num(2)))).value;
+    expect(negativeZero.t === "float" && Object.is(negativeZero.v, -0)).toBe(true);
+    expect(evalExpr(bin("%", float(0.1), float(0.01))).data).toBe(0.1 % 0.01);
+  });
+
   it("N-10 / L-13: division or modulo by zero → E_DIV_ZERO", () => {
     for (const op of ["/", "//", "%"] as const) {
       const e = bin(op, num(1), num(0));
@@ -42,6 +53,20 @@ describe("binop (nodes.md)", () => {
         error: { nodeId: e.id, code: "E_DIV_ZERO" },
       });
     }
+    expect(evalExpr(bin("%", float(1), num(0))).done).toMatchObject({
+      type: "error",
+      error: { code: "E_DIV_ZERO" },
+    });
+  });
+
+  it("zero to a negative power → E_DIV_ZERO; zero to the power zero is 1", () => {
+    for (const zero of [num(0), float(0)]) {
+      expect(evalExpr(bin("**", zero, neg(num(1)))).done).toMatchObject({
+        type: "error",
+        error: { code: "E_DIV_ZERO" },
+      });
+    }
+    expect(evalExpr(bin("**", num(0), num(0))).value).toEqual({ t: "int", v: 1 });
   });
 
   it("N-10 / L-14, L-15: str + str concatenates; mixing with a number → E_TYPE", () => {
@@ -51,10 +76,36 @@ describe("binop (nodes.md)", () => {
       type: "error",
       error: { nodeId: e.id, code: "E_TYPE", params: { left: "str", right: "int" } },
     });
+    expect(evalExpr(bin("+", num(1), str("b"))).done).toMatchObject({
+      type: "error",
+      error: { code: "E_TYPE", params: { left: "int", right: "str" } },
+    });
+  });
+
+  it("ordering a number with a text → E_TYPE naming both types", () => {
     expect(evalExpr(bin("<", num(1), str("a"))).done).toMatchObject({
       type: "error",
-      error: { code: "E_TYPE" },
+      error: { code: "E_TYPE", params: { left: "int", right: "str" } },
     });
+  });
+
+  it("== compares numbers and texts by value, lists and dicts by their items", () => {
+    expect(evalExpr(bin("==", num(1), float(1))).data).toBe(true);
+    expect(evalExpr(bin("==", str("a"), str("a"))).data).toBe(true);
+    expect(evalExpr(bin("==", v("p"), v("q")), { p: [1, [2]], q: [1, [2]] }).data).toBe(true);
+    expect(evalExpr(bin("==", v("p"), v("q")), { p: { a: 1 }, q: { a: 1 } }).data).toBe(true);
+    expect(evalExpr(bin("==", v("p"), v("q")), { p: { a: 1 }, q: { a: 2 } }).data).toBe(false);
+    expect(evalExpr(bin("==", num(1), str("1"))).data).toBe(false);
+  });
+
+  it("== compares a bool and a number as 0 or 1 and the number, as Python does", () => {
+    expect(evalExpr(bin("==", bool(true), num(1))).data).toBe(true);
+    expect(evalExpr(bin("==", num(0), bool(false))).data).toBe(true);
+    expect(evalExpr(bin("==", bool(true), float(1))).data).toBe(true);
+    expect(evalExpr(bin("!=", num(2), bool(true))).data).toBe(true);
+    expect(evalExpr(bin("==", bool(true), str("1"))).data).toBe(false);
+    expect(evalExpr(bin("==", v("p"), v("q")), { p: [1, 0], q: [true, false] }).data).toBe(true);
+    expect(evalExpr(bin("in", num(0), v("xs")), { xs: [false] }).data).toBe(true);
   });
 
   it("N-10 / R-06: every comparison emits one compare event with its result alone", () => {
@@ -102,8 +153,16 @@ describe("binop (nodes.md)", () => {
         result: true,
       },
     ]);
+    expect(evalExpr(bin("in", float(1), v("xs")), { xs: [1, 2] }).data).toBe(true);
+    expect(evalExpr(bin("in", num(3), v("xs")), { xs: [1, 2] }).data).toBe(false);
     expect(evalExpr(bin("in", str("b"), str("abc"))).data).toBe(true);
+    expect(evalExpr(bin("in", str("bc"), str("abcd"))).data).toBe(true);
     expect(evalExpr(bin("in", str("k"), v("d")), { d: { k: 1 } }).data).toBe(true);
     expect(evalExpr(bin("in", num(9), v("d")), { d: { k: 1 } }).data).toBe(false);
+    expect(evalExpr(bin("in", num(3), v("d")), { d: { "$int:3": "x" } }).data).toBe(true);
+    expect(evalExpr(bin("in", num(1), str("a"))).done).toMatchObject({
+      type: "error",
+      error: { code: "E_TYPE" },
+    });
   });
 });

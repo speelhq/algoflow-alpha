@@ -3,7 +3,7 @@ import { emit } from "@/python/emit";
 import { forStmt } from "./for";
 import { ast, eventTypes, program, runAll, varData, withInputs } from "./testing";
 
-const { for_, assign, num, float, bin, v, brk, cont, if_ } = ast;
+const { for_, assign, num, float, str, bin, v, brk, cont, if_ } = ast;
 const lines = (main: Parameters<typeof program>[0]) =>
   emit(program(main), {}).code.trimEnd().split("\n");
 
@@ -51,6 +51,20 @@ describe("for (nodes.md)", () => {
     expect(varData(result, "i")).toBe(2);
   });
 
+  it("a start other than 0 is the first value, and a bound changed in the body is not read again", () => {
+    const result = runAll(
+      program([
+        assign("n", num(5)),
+        assign("acc", num(0)),
+        for_("i", num(2), v("n"), [
+          assign("n", num(100)),
+          assign("acc", bin("+", v("acc"), v("i"))),
+        ]),
+      ]),
+    );
+    expect(varData(result, "acc")).toBe(2 + 3 + 4);
+  });
+
   it("N-10: break stops and continue skips the rest of the body", () => {
     const result = runAll(
       program([
@@ -71,6 +85,10 @@ describe("for (nodes.md)", () => {
     expect(result.done).toMatchObject({
       type: "error",
       error: { nodeId: stmt.id, code: "E_TYPE", params: { left: "int", right: "float" } },
+    });
+    expect(runAll(program([for_("i", str("a"), num(1), [])])).done).toMatchObject({
+      type: "error",
+      error: { code: "E_TYPE", params: { left: "str", right: "int" } },
     });
   });
 

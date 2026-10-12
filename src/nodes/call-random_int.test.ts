@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { emit, unparse } from "@/python/emit";
 import { ast, evalExpr, program, runAll, varData } from "./testing";
 
-const { call, num, float, assign, for_ } = ast;
+const { call, num, float, str, assign, for_ } = ast;
 
 describe("builtin random_int (nodes.md)", () => {
   it("N-03 / N-05: emits `random.randint(<a>, <b>)` and adds `import random`", () => {
@@ -26,10 +26,21 @@ describe("builtin random_int (nodes.md)", () => {
     expect(runAll(prog, {}, 8).draws).not.toEqual(a.draws);
   });
 
-  it("N-10: a bound that is no int → E_TYPE", () => {
+  it("N-10: a bound that is no int → E_TYPE, naming the types of both bounds", () => {
     expect(evalExpr(call("random_int", float(1), num(2))).done).toMatchObject({
       type: "error",
-      error: { code: "E_TYPE" },
+      error: { code: "E_TYPE", params: { left: "float", right: "int" } },
+    });
+    expect(evalExpr(call("random_int", num(1), str("2"))).done).toMatchObject({
+      type: "error",
+      error: { code: "E_TYPE", params: { left: "int", right: "str" } },
+    });
+  });
+
+  it("random_int(5, 1) → E_EMPTY_RANGE, as CPython's empty range", () => {
+    expect(evalExpr(call("random_int", num(5), num(1))).done).toMatchObject({
+      type: "error",
+      error: { code: "E_EMPTY_RANGE", params: { a: 5, b: 1 } },
     });
   });
 });

@@ -1,8 +1,7 @@
-// R-21: the semantics examples of language.md, the R-09 codes reachable with
-// the basic and control blocks, and the R-03/R-08/R-10 event rules.
+// R-21: the rules under Values and the run of language.md, the R-09 codes the runtime itself
+// raises, and the R-03/R-08/R-10/R-35 event rules.
 import { describe, expect, it } from "vitest";
 import { ast, evalExpr, eventTypes, program, runAll, varData, withInputs } from "@/nodes/testing";
-import { validate } from "@/lang/validate";
 import { run, STEP_LIMIT } from "./run";
 import { floatRepr, strRepr } from "./values";
 
@@ -26,14 +25,7 @@ const {
   if_,
 } = ast;
 
-describe("the semantics table of language.md", () => {
-  it("L-10 int ∘ int is int for + - * // % ** (non-negative exponent); / is float", () => {
-    expect(evalExpr(bin("//", num(7), num(2))).value).toEqual({ t: "int", v: 3 });
-    expect(evalExpr(bin("/", num(4), num(2))).value).toEqual({ t: "float", v: 2 });
-    expect(evalExpr(bin("*", num(3), num(4))).value).toEqual({ t: "int", v: 12 });
-    expect(evalExpr(bin("**", num(3), num(2))).value).toEqual({ t: "int", v: 9 });
-  });
-
+describe("the rules under Values and the run (language.md)", () => {
   it("L-68, L-69 an int result outside the int range becomes float", () => {
     expect(evalExpr(bin("+", num(9007199254740990), num(1))).value).toEqual({
       t: "int",
@@ -48,16 +40,6 @@ describe("the semantics table of language.md", () => {
     expect(evalExpr(bin("-", lowest, num(1))).value.t).toBe("float");
   });
 
-  it("L-12 float // and % follow CPython, including the sign of zero", () => {
-    expect(evalExpr(bin("%", num(1), float(0.1))).data).toBe(1 % 0.1); // 0.09999999999999995 in both engines
-    expect(evalExpr(bin("//", num(1), float(0.1))).data).toEqual({ $float: 9 });
-    expect(evalExpr(bin("%", float(-7.5), num(2))).data).toBe(0.5);
-    expect(evalExpr(bin("//", float(-7.5), num(2))).data).toEqual({ $float: -4 });
-    const negativeZero = evalExpr(bin("%", float(4), neg(num(2)))).value;
-    expect(negativeZero.t === "float" && Object.is(negativeZero.v, -0)).toBe(true);
-    expect(evalExpr(bin("%", float(0.1), float(0.01))).data).toBe(0.1 % 0.01);
-  });
-
   it("negative zero: -(0.0) is -0.0, ints never carry a sign on zero", () => {
     const negFloat = evalExpr(neg(float(0))).value;
     expect(negFloat.t === "float" && Object.is(negFloat.v, -0)).toBe(true);
@@ -69,105 +51,6 @@ describe("the semantics table of language.md", () => {
     ).toEqual(["-0.0", "0.0"]);
   });
 
-  it("R-09 E_UNDEFINED at run time: a loop variable read after a loop that never ran", () => {
-    const read = v("i");
-    const made = withInputs({ n: 0 }, [for_("i", num(0), v("n"), []), print(read)]);
-    const result = runAll(made.program, made.inputs);
-    expect(result.done).toMatchObject({
-      type: "error",
-      error: { nodeId: read.id, code: "E_UNDEFINED", params: { name: "i" } },
-    });
-  });
-
-  it("L-63 random_int(5, 1) → E_EMPTY_RANGE, as CPython's empty range", () => {
-    expect(evalExpr(call("random_int", num(5), num(1))).done).toMatchObject({
-      type: "error",
-      error: { code: "E_EMPTY_RANGE", params: { a: 5, b: 1 } },
-    });
-  });
-
-  it("L-73 random_int(1.0, 2) → E_TYPE, naming the types of both bounds", () => {
-    expect(evalExpr(call("random_int", float(1), num(2))).done).toMatchObject({
-      type: "error",
-      error: { code: "E_TYPE", params: { left: "float", right: "int" } },
-    });
-    expect(evalExpr(call("random_int", num(1), str("2"))).done).toMatchObject({
-      type: "error",
-      error: { code: "E_TYPE", params: { left: "int", right: "str" } },
-    });
-  });
-
-  it("L-11 any float operand → float", () => {
-    expect(evalExpr(bin("+", num(1), float(2))).value).toEqual({ t: "float", v: 3 });
-  });
-
-  it("L-12 // floors; % takes the divisor's sign", () => {
-    expect(evalExpr(bin("//", neg(num(7)), num(2))).data).toBe(-4);
-    expect(evalExpr(bin("%", neg(num(7)), num(2))).data).toBe(1);
-  });
-
-  it("L-13 division or modulo by zero → E_DIV_ZERO", () => {
-    expect(evalExpr(bin("/", num(1), num(0))).done).toMatchObject({
-      type: "error",
-      error: { code: "E_DIV_ZERO" },
-    });
-    expect(evalExpr(bin("%", float(1), num(0))).done).toMatchObject({
-      type: "error",
-      error: { code: "E_DIV_ZERO" },
-    });
-  });
-
-  it("L-28: a program function's argument count is validated, so the runner is never given a wrong one", () => {
-    const f = { id: "f0000000000f", name: "f", params: ["a", "b"], body: [] };
-    const p = program([exprStmt(call("f", num(1)))], { functions: [f] });
-    expect(validate(p).map((d) => d.code)).toEqual(["E_ARITY"]);
-    expect(() => runAll(p)).toThrow("f takes 2 arguments, given 1");
-  });
-
-  it("L-72 zero to a negative power → E_DIV_ZERO", () => {
-    for (const zero of [num(0), float(0)]) {
-      expect(evalExpr(bin("**", zero, neg(num(1)))).done).toMatchObject({
-        type: "error",
-        error: { code: "E_DIV_ZERO" },
-      });
-    }
-    expect(evalExpr(bin("**", num(0), num(0))).value).toEqual({ t: "int", v: 1 });
-  });
-
-  it("L-14 + on two str concatenates; str with a number → E_TYPE", () => {
-    expect(evalExpr(bin("+", str("a"), str("b"))).data).toBe("ab");
-    expect(evalExpr(bin("+", num(1), str("b"))).done).toMatchObject({
-      type: "error",
-      error: { code: "E_TYPE" },
-    });
-  });
-
-  it("L-15 ordering between a number and a str → E_TYPE", () => {
-    expect(evalExpr(bin("<", num(1), str("a"))).done).toMatchObject({
-      type: "error",
-      error: { code: "E_TYPE", params: { left: "int", right: "str" } },
-    });
-  });
-
-  it("L-16 == compares numbers by value, strings by value, lists and dicts structurally", () => {
-    expect(evalExpr(bin("==", num(1), float(1))).data).toBe(true);
-    expect(evalExpr(bin("==", str("a"), str("a"))).data).toBe(true);
-    expect(evalExpr(bin("==", v("p"), v("q")), { p: [1, [2]], q: [1, [2]] }).data).toBe(true);
-    expect(evalExpr(bin("==", v("p"), v("q")), { p: { a: 1 }, q: { a: 1 } }).data).toBe(true);
-    expect(evalExpr(bin("==", v("p"), v("q")), { p: { a: 1 }, q: { a: 2 } }).data).toBe(false);
-    expect(evalExpr(bin("==", num(1), str("1"))).data).toBe(false);
-  });
-
-  it("L-16 == compares a bool and a number as 0 or 1 and the number, as Python does", () => {
-    expect(evalExpr(bin("==", bool(true), num(1))).data).toBe(true);
-    expect(evalExpr(bin("==", num(0), bool(false))).data).toBe(true);
-    expect(evalExpr(bin("==", bool(true), float(1))).data).toBe(true);
-    expect(evalExpr(bin("!=", num(2), bool(true))).data).toBe(true);
-    expect(evalExpr(bin("==", bool(true), str("1"))).data).toBe(false);
-    expect(evalExpr(bin("==", v("p"), v("q")), { p: [1, 0], q: [true, false] }).data).toBe(true);
-    expect(evalExpr(bin("in", num(0), v("xs")), { xs: [false] }).data).toBe(true);
-  });
-
   it("R-15 a bool is still no number for arithmetic and ordering", () => {
     for (const op of ["+", "<"] as const) {
       expect(evalExpr(bin(op, bool(true), num(1))).done).toMatchObject({
@@ -177,11 +60,6 @@ describe("the semantics table of language.md", () => {
     }
   });
 
-  it("L-17 and / or short-circuit and return the deciding operand", () => {
-    expect(evalExpr(bin("or", num(0), num(5))).data).toBe(5);
-    expect(evalExpr(bin("and", num(0), bin("/", num(1), num(0)))).data).toBe(0);
-  });
-
   it('L-18 false values: 0, 0.0, "", [], {}, None, False', () => {
     const falsy = [num(0), float(0), str(""), none(), bool(false)];
     for (const value of falsy) expect(evalExpr(not(value)).data).toBe(true);
@@ -189,17 +67,6 @@ describe("the semantics table of language.md", () => {
     expect(evalExpr(not(v("d")), { d: {} }).data).toBe(true);
     expect(evalExpr(not(num(2))).data).toBe(false);
     expect(evalExpr(not(v("xs")), { xs: [0] }).data).toBe(false);
-  });
-
-  it("L-19 in: list membership by L-16; dict key membership; str substring", () => {
-    expect(evalExpr(bin("in", float(1), v("xs")), { xs: [1, 2] }).data).toBe(true);
-    expect(evalExpr(bin("in", num(3), v("xs")), { xs: [1, 2] }).data).toBe(false);
-    expect(evalExpr(bin("in", num(3), v("d")), { d: { "$int:3": "x" } }).data).toBe(true);
-    expect(evalExpr(bin("in", str("bc"), str("abcd"))).data).toBe(true);
-    expect(evalExpr(bin("in", num(1), str("a"))).done).toMatchObject({
-      type: "error",
-      error: { code: "E_TYPE" },
-    });
   });
 
   it("L-20 a list index is int, negative from the end, else E_INDEX (write path)", () => {
@@ -234,37 +101,6 @@ describe("the semantics table of language.md", () => {
     expect(varData(result, "xs")).toEqual([9]);
   });
 
-  it("L-25 for iterates start … stop-1 with bounds evaluated once; non-int → E_TYPE", () => {
-    const result = runAll(
-      program([
-        assign("n", num(3)),
-        assign("acc", num(0)),
-        for_("i", num(1), v("n"), [
-          assign("n", num(100)),
-          assign("acc", bin("+", v("acc"), v("i"))),
-        ]),
-      ]),
-    );
-    expect(varData(result, "acc")).toBe(3);
-    expect(runAll(program([for_("i", str("a"), num(1), [])])).done).toMatchObject({
-      type: "error",
-      error: { code: "E_TYPE" },
-    });
-  });
-
-  it("L-29 print uses Python str(): True, None, 2.0, [1, 2], {'a': 1}", () => {
-    const inputs = { xs: [1, 2], d: { a: 1 } };
-    const made = withInputs(inputs, [
-      print(bool(true)),
-      print(none()),
-      print(float(2)),
-      print(v("xs")),
-      print(v("d")),
-    ]);
-    const result = runAll(made.program, made.inputs);
-    expect(result.stdout).toEqual(["True", "None", "2.0", "[1, 2]", "{'a': 1}"]);
-  });
-
   it("L-31 a run stops with E_STEP_LIMIT after 1,000,000 events", () => {
     const runner = run(program([while_(bool(true), [])]), {}, 1);
     let last;
@@ -278,15 +114,9 @@ describe("the semantics table of language.md", () => {
       steps: STEP_LIMIT,
     });
   });
-
-  it("L-32 random_int draws are seeded per run", () => {
-    const prog = program([assign("x", call("random_int", num(1), num(100)))]);
-    expect(runAll(prog, {}, 1).draws).toEqual(runAll(prog, {}, 1).draws);
-    expect(runAll(prog, {}, 1).draws).not.toEqual(runAll(prog, {}, 2).draws);
-  });
 });
 
-describe("R-09 codes reachable with basic and control blocks", () => {
+describe("R-09 codes the runtime raises", () => {
   it("R-34 E_VALUE and E_NUMBER_TEXT carry the registry key of the failing expression as op", () => {
     expect(evalExpr(neg(v("xs")), { xs: [] }).done).toMatchObject({
       type: "error",

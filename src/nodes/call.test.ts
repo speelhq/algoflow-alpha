@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { FunctionDef } from "@/lang/types";
+import { validate } from "@/lang/validate";
 import { emit, unparse } from "@/python/emit";
 import { ast, eventTypes, program, runAll, varData } from "./testing";
 
-const { call, num, bin, v, assign, ret, print, if_ } = ast;
+const { call, num, bin, v, assign, ret, print, if_, exprStmt } = ast;
 
 const twice: FunctionDef = {
   id: "f0000000000f",
@@ -56,6 +57,13 @@ describe("call (nodes.md)", () => {
     };
     const result = runAll(program([assign("r", call("down", num(0)))], { functions: [forever] }));
     expect(result.done).toMatchObject({ type: "error", error: { code: "E_RECURSION" } });
+  });
+
+  it("the argument count is validated, so the runner is never given a wrong one", () => {
+    const f: FunctionDef = { id: "f0000000000j", name: "f", params: ["a", "b"], body: [] };
+    const p = program([exprStmt(call("f", num(1)))], { functions: [f] });
+    expect(validate(p).map((d) => d.code)).toEqual(["E_ARITY"]);
+    expect(() => runAll(p)).toThrow("f takes 2 arguments, given 1");
   });
 
   it("R-14: a stack of 200 frames runs; a call that would make it deeper is E_RECURSION", () => {
