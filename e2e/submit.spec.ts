@@ -1,7 +1,6 @@
 // Solving a problem: open FizzBuzz from the list, load the solution from storage, run it, drag the
 // position bar to the end, submit, see Accepted, open the Python tab, and reach the next
-// problem. U-80, U-81, U-82, U-83, U-84, U-86, C-17: Wrong Answer, an error, and
-// `▶ Watch this case`.
+// problem. Also Wrong Answer, an error, and `▶ Watch this case`.
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { planOf } from "../src/challenges/plans";
@@ -45,7 +44,7 @@ test("FizzBuzz from the list to Accepted, Python, and the next problem", async (
   const total = /of (\d+)/.exec(text)?.[1];
   await expect(page.getByTestId("position-text")).toHaveText(`step ${total} of ${total}`);
   await expect(page.getByTestId("narration")).toHaveText(`Finished in ${total} steps`);
-  // While running Submit is disabled (U-27).
+  // While running Submit is disabled.
   await expect(page.getByRole("button", { name: "✓ Submit" })).toBeDisabled();
 
   await page.getByRole("button", { name: "■ Stop" }).click();
@@ -73,7 +72,7 @@ test("FizzBuzz from the list to Accepted, Python, and the next problem", async (
   expect(JSON.parse(progress ?? "{}")).toMatchObject({ fizzbuzz: { status: "solved" } });
 });
 
-test("Wrong Answer shows the rows only, and Watch opens at the first difference (U-81, U-82)", async ({
+test("Wrong Answer shows the rows only, and Watch opens at the first difference", async ({
   page,
 }) => {
   await seedProgress(page, {});
@@ -106,9 +105,7 @@ test("Wrong Answer shows the rows only, and Watch opens at the first difference 
   await expect(page.getByTestId("output-row").first()).toHaveText("FizzBuzz1");
 });
 
-test("a test that ends in an error shows its message in place of Output (U-84)", async ({
-  page,
-}) => {
+test("a test that ends in an error shows its message in place of Output", async ({ page }) => {
   const num = (id: string, value: number) => ({
     id,
     kind: "num",
@@ -137,9 +134,7 @@ test("a test that ends in an error shows its message in place of Output (U-84)",
   await expect(page.getByTestId("output-row")).toHaveCount(0);
 });
 
-test("a submission is recorded as attempted, and solved only when accepted (C-17)", async ({
-  page,
-}) => {
+test("a submission is recorded as attempted, and solved only when accepted", async ({ page }) => {
   await seedProgress(page, {});
   await seedProgram(page, "fizzbuzz", fromZero());
   await page.goto("/#/p/fizzbuzz");
@@ -152,7 +147,7 @@ test("a submission is recorded as attempted, and solved only when accepted (C-17
   });
 });
 
-test("after a plan's last problem, Accepted says Plan complete (U-83)", async ({ page }) => {
+test("after a plan's last problem, Accepted says Plan complete", async ({ page }) => {
   const { problems } = planOf("tutorial");
   const last = problems.at(-1);
   if (last === undefined) throw new Error("the plan is empty");

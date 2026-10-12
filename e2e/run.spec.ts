@@ -1,4 +1,4 @@
-// U-23, U-39, U-60, U-115, U-63, U-65, R-23, R-19: run mode on the pre-running driver.
+// Run mode on the pre-running driver.
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { programWith, seedProgram, seedProgress, solutionOf } from "./seed";
@@ -24,9 +24,7 @@ test.describe("running FizzBuzz", () => {
     await page.goto("/#/p/fizzbuzz");
   });
 
-  test("Run in the run bar plays, selects Result, and Stop returns (U-60, U-63)", async ({
-    page,
-  }) => {
+  test("Run in the run bar plays, selects Result, and Stop returns", async ({ page }) => {
     await page.getByRole("button", { name: "▶ Run" }).click();
     await expect(page.getByTestId("case-select")).toContainText("n = 15");
     await expect(page.getByTestId("tab-result")).toHaveAttribute("aria-selected", "true");
@@ -44,9 +42,7 @@ test.describe("running FizzBuzz", () => {
     await expect(page.getByRole("button", { name: "▶ Run" })).toBeVisible();
   });
 
-  test("Expected lines beyond the printed output are muted until the end (U-23)", async ({
-    page,
-  }) => {
+  test("Expected lines beyond the printed output are muted until the end", async ({ page }) => {
     await runPaused(page);
     const rows = page.getByTestId("output-row");
     const printed = await rows.evaluateAll(
@@ -129,7 +125,7 @@ test.describe("running FizzBuzz", () => {
     expect(line.y + line.height).toBeLessThanOrEqual(bar.y + 1);
   });
 
-  test("once the run has ended, a click on a slot opens the editor on that slot (U-60, U-41)", async ({
+  test("once the run has ended, a click on a slot opens the editor on that slot", async ({
     page,
   }) => {
     await runPaused(page);
@@ -150,7 +146,7 @@ test.describe("running FizzBuzz", () => {
   });
 });
 
-test("while running, the case and the solution stay put (U-27, U-32)", async ({ page }) => {
+test("while running, the case and the solution stay put", async ({ page }) => {
   await seedProgress(page, {});
   await seedProgram(page, "fizzbuzz", solutionOf("fizzbuzz"));
   await page.goto("/#/p/fizzbuzz");
@@ -163,7 +159,7 @@ test("while running, the case and the solution stay put (U-27, U-32)", async ({ 
   await expect(page.getByRole("button", { name: "Show solution" })).toBeEnabled();
 });
 
-test("reopening a problem selects its first case again (C-13)", async ({ page }) => {
+test("reopening a problem selects its first case again", async ({ page }) => {
   await seedProgress(page, {});
   await page.goto("/#/p/fizzbuzz");
   await page.getByTestId("input-node").click();
@@ -185,7 +181,7 @@ test("before any run, Result shows the case, its Expected, and Run to see the va
   await expect(page.getByTestId("output-row").nth(2)).toHaveText("Fizz");
 });
 
-test("Run with a diagnostic leads to its node instead of running (U-60)", async ({ page }) => {
+test("Run with a diagnostic leads to its node instead of running", async ({ page }) => {
   await seedProgress(page, {});
   const assign = {
     id: "asg-empty-01",
@@ -208,7 +204,7 @@ test("Run with a diagnostic leads to its node instead of running (U-60)", async 
   await expect(page.getByTestId("position")).toHaveCount(0);
 });
 
-test("a runtime error outlines its node and says its message, and playback stops (U-65)", async ({
+test("a runtime error outlines its node and says its message, and playback stops", async ({
   page,
 }) => {
   await seedProgress(page, {});
@@ -242,7 +238,7 @@ test("a runtime error outlines its node and says its message, and playback stops
   await expect(page.getByRole("button", { name: "↺ Replay" })).toBeVisible();
 });
 
-test("a run that never ends reports it before playback (U-60)", async ({ page }) => {
+test("a run that never ends reports it before playback", async ({ page }) => {
   await seedProgress(page, {});
   const loop = {
     id: "whl-endless1",

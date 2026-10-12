@@ -1,4 +1,4 @@
-// U-37: a node with a diagnostic shows a red dot; hovering shows the message and its fix.
+// A node with a diagnostic shows a red dot; hovering shows the message and its fix.
 import { expect, test } from "./fixtures";
 import { programWith, seedProgram, seedProgress } from "./seed";
 
@@ -6,7 +6,7 @@ test.beforeEach(async ({ page }) => {
   await seedProgress(page, {});
 });
 
-test("U-37: hovering a flagged node shows its message, and the fix applies", async ({ page }) => {
+test("hovering a flagged node shows its message, and the fix applies", async ({ page }) => {
   const loop = {
     id: "dgn-loop-001",
     kind: "for",
@@ -38,7 +38,7 @@ test("U-37: hovering a flagged node shows its message, and the fix applies", asy
   await expect(page.getByTestId("chart")).toContainText("Create total and set it to none");
 });
 
-test("U-37: an empty slot shows no dot, only its placeholder", async ({ page }) => {
+test("an empty slot shows no dot, only its placeholder", async ({ page }) => {
   const assign = {
     id: "dgn-asg0-001",
     kind: "assign",

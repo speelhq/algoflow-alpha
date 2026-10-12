@@ -1,6 +1,5 @@
 // Editing: build FizzBuzz from an empty chart through the + menu and the node editors, by
-// typing and choosing in value lines, and submit it to Accepted. U-34, U-40, U-41, U-50, U-51,
-// U-52, U-53, U-54, U-93, U-94, U-95, U-96.
+// typing and choosing in value lines, and submit it to Accepted.
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { seedProgram, seedProgress, solutionOf } from "./seed";
@@ -84,13 +83,13 @@ test("FizzBuzz is built from an empty chart by typing and choosing, and accepted
   await expect(page.getByTestId("python-code")).toContainText("if i % 15 == 0:");
 });
 
-test("the list follows what is before the caret, and a choice after a value takes it (U-52, U-53)", async ({
+test("the list follows what is before the caret, and a choice after a value takes it", async ({
   page,
 }) => {
   await seedProgress(page, {});
   await page.goto("/#/p/sum-to-n");
   await insert(page, "main/main/0", "assign");
-  // This problem's names come first (U-94).
+  // This problem's names come first.
   await expect(editor(page).getByTestId("editor-list")).toContainText("This problem");
   await keys(page, "to");
   await expect(editor(page).locator('[data-row="name:total"]')).toBeVisible();
@@ -104,14 +103,12 @@ test("the list follows what is before the caret, and a choice after a value take
   await expect(list).not.toContainText("Random whole number");
   await list.locator('[data-row="e:call:str"]').click();
   await expect(chart(page)).toContainText("Create total and set it to n as text");
-  // Backspace on the operation's words keeps its first input (U-54).
+  // Backspace on the operation's words keeps its first input.
   await page.keyboard.press("Backspace");
   await expect(chart(page)).toContainText("Create total and set it to n");
 });
 
-test("a typed word that names nothing is underlined with the closest name (U-50, U-96)", async ({
-  page,
-}) => {
+test("a typed word that names nothing is underlined with the closest name", async ({ page }) => {
   await seedProgress(page, {});
   await page.goto("/#/p/sum-to-n");
   await insert(page, "main/main/0", "print");
@@ -119,9 +116,7 @@ test("a typed word that names nothing is underlined with the closest name (U-50,
   await expect(editor(page).getByTestId("explanation")).toContainText("Did you mean n?");
 });
 
-test("naming a node shows the name on it and as a comment in Python (U-95, E-11)", async ({
-  page,
-}) => {
+test("naming a node shows the name on it and as a comment in Python", async ({ page }) => {
   await seedProgress(page, {});
   await seedProgram(page, "fizzbuzz", solutionOf("fizzbuzz"));
   await page.goto("/#/p/fizzbuzz");
@@ -134,7 +129,7 @@ test("naming a node shows the name on it and as a comment in Python (U-95, E-11)
   await expect(page.getByTestId("python-code")).toContainText("    # Is i a multiple of 15?");
 });
 
-test("the editor opens on the node's right inside the canvas, the chart scrolled to make room (U-41)", async ({
+test("the editor opens on the node's right inside the canvas, the chart scrolled to make room", async ({
   page,
 }) => {
   await seedProgress(page, {});
@@ -157,7 +152,7 @@ test("the editor opens on the node's right inside the canvas, the chart scrolled
     .toBe("ok");
 });
 
-test("the editor is placed by its node without a control on it (U-121)", async ({ page }) => {
+test("the editor is placed by its node without a control on it", async ({ page }) => {
   await seedProgress(page, {});
   await seedProgram(page, "fizzbuzz", solutionOf("fizzbuzz"));
   await page.goto("/#/p/fizzbuzz");
@@ -171,7 +166,7 @@ test("the editor is placed by its node without a control on it (U-121)", async (
   ).toHaveCount(0);
 });
 
-test("`,` in a list of values opens the next value after this one (U-93)", async ({ page }) => {
+test("`,` in a list of values opens the next value after this one", async ({ page }) => {
   await seedProgress(page, {});
   await page.goto("/#/p/tutorial");
   await insert(page, "main/main/0", "print");
@@ -182,7 +177,7 @@ test("`,` in a list of values opens the next value after this one (U-93)", async
   await expect(chart(page)).toContainText("Print 1, choose a value, 2");
 });
 
-test("U-51: a print with no value draws no placeholder", async ({ page }) => {
+test("a print with no value draws no placeholder", async ({ page }) => {
   await seedProgress(page, {});
   await page.goto("/#/p/tutorial");
   await insert(page, "main/main/0", "print");

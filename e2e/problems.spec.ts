@@ -1,10 +1,9 @@
-// U-01, U-02, U-04, U-06, U-07, U-10, U-12, U-13, U-14, U-99, U-90: routes, the Problems page, Help,
-// first launch.
+// Routes, the Problems page, Help, first launch.
 import { expect, test } from "./fixtures";
 import { planOf } from "../src/challenges/plans";
 import { seedProgress } from "./seed";
 
-test.describe("first launch (U-90)", () => {
+test.describe("first launch", () => {
   test("with nothing stored, the first problem of the first plan opens", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByTestId("problem-page")).toBeVisible();
@@ -26,7 +25,7 @@ test.describe("first launch (U-90)", () => {
   });
 });
 
-test.describe("Problems page (U-10, U-12, U-13, U-14, U-99)", () => {
+test.describe("Problems page", () => {
   test("shows the plan with its count, Continue, marks, difficulty, and topics", async ({
     page,
   }) => {
@@ -76,7 +75,7 @@ test.describe("Problems page (U-10, U-12, U-13, U-14, U-99)", () => {
   });
 });
 
-test.describe("header, Help, and routes (U-01, U-02, U-04, U-06, U-07)", () => {
+test.describe("header, Help, and routes", () => {
   test.beforeEach(async ({ page }) => {
     await seedProgress(page, {});
   });
@@ -104,7 +103,7 @@ test.describe("header, Help, and routes (U-01, U-02, U-04, U-06, U-07)", () => {
     await expect(page).toHaveTitle("Playground — AlgoFlow");
     await page.getByRole("link", { name: "Problems" }).click();
     await expect(page.getByTestId("problems")).toBeVisible();
-    // U-07: a Playground program the Playground does not list.
+    // A Playground program the Playground does not list.
     await page.goto("/#/play/abc");
     await expect(page.getByTestId("problems")).toBeVisible();
   });

@@ -1,5 +1,4 @@
-// U-15, U-01, U-05, U-07, U-23, L-53, S-07: Playground programs, their page, running one,
-// persistence, Export and Import, and Open in Playground.
+// Playground programs, their page, running one, persistence, Export and Import, and Open in Playground.
 import { expect, test } from "./fixtures";
 import { programWith, seedPlayground, seedProgram, seedProgress, solutionOf } from "./seed";
 
@@ -7,9 +6,7 @@ test.beforeEach(async ({ page }) => {
   await seedProgress(page, {});
 });
 
-test("New opens an empty program that keeps its title and is listed (U-15, U-01, S-07)", async ({
-  page,
-}) => {
+test("New opens an empty program that keeps its title and is listed", async ({ page }) => {
   await page.goto("/#/play");
   await expect(page.getByTestId("playground")).toContainText("No programs yet");
   await page.getByRole("button", { name: "New", exact: true }).click();
@@ -29,7 +26,7 @@ test("New opens an empty program that keeps its title and is listed (U-15, U-01,
   await expect(page.getByTestId("playground-row")).toContainText("Squares");
 });
 
-test("a Playground program runs to its output, with no case selector and no Expected (U-23)", async ({
+test("a Playground program runs to its output, with no case selector and no Expected", async ({
   page,
 }) => {
   const id = "play-sayhello0001";
@@ -48,7 +45,7 @@ test("a Playground program runs to its output, with no case selector and no Expe
   await expect(page.getByTestId("result-rows")).not.toContainText("Expected");
 });
 
-test("Delete asks first and then removes the program (U-15)", async ({ page }) => {
+test("Delete asks first and then removes the program", async ({ page }) => {
   await page.goto("/#/play");
   await page.getByRole("button", { name: "New", exact: true }).click();
   await page.getByRole("link", { name: "← Playground" }).click();
@@ -61,7 +58,7 @@ test("Delete asks first and then removes the program (U-15)", async ({ page }) =
   await expect(page.getByTestId("playground-row")).toHaveCount(0);
 });
 
-test("Export writes the program, and Import adds it back; a bad file adds nothing (L-53)", async ({
+test("Export writes the program, and Import adds it back; a bad file adds nothing", async ({
   page,
 }) => {
   await page.goto("/#/play");
@@ -91,12 +88,12 @@ test("Export writes the program, and Import adds it back; a bad file adds nothin
   await expect(page.getByTestId("playground-row")).toHaveCount(2);
 });
 
-test("a Playground route the Playground does not list shows Problems (U-07)", async ({ page }) => {
+test("a Playground route the Playground does not list shows Problems", async ({ page }) => {
   await page.goto("/#/play/play-zzzzzzzzzzzz");
   await expect(page.getByTestId("problems")).toBeVisible();
 });
 
-test("Open in Playground carries the inputs as assignments, and its ⋯ holds Help alone (U-05, U-01)", async ({
+test("Open in Playground carries the inputs as assignments, and its ⋯ holds Help alone", async ({
   page,
 }) => {
   await seedProgram(page, "fizzbuzz", solutionOf("fizzbuzz"));
@@ -111,7 +108,7 @@ test("Open in Playground carries the inputs as assignments, and its ⋯ holds He
   await expect(page.getByRole("menuitem")).toHaveText(["Help"]);
 });
 
-test("an edit on a problem is saved and restored on reload (L-53)", async ({ page }) => {
+test("an edit on a problem is saved and restored on reload", async ({ page }) => {
   await page.goto("/#/p/fizzbuzz");
   await page.getByRole("button", { name: "Add your first block" }).click();
   await page.getByTestId("block-menu").locator('[data-entry="print"]').click();

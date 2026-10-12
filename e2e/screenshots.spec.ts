@@ -1,4 +1,4 @@
-// U-91, U-112: one screenshot per screen state, written to e2e/screenshots/ for review by
+// One screenshot per screen state, written to e2e/screenshots/ for review by
 // `pnpm screenshots` and under test-results/ by any other run. Drawn at 1280 × 800, the size of
 // the boards in docs/design/.
 import { expect, test } from "./fixtures";

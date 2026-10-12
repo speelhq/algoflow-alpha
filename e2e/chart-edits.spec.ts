@@ -1,4 +1,4 @@
-// U-03, U-35, U-36, L-52: selecting, removing, duplicating, dragging, undo and redo.
+// Selecting, removing, duplicating, dragging, undo and redo.
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { programWith, seedProgram, seedProgress, solutionOf } from "./seed";
@@ -26,9 +26,7 @@ test.beforeEach(async ({ page }) => {
   await seedProgress(page, {});
 });
 
-test("Delete removes the selected node, and undo and redo walk it back (U-35, U-03, L-52)", async ({
-  page,
-}) => {
+test("Delete removes the selected node, and undo and redo walk it back", async ({ page }) => {
   await seedProgram(page, "fizzbuzz", solutionOf("fizzbuzz"));
   await page.goto("/#/p/fizzbuzz");
   const undo = page.getByRole("button", { name: "Undo" });
@@ -47,9 +45,7 @@ test("Delete removes the selected node, and undo and redo walk it back (U-35, U-
   await expect(redo).toBeEnabled();
 });
 
-test("undo, redo, and duplicate act while a value line has the keyboard (U-122)", async ({
-  page,
-}) => {
+test("undo, redo, and duplicate act while a value line has the keyboard", async ({ page }) => {
   await page.goto("/#/p/tutorial");
   await page.locator('[data-testid="connector"][data-place="main/main/0"]').click();
   await page.getByTestId("block-menu").locator('[data-entry="print"]').click();
@@ -68,9 +64,7 @@ test("undo, redo, and duplicate act while a value line has the keyboard (U-122)"
   await expect(chart.locator("text", { hasText: "Print 1" })).toHaveCount(2);
 });
 
-test("Ctrl+D duplicates the selected node, and Esc clears the selection (U-35)", async ({
-  page,
-}) => {
+test("Ctrl+D duplicates the selected node, and Esc clears the selection", async ({ page }) => {
   await seedProgram(page, "fizzbuzz", solutionOf("fizzbuzz"));
   await page.goto("/#/p/fizzbuzz");
   await node(page, "fzb-prfz-001").click({ position: { x: 8, y: 20 } });
@@ -83,7 +77,7 @@ test("Ctrl+D duplicates the selected node, and Esc clears the selection (U-35)",
   await expect(page.locator("[data-selected]")).toHaveCount(0);
 });
 
-test("a node dragged onto another connector moves there (U-36)", async ({ page }) => {
+test("a node dragged onto another connector moves there", async ({ page }) => {
   await seedProgram(page, "fizzbuzz", solutionOf("fizzbuzz"));
   await page.goto("/#/p/fizzbuzz");
   // The tab is chosen first: dnd-kit stops every click for 50 ms after a drop.
@@ -94,9 +88,7 @@ test("a node dragged onto another connector moves there (U-36)", async ({ page }
   await expect(page.getByTestId("python-line").nth(1)).toHaveText("2print(i)");
 });
 
-test("a drop that takes break out of its loop is refused with a tooltip (U-36)", async ({
-  page,
-}) => {
+test("a drop that takes break out of its loop is refused with a tooltip", async ({ page }) => {
   const loop = {
     id: "drg-loop-001",
     kind: "while",

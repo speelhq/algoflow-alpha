@@ -1,9 +1,8 @@
-// U-03, U-20, U-21, U-24, U-25, C-13, C-17: the Problem page, its panel, and the Problem and
-// Python tabs.
+// The Problem page, its panel, and the Problem and Python tabs.
 import { expect, test } from "./fixtures";
 import { seedProgram, seedProgress, solutionOf } from "./seed";
 
-test.describe("Problem page (U-03, U-20, U-21, U-24)", () => {
+test.describe("Problem page", () => {
   test.beforeEach(async ({ page }) => {
     await seedProgress(page, {});
   });
@@ -29,9 +28,7 @@ test.describe("Problem page (U-03, U-20, U-21, U-24)", () => {
     await expect(page.getByTestId("example")).toContainText("total = 55");
   });
 
-  test("Show next hint reveals one hint per click and records the count (C-17)", async ({
-    page,
-  }) => {
+  test("Show next hint reveals one hint per click and records the count", async ({ page }) => {
     await page.goto("/#/p/fizzbuzz");
     const hints = page.getByTestId("hints");
     await expect(hints).toContainText("0 of 3 shown");
@@ -47,7 +44,7 @@ test.describe("Problem page (U-03, U-20, U-21, U-24)", () => {
     await expect(hints.getByRole("button", { name: "Show next hint" })).toBeDisabled();
   });
 
-  test("Show solution is recorded (C-17)", async ({ page }) => {
+  test("Show solution is recorded", async ({ page }) => {
     await page.goto("/#/p/fizzbuzz");
     await page.getByRole("button", { name: "Show solution" }).click();
     await expect(page.getByTestId("problem-tab")).toContainText("shown in the chart");
@@ -57,7 +54,7 @@ test.describe("Problem page (U-03, U-20, U-21, U-24)", () => {
     });
   });
 
-  test("the panel collapses to a rail and the state persists (U-24)", async ({ page }) => {
+  test("the panel collapses to a rail and the state persists", async ({ page }) => {
     await page.goto("/#/p/fizzbuzz");
     await page.getByRole("button", { name: "Collapse the panel" }).click();
     await expect(page.getByTestId("panel")).toHaveAttribute("data-collapsed");
@@ -75,7 +72,7 @@ test.describe("Problem page (U-03, U-20, U-21, U-24)", () => {
   });
 });
 
-test.describe("Python tab (U-25)", () => {
+test.describe("Python tab", () => {
   test("shows the stored program as numbered, coloured lines and selects a node on click", async ({
     page,
   }) => {

@@ -1,5 +1,4 @@
-// U-22, U-25, U-30, U-31, U-32, U-33, U-38: the chart, its Input nodes, zoom, path bar, and the
-// solution.
+// The chart, its Input nodes, zoom, path bar, and the solution.
 import { expect, test } from "./fixtures";
 import { seedProgram, seedProgress, solutionOf } from "./seed";
 
@@ -51,14 +50,14 @@ test("clicking a node selects its statement and highlights its Python lines", as
   );
 });
 
-test("an Input node lists the cases and choosing one sets it (U-32)", async ({ page }) => {
+test("an Input node lists the cases and choosing one sets it", async ({ page }) => {
   await page.goto("/#/p/fizzbuzz");
   await page.getByTestId("input-node").click();
   await page.getByRole("menuitem", { name: "n = 3" }).click();
   await expect(page.getByTestId("chart")).toContainText("Input n = 3");
 });
 
-test("zoom steps and returns to 100 % (U-38)", async ({ page }) => {
+test("zoom steps and returns to 100 %", async ({ page }) => {
   await page.goto("/#/p/fizzbuzz");
   const zoom = page.getByTestId("zoom");
   await expect(zoom).toContainText("100%");
@@ -71,9 +70,7 @@ test("zoom steps and returns to 100 % (U-38)", async ({ page }) => {
   await expect(zoom).toContainText("100%");
 });
 
-test("Show solution draws the solution read-only; Back to my chart returns (U-22)", async ({
-  page,
-}) => {
+test("Show solution draws the solution read-only; Back to my chart returns", async ({ page }) => {
   await page.goto("/#/p/fizzbuzz");
   await expect(page.getByTestId("chart").locator("[data-chart-node]")).toHaveCount(3);
   await page.getByRole("button", { name: "Show solution" }).click();
@@ -86,7 +83,7 @@ test("Show solution draws the solution read-only; Back to my chart returns (U-22
   await expect(page.getByTestId("chart").locator("[data-chart-node]")).toHaveCount(3);
 });
 
-test("opening another problem while a solution is shown draws that problem's chart (C-13)", async ({
+test("opening another problem while a solution is shown draws that problem's chart", async ({
   page,
 }) => {
   await page.goto("/#/p/fizzbuzz");
@@ -96,7 +93,7 @@ test("opening another problem while a solution is shown draws that problem's cha
   await expect(page.getByTestId("chart")).toContainText("Input a = 3");
 });
 
-test("Load into my chart replaces the program with the solution as one undoable edit (U-22)", async ({
+test("Load into my chart replaces the program with the solution as one undoable edit", async ({
   page,
 }) => {
   await page.goto("/#/p/fizzbuzz");
