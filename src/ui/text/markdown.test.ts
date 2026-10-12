@@ -1,8 +1,8 @@
-// U-26: paragraphs, `code`, **bold**, *italic*; anything else as written.
+// Paragraphs, `code`, **bold**, *italic*; anything else as written.
 import { describe, expect, it } from "vitest";
 import { markdown } from "./markdown";
 
-describe("markdown (U-26)", () => {
+describe("markdown", () => {
   it("splits paragraphs on a blank line and keeps a single line break inside one", () => {
     expect(markdown("one\ntwo\n\n  \nthree")).toEqual([
       [{ kind: "text", text: "one\ntwo" }],

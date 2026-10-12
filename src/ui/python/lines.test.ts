@@ -1,10 +1,10 @@
-// U-25: hovering or clicking a line acts on its innermost statement; a node lights its lines.
+// Hovering or clicking a line acts on its innermost statement; a node lights its lines.
 import { describe, expect, it } from "vitest";
 import { lineOwners, linesOf } from "./lines";
 
 const map = { loop: { start: 2, end: 2 }, call: { start: 4, end: 6 }, inner: { start: 5, end: 5 } };
 
-describe("lineOwners (U-25)", () => {
+describe("lineOwners", () => {
   it("gives each line its innermost statement", () => {
     const owners = lineOwners(map);
     expect(owners.get(2)).toBe("loop");
@@ -15,7 +15,7 @@ describe("lineOwners (U-25)", () => {
   });
 });
 
-describe("linesOf (U-25)", () => {
+describe("linesOf", () => {
   it("lists every line of a statement's range, none for an unknown id or null", () => {
     expect([...linesOf(map, "call")]).toEqual([4, 5, 6]);
     expect(linesOf(map, "nope").size).toBe(0);

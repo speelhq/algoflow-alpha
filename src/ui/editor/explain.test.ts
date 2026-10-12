@@ -1,4 +1,4 @@
-// U-96: the explanation line explains what the list highlights or the caret is in.
+// The explanation line explains what the list highlights or the caret is in.
 import { describe, expect, it } from "vitest";
 import type { Kind } from "@/lang/types";
 import { ast, program } from "@/nodes/testing";
@@ -34,7 +34,7 @@ const p = program(
   { inputs: [{ name: "n", kind: "number" }] },
 );
 
-describe("explanation line (U-96)", () => {
+describe("explanation line", () => {
   it("an entry: its name and its help, ending with how to type it", () => {
     const remainder = allEntries().find((entry) => entry.id === "binop.mod");
     if (!remainder) throw new Error("no Remainder");

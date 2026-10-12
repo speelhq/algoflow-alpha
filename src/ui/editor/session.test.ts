@@ -1,5 +1,4 @@
-// U-41: the slot clicked, else the first to fill, takes the keyboard; U-50, U-53: keys in a value
-// line, Tab past its last field, `,` in a list; a handler's changes chain on what each returns.
+// The slot clicked, else the first to fill, takes the keyboard; keys in a value line, Tab past its last field, `,` in a list; a handler's changes chain on what each returns.
 import { describe, expect, it } from "vitest";
 import type { Kind } from "@/lang/types";
 import { ast, program } from "@/nodes/testing";
@@ -36,8 +35,8 @@ const press = (session: Session, keys: string): Step => {
   return step;
 };
 
-describe("editor session (U-41, U-50, U-53)", () => {
-  it("U-41: the slot clicked takes the keyboard, else the first field still to fill", () => {
+describe("editor session", () => {
+  it("the slot clicked takes the keyboard, else the first field still to fill", () => {
     const hole = empty();
     const stmt = assign("total", bin("+", v("x"), hole));
     const fields = fieldsOf(stmt, program([stmt]));
@@ -51,7 +50,7 @@ describe("editor session (U-41, U-50, U-53)", () => {
     expect(opened.line?.caret).toEqual({ at: hole.id });
   });
 
-  it("U-50: a value typed is written once, when it changes the field's value", () => {
+  it("a value typed is written once, when it changes the field's value", () => {
     const stmt = print(empty());
     const field: Field = { slot: "args", role: "expr", index: 0 };
     const typed = press(openSession(stmt, field, null), "7");
@@ -61,7 +60,7 @@ describe("editor session (U-41, U-50, U-53)", () => {
     expect(line && commit(typed.session, line).edits).toEqual([]);
   });
 
-  it("U-53: `,` in a list item chooses the word and asks for the next item; the chain reads what it returned", () => {
+  it("`,` in a list item chooses the word and asks for the next item; the chain reads what it returned", () => {
     const stmt = print(empty());
     const field: Field = { slot: "args", role: "expr", index: 0 };
     const word = press(openSession(stmt, field, null), "x");
@@ -75,7 +74,7 @@ describe("editor session (U-41, U-50, U-53)", () => {
     expect(settleWord(word.session, ctx).edits).toHaveLength(1);
   });
 
-  it("U-53: Tab past the line's last field leaves for the next field; Enter with nothing chosen closes", () => {
+  it("Tab past the line's last field leaves for the next field; Enter with nothing chosen closes", () => {
     const stmt = assign("total", num(1));
     const field: Field = { slot: "value", role: "expr" };
     const session = openSession(stmt, field, null);

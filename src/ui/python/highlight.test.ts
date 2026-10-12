@@ -1,8 +1,8 @@
-// U-25: keywords, strings, numbers, and comments are coloured, and nothing else.
+// Keywords, strings, numbers, and comments are coloured, and nothing else.
 import { describe, expect, it } from "vitest";
 import { highlight } from "./highlight";
 
-describe("highlight (U-25)", () => {
+describe("highlight", () => {
   it("marks keywords, numbers, and leaves names and operators as text", () => {
     expect(highlight("for i in range(1, n + 1):")).toEqual([
       { kind: "keyword", text: "for" },

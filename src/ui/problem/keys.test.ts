@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-// U-122: what the focused element owns; the keyboard table's Delete and Backspace stay in an open
-// editor; U-60, R-30: Ctrl/Cmd+Enter and the play button run, pause, play, and replay as one.
+// What the focused element owns; the keyboard table's Delete and Backspace stay in an open
+// editor; Ctrl/Cmd+Enter and the play button run, pause, play, and replay as one.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ast, program } from "@/nodes/testing";
 import { useProgram } from "@/store/program";
@@ -22,7 +22,7 @@ function element(html: string): Element {
   return found;
 }
 
-describe("ownsKeys (U-122)", () => {
+describe("ownsKeys", () => {
   it("a field or a slider owns every key", () => {
     expect(ownsKeys(press(element("<input data-focus>"), "z", true))).toBe(true);
     expect(ownsKeys(press(element('<div role="slider" data-focus></div>'), "ArrowLeft"))).toBe(
@@ -46,7 +46,7 @@ describe("ownsKeys (U-122)", () => {
   });
 });
 
-describe("togglePlay (U-60, R-30)", () => {
+describe("togglePlay", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     useProgram.setState({ program: program([for_("i", num(0), num(3), [print(v("i"))])]) });
@@ -72,7 +72,7 @@ describe("togglePlay (U-60, R-30)", () => {
     expect(useRun.getState()).toMatchObject({ status: "playing", step: 0 });
   });
 
-  it("R-30: during the pre-run it does nothing, and the run opens playing", async () => {
+  it("during the pre-run it does nothing, and the run opens playing", async () => {
     togglePlay();
     const again = vi.spyOn(useRun.getState(), "run");
     togglePlay();

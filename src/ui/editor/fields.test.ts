@@ -1,4 +1,4 @@
-// U-123: a field of the editor's sentence is named by the template's words before it, else by
+// A field of the editor's sentence is named by the template's words before it, else by
 // the block's label.
 import { describe, expect, it } from "vitest";
 import { nodeText } from "@/i18n/t";
@@ -7,7 +7,7 @@ import { fieldLabel } from "./fields";
 
 const { assign, print, for_, num, v, exprStmt } = ast;
 
-describe("fieldLabel (U-123)", () => {
+describe("fieldLabel", () => {
   it("names a field by the words before it, and one the sentence starts with by the label", () => {
     const set = assign("total", num(1));
     const p = program([assign("total", num(0)), set]);

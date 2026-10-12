@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
-// U-01: the hash routes of the pages built; U-07: anything else shows the Problems page.
+// The hash routes of the pages built; anything else shows the Problems page.
 import { describe, expect, it } from "vitest";
 import { PLAYGROUND_KEY } from "@/store/playground";
 import { parseRoute, resolveRoute, routeHash, type Route } from "./route";
 
-describe("routes (U-01)", () => {
+describe("routes", () => {
   it.each<[string, Route]>([
     ["", { page: "problems" }],
     ["#/", { page: "problems" }],
@@ -28,7 +28,7 @@ describe("routes (U-01)", () => {
   });
 });
 
-describe("unknown routes (U-07)", () => {
+describe("unknown routes", () => {
   it.each(["#/nope", "#/p", "#/p/", "#/modules", "#/m/heap", "#/p/a/b", "#/p/%E0%A4%A"])(
     "shows Problems for %j",
     (hash) => {
@@ -41,7 +41,7 @@ describe("unknown routes (U-07)", () => {
     expect(resolveRoute("#/p/fizzbuzz")).toEqual({ page: "problem", id: "fizzbuzz" });
   });
 
-  it("U-07: shows Problems for a Playground id the Playground does not list", () => {
+  it("shows Problems for a Playground id the Playground does not list", () => {
     localStorage.setItem(PLAYGROUND_KEY, JSON.stringify({ "play-abcdefghijkl": { edited: 1 } }));
     expect(resolveRoute("#/play/play-abcdefghijkl")).toEqual({
       page: "program",

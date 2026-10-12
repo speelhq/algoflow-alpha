@@ -1,4 +1,4 @@
-// U-39, U-60, U-61, U-115: the taken path, marks, current node, and breakpoint drawn while running.
+// The taken path, marks, current node, and breakpoint drawn while running.
 import { describe, expect, it } from "vitest";
 import { ast, program } from "@/nodes/testing";
 import { estimatedWidth, layout } from "./layout";
@@ -27,7 +27,7 @@ function view(partial: Partial<RunView>): RunView {
   };
 }
 
-describe("currentNode (U-115)", () => {
+describe("currentNode", () => {
   it("is a counted loop's init on its enter and its check on a pass", () => {
     const enter = view({ activeId: loop.id, lastEvent: { type: "enter", nodeId: loop.id } });
     expect(currentNode(chart, enter)).toBe(nodeOf(loop.id, "init"));
@@ -41,7 +41,7 @@ describe("currentNode (U-115)", () => {
   });
 });
 
-describe("paint (U-61)", () => {
+describe("paint", () => {
   it("draws the path of the current pass, a labelled edge by its diamond's mark", () => {
     const p = paint(
       chart,
@@ -84,7 +84,7 @@ describe("paint (U-61)", () => {
     expect(no && at(first.id).edges.has(no.id)).toBe(false);
   });
 
-  it("U-61: after a loop with a break, the No edge is taken unless the break reached the exit", () => {
+  it("after a loop with a break, the No edge is taken unless the break reached the exit", () => {
     const stop = ast.brk();
     const jumpy = for_("i", num(0), num(3), [if_(bin("==", v("i"), num(1)), [stop])]);
     const next = print(str("done"));

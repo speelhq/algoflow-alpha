@@ -1,4 +1,4 @@
-// N-08, N-09, U-33, U-51: node text as the chart writes it; U-117: a value as the blocks write it.
+// Node text as the chart writes it; a value as the blocks write it.
 import { describe, expect, it } from "vitest";
 import type { Expr } from "@/lang/types";
 import { ast, program, withInputs } from "@/nodes/testing";
@@ -28,7 +28,7 @@ function expr(python: string): Expr {
   return parsed;
 }
 
-describe("templatePieces and placeholderValue (N-02)", () => {
+describe("templatePieces and placeholderValue", () => {
   it("reads a template as its words and placeholders, in order", () => {
     expect(templatePieces("set {target} to {value}")).toEqual([
       { words: "set " },
@@ -59,7 +59,7 @@ describe("templatePieces and placeholderValue (N-02)", () => {
   });
 });
 
-describe("sentence (N-08)", () => {
+describe("sentence", () => {
   it("renders statements from their template, with the create form of a first assignment", () => {
     const first = assign("total", num(0));
     const again = assign("total", bin("+", v("total"), v("i")));
@@ -90,7 +90,7 @@ describe("sentence (N-08)", () => {
     expect(exprText(expr("x in nums"))).toBe("x is in nums");
   });
 
-  it("parenthesises operators among themselves exactly where the emitter would (E-05)", () => {
+  it("parenthesises operators among themselves exactly where the emitter would", () => {
     expect(exprText(expr("(a + b) * c"))).toBe("(a + b) × c");
     expect(exprText(expr("a + b * c"))).toBe("a + b × c");
     expect(exprText(expr("a - (b - c)"))).toBe("a − (b − c)");
@@ -110,7 +110,7 @@ describe("sentence (N-08)", () => {
     expect(exprText(expr("str(n) + str(m)"))).toBe("(n as text) + (m as text)");
   });
 
-  it("marks variables, and an input still to fill at any depth (U-51)", () => {
+  it("marks variables, and an input still to fill at any depth", () => {
     const hole = empty();
     const parts = exprParts(bin("+", v("total"), hole));
     expect(parts).toEqual([
@@ -143,7 +143,7 @@ describe("sentence (N-08)", () => {
   });
 });
 
-describe("diamonds and generated nodes (U-33, N-09)", () => {
+describe("diamonds and generated nodes", () => {
   it("a diamond is its condition followed by ?, or the placeholder without it", () => {
     expect(joinParts(questionParts(if_(expr("i % 15 == 0"), [])))).toBe(
       "(remainder of i divided by 15) = 0?",
@@ -169,7 +169,7 @@ describe("diamonds and generated nodes (U-33, N-09)", () => {
   });
 });
 
-describe("valueText (U-117)", () => {
+describe("valueText", () => {
   it("writes containers with the same words inside", () => {
     const made = withInputs({ d: { a: [true, null, "x", { $float: 2 }], "$int:3": 1 } }, []);
     const runner = run(made.program, made.inputs, 1);

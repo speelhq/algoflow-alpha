@@ -1,8 +1,8 @@
-// U-21, U-32: a case reads as its inputs, values written as the blocks write them.
+// A case reads as its inputs, values written as the blocks write them.
 import { describe, expect, it } from "vitest";
 import { caseText } from "./caseText";
 
-describe("caseText (U-21, U-32)", () => {
+describe("caseText", () => {
   it("joins every input as name = value", () => {
     expect(caseText({ n: 15 })).toBe("n = 15");
     expect(caseText({ a: 3, b: 9, c: 5 })).toBe("a = 3, b = 9, c = 5");

@@ -1,4 +1,4 @@
-// U-40: the block menu's groups, order, disabled entries, search, and This program; U-127: only
+// The block menu's groups, order, disabled entries, search, and This program, which lists only
 // functions a call can name.
 import { describe, expect, it } from "vitest";
 import { ast, program } from "@/nodes/testing";
@@ -8,8 +8,8 @@ import { menuGroups, searchMenu } from "./menu";
 const { v, while_ } = ast;
 const MAIN = { parent: "main", slot: "main", index: 0 } as const;
 
-describe("block menu (U-40)", () => {
-  it("U-40: groups follow the category order, each starting with its first blocks", () => {
+describe("block menu", () => {
+  it("groups follow the category order, each starting with its first blocks", () => {
     const groups = menuGroups(program([]), MAIN);
     expect(groups.map((group) => group.title)).toEqual(["Basic", "Control", "Function"]);
     const ids = groups.map((group) => group.entries.map((entry) => entry.id));
@@ -17,14 +17,14 @@ describe("block menu (U-40)", () => {
     expect(ids[1]?.slice(0, 3)).toEqual(["if", "for", "while"]);
   });
 
-  it("U-40, N-04: only statement blocks that are not hidden are listed", () => {
+  it("only statement blocks that are not hidden are listed", () => {
     const ids = menuGroups(program([]), MAIN).flatMap((group) => group.entries.map((e) => e.id));
     expect(ids).not.toContain("expr");
     expect(ids).not.toContain("num");
     expect(ids).not.toContain("empty");
   });
 
-  it("U-40: a block whose requires the place does not meet is disabled with the reason", () => {
+  it("a block whose requires the place does not meet is disabled with the reason", () => {
     const loop = while_(v("c"), []);
     const p = program([loop]);
     const outside = menuGroups(p, MAIN).flatMap((group) => group.entries);
@@ -37,7 +37,7 @@ describe("block menu (U-40)", () => {
     expect(inside.find((e) => e.id === "continue")?.disabled).toBeUndefined();
   });
 
-  it("U-40: the program's functions follow under This program as calls", () => {
+  it("the program's functions follow under This program as calls", () => {
     const p = program([], {
       functions: [{ id: "fn0000000001", name: "double", params: ["x"], body: [] }],
     });
@@ -50,7 +50,7 @@ describe("block menu (U-40)", () => {
     expect(stmt?.kind === "expr" && stmt.expr.kind === "call" && stmt.expr.args).toHaveLength(1);
   });
 
-  it("U-127: a function no call can name is not offered: a word of the language, a builtin's name", () => {
+  it("a function no call can name is not offered: a word of the language, a builtin's name", () => {
     const reserved = program([], {
       functions: [
         { id: "fn0000000001", name: "double", params: ["x"], body: [] },
@@ -64,14 +64,14 @@ describe("block menu (U-40)", () => {
     expect(offered).toEqual(["call:double"]);
   });
 
-  it("U-40: entries show the block's template with … for each slot", () => {
+  it("entries show the block's template with … for each slot", () => {
     expect(blankTemplate("for {var} from {start} up to {stop}")).toBe("for … from … up to …");
     const entries = menuGroups(program([]), MAIN).flatMap((group) => group.entries);
     expect(entries.find((e) => e.id === "assign")?.text).toBe("set … to …");
     expect(entries.find((e) => e.id === "print")?.text).toBe("print …");
   });
 
-  it("U-40: the search keeps the entries whose label or help contains the text", () => {
+  it("the search keeps the entries whose label or help contains the text", () => {
     const groups = menuGroups(program([]), MAIN);
     const found = searchMenu(groups, "LOOP");
     expect(found.flatMap((group) => group.entries.map((e) => e.id))).toEqual(
@@ -84,7 +84,7 @@ describe("block menu (U-40)", () => {
     expect(searchMenu(groups, "#")).toEqual([]);
   });
 
-  it("U-40: each created block is a fresh statement", () => {
+  it("each created block is a fresh statement", () => {
     const entry = menuGroups(program([]), MAIN)[0]?.entries[0];
     const a = entry?.create();
     const b = entry?.create();

@@ -1,9 +1,9 @@
-// U-90: a load at the Problems route with no stored work opens the first plan's first problem.
+// A load at the Problems route with no stored work opens the first plan's first problem.
 import { describe, expect, it } from "vitest";
 import { PLANS } from "@/challenges";
 import { firstLaunchTarget } from "./firstLaunch";
 
-describe("first launch (U-90)", () => {
+describe("first launch", () => {
   it("opens the first problem of the first plan when nothing is stored", () => {
     for (const hash of ["", "#", "#/"]) {
       expect(firstLaunchTarget(hash, [], PLANS)).toBe("#/p/tutorial");

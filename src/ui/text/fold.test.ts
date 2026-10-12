@@ -1,8 +1,8 @@
-// U-21: more than eight lines fold to the first five and `… n more`.
+// More than eight lines fold to the first five and `… n more`.
 import { describe, expect, it } from "vitest";
 import { foldLines } from "./fold";
 
-describe("foldLines (U-21)", () => {
+describe("foldLines", () => {
   it("keeps up to eight lines whole", () => {
     const eight = ["1", "2", "3", "4", "5", "6", "7", "8"];
     expect(foldLines(eight)).toEqual({ shown: eight, more: 0 });

@@ -1,4 +1,4 @@
-// U-50, U-120, U-122, U-52, U-53, U-54, U-93: the value line as keys and choices change it.
+// The value line as keys and choices change it.
 import { describe, expect, it } from "vitest";
 import type { Expr, Kind } from "@/lang/types";
 import { ast, program } from "@/nodes/testing";
@@ -76,7 +76,7 @@ const groups = (line: Line, all = false) =>
     ),
   ]);
 
-describe("typing (U-50, U-93)", () => {
+describe("typing", () => {
   it("keys insert what the chart writes", () => {
     expect(py(keys("i%15==0"))).toBe("i % 15 == 0");
     expect(exprText(keys("i%15==0").root)).toBe("(remainder of i divided by 15) = 0");
@@ -108,13 +108,13 @@ describe("typing (U-50, U-93)", () => {
     expect(keys("i 5").root).toMatchObject({ kind: "var", name: "i" });
   });
 
-  it("U-120: a digit that would make an int outside the int range is not taken", () => {
+  it("a digit that would make an int outside the int range is not taken", () => {
     expect(py(keys("9007199254740991"))).toBe("9007199254740991");
     expect(py(keys("90071992547409911"))).toBe("9007199254740991");
     expect(py(keys("9007199254740992"))).toBe("900719925474099");
   });
 
-  it("U-122: the line takes keys without Ctrl or Cmd, and what AltGr makes", () => {
+  it("the line takes keys without Ctrl or Cmd, and what AltGr makes", () => {
     const key = (ctrlKey: boolean, metaKey: boolean, altGraph = false) => ({
       ctrlKey,
       metaKey,
@@ -204,7 +204,7 @@ describe("typing (U-50, U-93)", () => {
   });
 });
 
-describe("choosing (U-53)", () => {
+describe("choosing", () => {
   it("an entry after a value takes it as its first input; inputs left are fields", () => {
     const line = keys("i");
     const abs = choose(line, entry("call:abs"), ctx).line;
@@ -264,7 +264,7 @@ describe("choosing (U-53)", () => {
   });
 });
 
-describe("Backspace and moving (U-54, U-53)", () => {
+describe("Backspace and moving", () => {
   const back = (line: Line, times = 1) => {
     let current = line;
     for (let i = 0; i < times; i += 1) current = backspace(current).line;
@@ -340,7 +340,7 @@ describe("Backspace and moving (U-54, U-53)", () => {
   });
 });
 
-describe("the list (U-52)", () => {
+describe("the list", () => {
   it("where a value is expected: variables, values, Not, Random whole number and ( ), functions", () => {
     expect(groups(empty())).toEqual([
       ["variables", ["i", "total", "n", "ok", "nums"]],
@@ -388,7 +388,7 @@ describe("the list (U-52)", () => {
   });
 });
 
-describe("the functions offered (U-127)", () => {
+describe("the functions offered", () => {
   it("are the program's functions a call can name, with their parameters", () => {
     const fn = (id: string, name: string, params = ["x"]) => ({ id, name, params, body: [] });
     const p = program([], {

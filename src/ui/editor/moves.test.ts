@@ -1,4 +1,4 @@
-// U-36, L-60: where a dragged statement lands, which connectors accept it, and refused drops.
+// Where a dragged statement lands, which connectors accept it, and refused drops.
 import { describe, expect, it } from "vitest";
 import { ast, program } from "@/nodes/testing";
 import { emit } from "@/python/emit";
@@ -7,8 +7,8 @@ import { accepts, moveTarget, tryMove } from "./moves";
 const { assign, num, print, v, while_, brk, if_ } = ast;
 const code = (p: ReturnType<typeof program>) => emit(p, {}).code.trim().split("\n");
 
-describe("moves (U-36)", () => {
-  it("L-60: a place after the statement in its own region counts after its removal", () => {
+describe("moves", () => {
+  it("a place after the statement in its own region counts after its removal", () => {
     const a = print(num(1));
     const b = print(num(2));
     const c = print(num(3));
@@ -23,7 +23,7 @@ describe("moves (U-36)", () => {
     expect("program" in moved && code(moved.program)).toEqual(["print(2)", "print(3)", "print(1)"]);
   });
 
-  it("U-36: a statement moves across regions", () => {
+  it("a statement moves across regions", () => {
     const out = print(v("x"));
     const loop = while_(v("x"), []);
     const p = program([assign("x", num(1)), loop, out]);
@@ -35,7 +35,7 @@ describe("moves (U-36)", () => {
     ]);
   });
 
-  it("U-36: the connectors inside the dragged statement accept no drop", () => {
+  it("the connectors inside the dragged statement accept no drop", () => {
     const inner = print(num(1));
     const branch = if_(v("c"), [inner]);
     const loop = while_(v("c"), [branch]);
@@ -46,7 +46,7 @@ describe("moves (U-36)", () => {
     expect(accepts(p, inner.id, { parent: loop.id, slot: "body", index: 0 })).toBe(true);
   });
 
-  it("U-36: a drop that takes break out of its loop is refused with the message", () => {
+  it("a drop that takes break out of its loop is refused with the message", () => {
     const stop = brk();
     const loop = while_(v("c"), [stop]);
     const p = program([assign("c", num(1)), loop]);
