@@ -1,8 +1,7 @@
 // L-40, L-41, L-43: what is visible where; N-01 `loop` and `requires` places; U-52 Variables.
 import { describe, expect, it } from "vitest";
 import { ast, program } from "@/nodes/testing";
-import { assignedValue, placeContext, siteOf, visibleAt } from "./scope";
-import type { Stmt } from "./types";
+import { assignedValue, placeContext, visibleAt } from "./scope";
 
 const { assign, num, v, bin, print, for_, if_, while_, ret } = ast;
 
@@ -78,21 +77,5 @@ describe("scope", () => {
       loop: false,
       fn: true,
     });
-  });
-
-  it("finds the slot and item that hold a nested expression", () => {
-    const left = v("i");
-    const sum = bin("+", left, num(1));
-    const two = num(2);
-    const out = print(sum, two);
-    const target = ast.assignTo({ kind: "index", list: v("xs"), index: num(0) }, num(9));
-    const p = program([out, target]);
-    expect(siteOf(p, sum.id)).toEqual({ owner: out.id, slot: "args", index: 0 });
-    expect(siteOf(p, two.id)).toEqual({ owner: out.id, slot: "args", index: 1 });
-    expect(siteOf(p, left.id)).toEqual({ owner: sum.id, slot: "left" });
-    const index = (target as Extract<Stmt, { kind: "assign" }>).target;
-    if (index.kind !== "index") throw new Error("not an index target");
-    expect(siteOf(p, index.index.id)).toEqual({ owner: target.id, slot: "target.index" });
-    expect(siteOf(p, "nope00000000")).toBeUndefined();
   });
 });

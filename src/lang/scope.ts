@@ -1,8 +1,8 @@
 // What the editor asks of a program's structure: the names visible at a statement,
-// whether a place lies inside a loop or a function, and where an expression sits.
+// and whether a place lies inside a loop or a function.
 // Registry-driven: slots, `loop`, and regions, never a kind.
 import { getNode, keyOf } from "@/nodes/registry";
-import type { Expr, Id, Node, NodeId, Place, Program, Stmt, Target } from "./types";
+import type { Expr, Id, NodeId, Place, Program, Stmt, Target } from "./types";
 import { childSlots, regionsOf } from "./walk";
 
 type Bag = Record<string, unknown>;
@@ -103,46 +103,4 @@ export function placeContext(program: Program, place: Place): { loop: boolean; f
     at = up.get(at);
   }
   return { loop, fn: at !== undefined && at !== "main" };
-}
-
-/** Where an expression sits: the node holding it, its slot (`target.<field>` in a target), its item. */
-export type ExprSite = { owner: NodeId; slot: string; index?: number };
-
-/** The site of expression `id` within the statements of the program, if it is there. */
-export function siteOf(program: Program, id: NodeId): ExprSite | undefined {
-  const search = (node: Node): ExprSite | undefined => {
-    for (const child of childSlots(node)) {
-      if (child.expr.id === id) {
-        const slot = getNode(keyOf(node)).slots.find((s) => s.name === child.slot);
-        if (slot?.role !== "target") {
-          return child.index === undefined
-            ? { owner: node.id, slot: child.slot }
-            : { owner: node.id, slot: child.slot, index: child.index };
-        }
-        const target = (node as unknown as Bag)[child.slot] as Bag;
-        const field = Object.keys(target).find((key) => target[key] === child.expr);
-        return { owner: node.id, slot: `${child.slot}.${field ?? ""}` };
-      }
-      const found = search(child.expr);
-      if (found) return found;
-    }
-    return undefined;
-  };
-  const walk = (stmts: Stmt[]): ExprSite | undefined => {
-    for (const stmt of stmts) {
-      const found =
-        search(stmt) ??
-        regionsOf(stmt).reduce<ExprSite | undefined>(
-          (hit, region) => hit ?? walk(region.stmts),
-          undefined,
-        );
-      if (found) return found;
-    }
-    return undefined;
-  };
-  for (const fn of program.functions) {
-    const found = walk(fn.body);
-    if (found) return found;
-  }
-  return walk(program.main);
 }
