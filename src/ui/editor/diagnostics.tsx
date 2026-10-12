@@ -62,7 +62,7 @@ export function DiagnosticMessage({ diagnostic }: { diagnostic: Diagnostic }) {
       <span className="flex-1 text-destructive">{errorText(diagnostic)}</span>
       {diagnostic.fix && (
         <Button size="sm" variant="outline" onClick={() => applyFix(diagnostic)}>
-          {t(`editor.fix.${diagnostic.fix}` as "editor.fix.hoistAssign", diagnostic.params)}
+          {t(`editor.fix.${diagnostic.fix}`, diagnostic.params)}
         </Button>
       )}
     </div>

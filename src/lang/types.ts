@@ -1,4 +1,4 @@
-// The Program AST, run-time values, diagnostics, and edit names (docs/spec/language/language.md).
+// The Program AST, run-time values, and diagnostics (docs/spec/language/language.md).
 // No third-party imports.
 
 export type NodeId = string; // 12 characters from the nanoid alphabet (id.ts)
@@ -150,25 +150,11 @@ export type Diagnostic = {
   nodeId: NodeId;
   code: DiagnosticCode;
   params: Record<string, string | number>;
-  fix?: EditName;
+  /** The edit that fixes it: `hoistAssign`, for `E_DECLARE_FIRST`. */
+  fix?: "hoistAssign";
 };
 
 // ---------------------------------------------------------------- Edits
-
-export type EditName =
-  | "insertStmt"
-  | "moveStmt"
-  | "removeStmt"
-  | "duplicateStmt"
-  | "setSlot"
-  | "setExpr"
-  | "removeItem"
-  | "renameName"
-  | "setStmtName"
-  | "addFunction"
-  | "removeFunction"
-  | "setParams"
-  | "hoistAssign";
 
 /** A statement position. `parent` is a frame or function id, or "main". */
 export type Place = {
