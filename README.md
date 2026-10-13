@@ -1,5 +1,9 @@
 # AlgoFlow
 
+> This repository is archived. AlgoFlow continues at
+> [speelhq/algoflow](https://github.com/speelhq/algoflow), published at
+> <https://algoflow.speel.workers.dev>.
+
 A block-based algorithm learning tool for people who have never programmed.
 The learner builds a program as a flowchart, runs it on one input and
 watches each step, compares the result with the expected one, and submits.
